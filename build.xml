@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project basedir="." default="all" name="openDLX">
+<project basedir="." default="all" name="riscVivid">
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="7"/>
     <property name="source" value="7"/>
-    <path id="openDLX.classpath">
+    <path id="riscVivid.classpath">
         <pathelement location="bin"/>
         <pathelement location="lib_local/apache-log4j-1.2.17/log4j-1.2.17.jar"/>
     </path>
@@ -19,8 +19,8 @@
     </target>
     <target name="clean">
         <delete dir="bin"/>
-        <delete file="openDLX.jar"/>
-		<delete file="openDLX_deploy.zip"/>
+        <delete file="riscVivid.jar"/>
+		<delete file="riscVivid_deploy.zip"/>
     </target>
     <target name="clean_doxy">
     	<delete dir="doc/doxygen/html"/>
@@ -32,29 +32,29 @@
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}" includeantruntime="false">
             <src path="src"/>
-            <classpath refid="openDLX.classpath"/>
+            <classpath refid="riscVivid.classpath"/>
         </javac>
     </target>
 	<target name="create_run_jar">
 		<mkdir dir="./bin/META-INF/"/>
-			<copy file="LICENSE" tofile="./bin/META-INF/LICENSE.openDLX"/>
-			<copy file="README" tofile="./bin/META-INF/README.openDLX"/>
-			<copy file="log4j.properties" tofile="./bin/openDLX/log4j.properties"/>
-			<copy file="log4j_full.properties" tofile="./bin/openDLX/log4j_full.properties"/>
-			<copy file="log4j_info.properties" tofile="./bin/openDLX/log4j_info.properties"/>
-			<copy file="log4j_warn.properties" tofile="./bin/openDLX/log4j_warn.properties"/>
+			<copy file="LICENSE" tofile="./bin/META-INF/LICENSE.riscVivid"/>
+			<copy file="README" tofile="./bin/META-INF/README.riscVivid"/>
+			<copy file="log4j.properties" tofile="./bin/riscVivid/log4j.properties"/>
+			<copy file="log4j_full.properties" tofile="./bin/riscVivid/log4j_full.properties"/>
+			<copy file="log4j_info.properties" tofile="./bin/riscVivid/log4j_info.properties"/>
+			<copy file="log4j_warn.properties" tofile="./bin/riscVivid/log4j_warn.properties"/>
 			<copy file="lib_local/apache-log4j-1.2.17/LICENSE" tofile="./bin/META-INF/LICENSE.log4j"/>
 			<copy file="lib_local/apache-log4j-1.2.17/NOTICE" tofile="./bin/META-INF/NOTICE.log4j"/>
 		<mkdir dir="./bin/img/"/>
-			<copy file="img/openDLX_small.png" tofile="./bin/img/openDLX_small.png"/>
-			<copy file="img/openDLX-quadrat128x128.png" tofile="./bin/img/openDLX-quadrat128x128.png"/>
-			<copy file="img/openDLX-quadrat16x16.png" tofile="./bin/img/openDLX-quadrat16x16.png"/>
-        <jar destfile="openDLX.jar" filesetmanifest="mergewithoutmain">
+			<copy file="img/riscVivid_small.png" tofile="./bin/img/riscVivid_small.png"/>
+			<copy file="img/riscVivid-quadrat128x128.png" tofile="./bin/img/riscVivid-quadrat128x128.png"/>
+			<copy file="img/riscVivid-quadrat16x16.png" tofile="./bin/img/riscVivid-quadrat16x16.png"/>
+        <jar destfile="riscVivid.jar" filesetmanifest="mergewithoutmain">
             <manifest>
-                <attribute name="Main-Class" value="openDLX.main.OpenDLXSimulatorMain"/>
+                <attribute name="Main-Class" value="riscVivid.main.RiscVividSimulatorMain"/>
 				<attribute name="Class-Path" value="."/>
 				<attribute name="Implementation-Vendor" value="University of Augsburg"/>
-				<attribute name="Implementation-Title" value="openDLX"/>
+				<attribute name="Implementation-Title" value="riscVivid"/>
 			</manifest>
             <fileset dir="./bin"/>
 			<zipfileset includes="**/*.class" src="lib_local/apache-log4j-1.2.17/log4j-1.2.17.jar"/>
@@ -64,20 +64,20 @@
 	<target name="generate-doxygen-docs">
 		  <taskdef name="doxygen" classname="org.doxygen.tools.DoxygenTask" 
 		    classpath="lib_local/ant-doxygen/lib/ant_doxygen.jar" />
-		  <doxygen configFilename="openDLX.Doxyfile">
+		  <doxygen configFilename="riscVivid.Doxyfile">
 		           <property name="INPUT" value="${srcdir}" />
 		           <property name="RECURSIVE" value="yes" />
 		  </doxygen>
 	  </target>
 	  <target depends="build_and_package" name="deploy">
-		  <delete file="openDLX_deploy.zip"/>
-		  <zip destfile="openDLX_deploy.zip">
-			  <zipfileset dir="." includes="openDLX.jar"/>
+		  <delete file="riscVivid_deploy.zip"/>
+		  <zip destfile="riscVivid_deploy.zip">
+			  <zipfileset dir="." includes="riscVivid.jar"/>
 			  <zipfileset dir="." includes="README"/>
 			  <zipfileset dir="." includes="LICENSE"/>
 			  <zipfileset dir="." includes="CHANGELOG"/>
 			  <zipfileset dir="." includes="log4j*"/>
-			  <zipfileset dir="." includes="run_openDLX.sh"/>
+			  <zipfileset dir="." includes="run_riscVivid.sh"/>
 			  <zipfileset dir="./apps/dlx_apps/" prefix="apps/dlx_apps" includes="*.s"/>
 			  <zipfileset dir="./apps/mips_apps/" prefix="apps/mips_apps" includes="**/*.cfg, **/*.c, **/*.h, **/*.s, **/*.sh, **/Makefile, **/*.txt, **/README"/>
 		  </zip>

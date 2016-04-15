@@ -10,8 +10,6 @@
 *.out
 ~*
 bin/
-/openDLX/nbproject/private/
-/openDLX/build/
 *Configuration.cfg
 /.classpath
 /.settings
