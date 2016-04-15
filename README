@@ -1,11 +1,11 @@
-openDLX v1.0 - A DLX/MIPS processor simulator.
-Copyright (C) 2013 The openDLX project, University of Augsburg
+riscVivid v1.2 - A RISC-V processor simulator.
+Copyright (C) 2013-2016 The riscVivid project, University of Augsburg
 
-Core contributors: Stefan Metzlaff, Alexander Vogelgsang, and Nico Krezic-Luger
-Contributors: Arne Garbade, Patrick Lehner
+riscVivid is a fork of openDLX <http://sourceforge.net/projects/opendlx>
 
-Project URL: <http://sourceforge.net/projects/opendlx>
-Development branch: <https://github.com/smetzlaff/openDLX>
+openDLX contributors: Stefan Metzlaff, Alexander Vogelgsang, Nico Krezic-Luger,
+                      Arne Garbade, Patrick Lehner
+RISC-V support:       Jörg Mische
 
 
 ----------------------------
@@ -42,13 +42,13 @@ Usage
 ----------------------------
 
 For GUI version:
-  java -jar openDLX.jar [-g]
+  java -jar riscVivid.jar [-g]
 For non interactive version:
-  java -jar openDLX.jar -c config_file.cfg
+  java -jar riscVivid.jar -c config_file.cfg
 For help message:
-  java -jar openDLX.jar -h
+  java -jar riscVivid.jar -h
 About & license information:
-  java -jar openDLX.jar -about
+  java -jar riscVivid.jar -about
 
 ----------------------------
 License

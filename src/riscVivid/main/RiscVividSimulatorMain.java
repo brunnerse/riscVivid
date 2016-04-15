@@ -1,8 +1,7 @@
 /*******************************************************************************
- * riscVivid - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
- * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/riscVivid>
+ * riscVivid - A RISC-V processor simulator.
+ * Copyright (C) 2013-2016 The riscVivid project, University of Augsburg, Germany
+ * <https://github.com/unia-sik/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -85,7 +84,7 @@ public class RiscVividSimulatorMain
     	System.out.println("+==============================================+");
     	System.out.println("|   riscVivid - a RISC-V processor simulator   |");
     	System.out.println("|   Version "+GlobalConfig.VERSION+blanks+"|");
-    	System.out.println("| Copyright (C) 2013-15 University of Augsburg |");
+    	System.out.println("| Copyright (C) 2013-2016-15 University of Augsburg |");
     	System.out.println("+==============================================+");
     	System.out.println("| Usage:                                       |");
     	System.out.println("| For GUI version:                             |");
