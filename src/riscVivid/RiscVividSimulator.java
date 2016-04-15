@@ -99,13 +99,13 @@ public class RiscVividSimulator
     }
 
 
-    public RiscVividSimulator(File args) throws PipelineException
+    public RiscVividSimulator(String configfile) throws PipelineException
     {
         config = new Properties();
 
         try
         {
-            config.load(new FileInputStream(args.getAbsolutePath()));
+            config.load(new FileInputStream(configfile));
         }
         catch (FileNotFoundException e)
         {
@@ -198,6 +198,11 @@ public class RiscVividSimulator
         initializePipelineLatches();
         ClockCycleLog.log.clear();
         ClockCycleLog.code.clear();
+    }
+
+    public RiscVividSimulator(File args) throws PipelineException
+    {
+        this(args.getAbsolutePath());
     }
 
     public void step() throws PipelineException

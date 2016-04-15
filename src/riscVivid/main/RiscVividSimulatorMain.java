@@ -84,7 +84,7 @@ public class RiscVividSimulatorMain
     	System.out.println("+==============================================+");
     	System.out.println("|   riscVivid - a RISC-V processor simulator   |");
     	System.out.println("|   Version "+GlobalConfig.VERSION+blanks+"|");
-    	System.out.println("| (C)opyright 2013-2016-15 University of Augsburg |");
+    	System.out.println("| (C)opyright 2013-2016 University of Augsburg |");
     	System.out.println("+==============================================+");
     	System.out.println("| Usage:                                       |");
     	System.out.println("| For GUI version:                             |");
@@ -117,7 +117,7 @@ public class RiscVividSimulatorMain
     {
     	RiscVividSimulator cmdl;
 		try {
-			cmdl = new RiscVividSimulator(args);
+			cmdl = new RiscVividSimulator(args[0]);
 		} catch (PipelineException e) {
 			e.printStackTrace();
 			cmdl = null;

@@ -22,16 +22,16 @@ package riscVivid.config;
 
 public interface GlobalConfig {
 	static final String PREFERENCES_DIR = "/riscVivid";
-	static final String VERSION = "1.1-1";
+	static final String VERSION = "1.2";
 	static final String ABOUT = 
 			"riscVivid v"+VERSION+" - A RISC-V processor simulator.\n"
-					+"Copyright (C) 2015 The riscVivid project, University of Augsburg\n\n"
-					+"Core contributors: Stefan Metzlaff, Alexander Vogelgsang,\nand Nico Krezic-Luger\n"
-					+"Contributors: Arne Garbade, Patrick Lehner\n"
-					+"RISC-V support: Jörg Mische\n"
+					+"(C)opyright 2013-2016 The riscVivid project, University of Augsburg\n\n"
+					+"openDLX contributors: Stefan Metzlaff, Alexander Vogelgsang, Nico Krezic-Luger\n"
+					+"                      Arne Garbade, Patrick Lehner\n"
+					+"RISC-V support:       Jörg Mische\n"
 					+"\n"
-//					+"https://github.com/unia-sik/riscVivid\n"
-//					+"\n"
+					+"https://github.com/unia-sik/riscVivid\n"
+					+"\n"
 					+"This program is free software: you can redistribute it and/or modify\n"
 					+"it under the terms of the GNU General Public License as published by\n"
 					+"the Free Software Foundation, either version 3 of the License, or\n"
