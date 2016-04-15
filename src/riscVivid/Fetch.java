@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,16 +19,16 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX;
+package riscVivid;
 
 import java.util.Queue;
 
 import org.apache.log4j.Logger;
 
-import openDLX.datatypes.*;
-import openDLX.exception.MemoryException;
-import openDLX.memory.InstructionMemory;
-import openDLX.util.Statistics;
+import riscVivid.datatypes.*;
+import riscVivid.exception.MemoryException;
+import riscVivid.memory.InstructionMemory;
+import riscVivid.util.Statistics;
 
 public class Fetch {
 
@@ -103,7 +103,11 @@ public class Fetch {
 		{
 			if(efd.getMispredictedBranch() == true)
 			{
-				logger.debug("mispredicted branch at pc " + efd.getPc().getValueAsHexString() + " the branch was actually " + ((efd.getJump())?("taken to " + efd.getNewPc().getValueAsHexString()):("not taken next instr is " + new uint32(efd.getPc().getValue()+8).getValueAsHexString())));
+				logger.debug("mispredicted branch at pc " 
+					+ efd.getPc().getValueAsHexString() 
+					+ " the branch was actually " + ((efd.getJump())
+						? ("taken to " + efd.getNewPc().getValueAsHexString())
+						: ("not taken next instr is " + new uint32(efd.getPc().getValue()+8).getValueAsHexString())));
 				flush[PipelineConstants.DECODE_STAGE] = true;
 				if(efd.getJump() == true)
 				{
@@ -147,6 +151,13 @@ public class Fetch {
 			flush[PipelineConstants.EXECUTE_STAGE] = true;
 		}
 
+		// flush branch delay slot on taken branch
+		if((efd.getInst().getBranch()) && (efd.getJump() == true) && (ArchCfg.no_branch_delay_slot==true))
+		{
+			logger.debug("branch was taken, flushing branch delay slot");
+			flush[PipelineConstants.EXECUTE_STAGE] = true;
+		}
+		
 		uint32 instr = doFetch();
 		if(instr != null)
 		{

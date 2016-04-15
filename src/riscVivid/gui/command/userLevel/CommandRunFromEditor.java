@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,41 +19,39 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.command.userLevel;
+package riscVivid.gui.command.userLevel;
 
 import java.io.File;
 
 import javax.swing.JInternalFrame;
 
-import openDLX.gui.MainFrame;
-import openDLX.gui.command.Command;
-import openDLX.gui.command.systemLevel.CommandCompileCode;
-import openDLX.gui.command.systemLevel.CommandResetSimulator;
-import openDLX.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
-import openDLX.gui.command.systemLevel.CommandStartExecuting;
-import openDLX.gui.command.systemLevel.CommandWriteToTmpFile;
-import openDLX.gui.internalframes.concreteframes.editor.EditorFrame;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.command.Command;
+import riscVivid.gui.command.systemLevel.CommandCompileCode;
+import riscVivid.gui.command.systemLevel.CommandResetSimulator;
+import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
+import riscVivid.gui.command.systemLevel.CommandStartExecuting;
+import riscVivid.gui.command.systemLevel.CommandWriteToTmpFile;
 
 public class CommandRunFromEditor implements Command
 {
 
-    private EditorFrame ef;
+    private MainFrame mf;
 
-    public CommandRunFromEditor(EditorFrame ef)
+    public CommandRunFromEditor(MainFrame mf)
     {
-        this.ef = ef;
+        this.mf = mf;
     }
 
     @Override
     public void execute()
     {
-        MainFrame mf = MainFrame.getInstance();
         if (!mf.isRunning())
         {
             //save current window position
             new CommandSaveFrameConfigurationSysLevel(mf).execute();
             //create new temporary file
-            CommandWriteToTmpFile c10 = new CommandWriteToTmpFile(ef.getText());
+            CommandWriteToTmpFile c10 = new CommandWriteToTmpFile(mf.getEditorText());
             c10.execute();
             File tmpFile = c10.getTmpFile();
 
@@ -73,7 +71,7 @@ public class CommandRunFromEditor implements Command
                 {
                     new CommandResetSimulator(mf).execute();
 
-                    //initialize openDLX and create internal frames, set status to executing
+                    //initialize riscVivid and create internal frames, set status to executing
                     new CommandStartExecuting(mf, configFile, intFrameOrder).execute();
                 }
             }

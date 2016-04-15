@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.util;
+package riscVivid.util;
 
 import java.io.File;
 
@@ -35,7 +35,7 @@ public class TmpFileCleaner
     	for (int i = 0; i < allFiles.length; ++i)
     	{
     		// FIXME -> static name used!
-    		if (allFiles[i].getName().contains("openDLX"))
+    		if (allFiles[i].getName().contains("riscVivid"))
     		{
     			allFiles[i].deleteOnExit();
     		}

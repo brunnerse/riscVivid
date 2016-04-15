@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.asm.parser;
+package riscVivid.asm.parser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,15 +27,16 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import openDLX.asm.AssemblerException;
-import openDLX.asm.MemoryBuffer;
-import openDLX.asm.instruction.Instruction;
-import openDLX.asm.instruction.InstructionException;
-import openDLX.asm.instruction.Registers;
-import openDLX.asm.tokenizer.Token;
-import openDLX.asm.tokenizer.TokenType;
-import openDLX.asm.tokenizer.Tokenizer;
-import openDLX.asm.tokenizer.TokenizerException;
+import riscVivid.asm.AssemblerException;
+import riscVivid.asm.MemoryBuffer;
+import riscVivid.asm.instruction.Instruction;
+import riscVivid.asm.instruction.InstructionException;
+import riscVivid.asm.instruction.Instructions;
+import riscVivid.asm.instruction.Registers;
+import riscVivid.asm.tokenizer.Token;
+import riscVivid.asm.tokenizer.TokenType;
+import riscVivid.asm.tokenizer.Tokenizer;
+import riscVivid.asm.tokenizer.TokenizerException;
 
 public class Parser {
 	private static final String INCOMPLETE_DIRECTIVE = "incomplete directive";
@@ -44,21 +45,18 @@ public class Parser {
 	private static final String LABEL_ALREADY_EXISTS = "label already exists";
 	private static final String LABEL_DOES_NOT_EXISTS = "label does not exist";
 	private static final String LABEL_NOT_ALLOWED_HERE = "Label not allowed here";
-	private static final String MISSING_PARANTHESIS = "missing paranthesis";
 	private static final String MISSING_SEPARATOR = "missing separator before";
-	private static final String NO_NOP = "this is no nop instruction";
 	private static final String NOT_A_NUMBER = "expected number or label but got";
 	private static final String NOT_A_REGISTER = "expected register specifier but got";
 	private static final String NUMBER_NEGATIVE = "negative value not allowed here";
 	private static final String NUMBER_TOO_BIG = "number is too big or too small";
+	private static final String REG_OR_IMM = "expected register or number but got";
 	private static final String TEXT_OVERFLOW = "text segment overflow";
 	private static final String UNKNOWN_MNEMONIC = "unknown mnemonic";
-	private static final String UNKNOWN_MNEMONIC_TYPE = "unknown mnemonic type";
 	private static final String UNEXPECTED_LITERAL_END = "unexpected end of string literal";
 	private static final String UNEXPECTED_TOKEN = "unexpected token";
 	private static final String UNEXPECTED_TRASH = "unexpected trash at end of line";
 	private static final String UNKNOWN_DIRECTIVE = "unknown directive";
-	private static final String UNKNOWN_TRAP_ID = "unknown trap id";
 
 	/*
 	 * This parser runs up to two times over the code.
@@ -219,19 +217,12 @@ public class Parser {
 	 * ==============================* Mnemonics *==============================
 	 */
 	/**
-	 * ALU_IMMEDIATE ALU_REGISTER BRANCH JUMP JUMP_REGISTER LOAD LOAD_IMMEDIATE
-	 * NOP SAVE SHIFT_IMMEDIATE TRAP
-	 * 
 	 * @param tokens
 	 * @throws ParserException
 	 */
 	private void parseMnemonic(Token[] tokens) throws ParserException {
-		Instruction instr = Instruction.fromMnemonic(tokens[0].getString());
-
-		//unknown mnemonic
-		if (instr == null)
-			throw new ParserException(UNKNOWN_MNEMONIC, tokens[0]);
-
+		int iw;
+		
 		//unresolved labels
 		Token t = resolveLabels(tokens);
 		if (t != null) {
@@ -240,146 +231,95 @@ public class Parser {
 			unresolvedInstructions_.add(new UnresolvedInstruction(tokens, segmentPointer_.get(),
 					segmentPointer_ == textPointer_ ? true : false));
 		} else {
-			switch (instr.calcInstType()) {
-			case ALU_IMMEDIATE:
-				aluImmediate(instr, tokens);
+			switch (Instructions.instance().getParseType(tokens[0].getString())) {
+			case RTYPE:
+				iw = rType(tokens);
 				break;
-			case ALU_REGISTER:
-				aluRegister(instr, tokens);
+			case ITYPE:
+				iw = iType(tokens);
 				break;
-			case BRANCH:
-				branch(instr, tokens);
+			case STYPE:
+				iw = memory(tokens, true);
+				break;
+			case UTYPE:
+				iw = uType(tokens);
+				break;
+			case BTYPE:
+				iw = bType(tokens);
+				break;
+			case JTYPE:
+				iw = jType(tokens);
 				break;
 			case JUMP:
-				jump(instr, tokens);
+				iw = jump(tokens);
 				break;
-			case JUMP_REGISTER:
-				jumpRegister(instr, tokens);
+			case ARITH:
+				iw = arith(tokens, false);
+				break;
+			case SHIFT:
+				iw = arith(tokens, true);
 				break;
 			case LOAD:
-				load(instr, tokens);
+				iw = memory(tokens, false);
 				break;
-			case LOAD_IMMEDIATE:
-				loadImmediate(instr, tokens);
+			case ONEREG:
+				iw = oneReg(tokens);
 				break;
-			case NOP:
-				nop(instr, tokens);
+			case SRCREG:
+				iw = srcReg(tokens);
 				break;
-			case SAVE:
-				save(instr, tokens);
-				break;
-			case SHIFT_REGISTER:
-				shiftRegister(instr, tokens);
-				break;
-			case SHIFT_IMMEDIATE:
-				shiftImmediate(instr, tokens);
-				break;
-			case TRAP:
-				trap(instr, tokens);
+			case NOARGS:
+				iw = noArgs(tokens);
 				break;
 			default:
-				throw new ParserException(UNKNOWN_MNEMONIC_TYPE, tokens[0]);
+				throw new ParserException(UNKNOWN_MNEMONIC, tokens[0]);
 			}
 			if (memory_.getTextEnd() >= memory_.getDataBegin()
 					&& memory_.getTextEnd() <= memory_.getDataEnd()) {
 				//TODO translate text data? throw exception?
 				throw new ParserException(TEXT_OVERFLOW, tokens[0]);
 			}
-			memory_.writeWord(segmentPointer_.get(), instr.instrWord());
+			memory_.writeWord(segmentPointer_.get(), iw);
 		}
 		segmentPointer_.add(4);
 		memory_.setTextEnd(segmentPointer_.get());
 	}
 
-	/**
-	 * e.g. addi r1,r0,200
-	 * 
-	 * @param instr
-	 * @param tokens
-	 * @return
-	 * @throws ParserException
-	 */
-	private void aluImmediate(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
-		try {
-			Integer value;
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRt(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//r0
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRs(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//+-200
-			++i;
-			boolean negative = false;
-			if (tokens[i].getString().equals("+")) {
-				negative = false;
-				++i;
-			} else if (tokens[i].getString().equals("-")) {
-				negative = true;
-				++i;
-			}
-			value = Integer.decode(tokens[i].getString());
-			if (negative)
-				value = -value;
-			instr.setOffset(value);
-			if (i < tokens.length - 1) {
-				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
-			}
-
-		} catch (ArrayIndexOutOfBoundsException ex) {
-			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
-		} catch (InstructionException ex) {
-			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
-		} catch (NullPointerException ex) {
-			throw new ParserException(NOT_A_REGISTER, tokens[i]);
-		} catch (NumberFormatException ex) {
-			throw new ParserException(NOT_A_NUMBER, tokens[i]);
-		}
+	private void expect(Token t, String s) throws ParserException
+	{
+		if (!t.getString().equals(s))
+			throw new ParserException(MISSING_SEPARATOR, t);
 	}
 
+	private int expect_reg(Token t) throws ParserException
+	{
+		Integer	reg = Registers.instance().getInteger(t.getString());
+		if (reg==null) throw new ParserException(NOT_A_REGISTER, t);
+		return reg;
+	}
+	
+	
+	
 	/**
-	 * e.g. add r1,r2,r3
+	 * e.g. sub r1,r2,r3
 	 * 
-	 * @param instr
 	 * @param tokens
 	 * @return
 	 * @throws ParserException
 	 */
-	private void aluRegister(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
+	private int rType(Token[] tokens) throws ParserException 
+	{
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
 		try {
-			Integer value;
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRd(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//r2
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRs(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//r3
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRt(value);
+			instr.setRd(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setRs(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setRt(expect_reg(tokens[i++]));
+			if (i < tokens.length)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
+			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
 		} catch (NullPointerException ex) {
@@ -390,71 +330,24 @@ public class Parser {
 	}
 	
 	/**
-	 * e.g. sll(v) r1,r2,r3
+	 * jalr r1, gp, 0
 	 * 
-	 * @param instr
 	 * @param tokens
 	 * @return
 	 * @throws ParserException
 	 */
-	private void shiftRegister(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
+	private int iType(Token[] tokens) throws ParserException {
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
 		try {
-			Integer value;
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRd(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//r2
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRt(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//r3
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRs(value);
-		} catch (ArrayIndexOutOfBoundsException ex) {
-			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
-		} catch (NullPointerException ex) {
-			throw new ParserException(NOT_A_REGISTER, tokens[i]);
-		} catch (InstructionException ex) {
-			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
-		}
-	}
-
-	/**
-	 * e.g. beqz r1,Label+4
-	 * 
-	 * @param instr
-	 * @param tokens
-	 * @return
-	 * @throws ParserException
-	 */
-	private void branch(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
-		try {
-			Integer value;
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRs(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//Label+4
-			++i;
-			value = Integer.decode(tokens[i].getString());
-			value -= segmentPointer_.get() + 4;
-			instr.setOffset(value >> 2);
+			instr.setRd(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setRs(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setImmI(Integer.decode(tokens[i++].getString()));
+			if (i < tokens.length)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
+			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
 		} catch (InstructionException ex) {
@@ -467,110 +360,22 @@ public class Parser {
 	}
 
 	/**
-	 * e.g. j Label+4
+	 * e.g. lui r1, 123
 	 * 
-	 * @param instr
 	 * @param tokens
 	 * @return
 	 * @throws ParserException
 	 */
-	private void jump(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
+	private int uType(Token[] tokens) throws ParserException {
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
 		try {
-			//Label+4
-			++i;
-			Integer value = Integer.decode(tokens[i].getString());
-			//i -= textSegment_ + 4;
-			instr.setInstrIndex(value >> 2);
-		} catch (ArrayIndexOutOfBoundsException ex) {
-			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
-		} catch (InstructionException ex) {
-			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
-		} catch (NumberFormatException ex) {
-			throw new ParserException(NOT_A_NUMBER, tokens[i]);
-		}
-	}
-
-	/**
-	 * e.g. jr r31
-	 * 
-	 * @param instr
-	 * @param tokens
-	 * @return
-	 * @throws ParserException
-	 */
-	private void jumpRegister(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
-		try {
-			//r31
-			++i;
-			Integer value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRs(value);
-		} catch (ArrayIndexOutOfBoundsException ex) {
-			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
-		} catch (InstructionException ex) {
-			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
-		} catch (NullPointerException ex) {
-			throw new ParserException(NOT_A_REGISTER, tokens[i]);
-		}
-	}
-
-	/**
-	 * e.g. lb r1,Label+4(r2)
-	 * 
-	 * @param instr
-	 * @param tokens
-	 * @return
-	 * @throws ParserException
-	 */
-	private void load(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
-		try {
-			Integer value;
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRt(value);
-			//,	
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//optional Label
-			if (!tokens[i + 1].getString().equals("(")) {
-				++i;
-				value = Integer.decode(tokens[i].getString());
-				instr.setOffset(value);
-			}
-			//TODO do it better
-			//optional +4
-			++i;
-			if (tokens.length > i && tokens[i].getString().equals("+")) {
-				++i;
-				value += Integer.decode(tokens[i].getString());
-				instr.setOffset(value);
-				++i;
-			}
-			if (tokens.length > i && tokens[i].getString().equals("-")) {
-				++i;
-				value -= Integer.decode(tokens[i].getString());
-				instr.setOffset(value);
-				++i;
-			}
-
-			//optional (r2)
-			if (tokens.length <= i)
-				return;
-			//(
-			if (!tokens[i].getString().equals("("))
-				throw new ParserException(MISSING_PARANTHESIS, tokens[i]);
-			//r2
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setBase(value);
-			//)
-			++i;
-			if (!tokens[i].getString().equals(")"))
-				throw new ParserException(MISSING_PARANTHESIS, tokens[i]);
+			instr.setRd(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setImmU(Integer.decode(tokens[i++].getString()));
+			if (i < tokens.length)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
+			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
 		} catch (InstructionException ex) {
@@ -583,42 +388,100 @@ public class Parser {
 	}
 
 	/**
-	 * e.g. lhi r1,Label+4
+	 * e.g. sw ra, -16(sp)
 	 * 
-	 * @param instr
 	 * @param tokens
 	 * @return
 	 * @throws ParserException
 	 */
-	private void loadImmediate(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
+	private int memory(Token[] tokens, boolean store) throws ParserException {
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
 		try {
-			Integer value;
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRt(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//Label+4
-			++i;
-			boolean negative = false;
-			if (tokens[i].getString().equals("+")) {
-				negative = false;
-				++i;
-			} else if (tokens[i].getString().equals("-")) {
-				negative = true;
-				++i;
+			int reg = expect_reg(tokens[i++]);
+			expect(tokens[i++], ",");
+			int imm = Integer.decode(tokens[i++].getString());
+			expect(tokens[i++], "(");
+			instr.setRs(expect_reg(tokens[i++]));
+			expect(tokens[i++], ")");
+			if (i < tokens.length)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
+			if (store) {
+				instr.setRt(reg);
+				instr.setImmS(imm);
+			} else {
+				instr.setRd(reg);
+				instr.setImmI(imm);
 			}
-			value = Integer.decode(tokens[i].getString());
-			if (negative)
-				value = -value;
-			instr.setOffset(value);
+			return instr.instrWord();
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
+		} catch (InstructionException ex) {
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
+		} catch (NullPointerException ex) {
+			throw new ParserException(NOT_A_REGISTER, tokens[i]);
+		} catch (NumberFormatException ex) {
+			throw new ParserException(NOT_A_NUMBER, tokens[i]);
+		}
+	}
+
+	/**
+	 * e.g. beq a1, a0, relative
+	 * 
+	 * @param tokens
+	 * @return
+	 * @throws ParserException
+	 */
+	private int bType(Token[] tokens) throws ParserException {
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
+		try {
+			instr.setRs(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setRt(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setImmB(Integer.decode(tokens[i++].getString()) - segmentPointer_.get());
+			if (i < tokens.length) {
+				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
+			}
+			return instr.instrWord();
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
+		} catch (InstructionException ex) {
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
+		} catch (NullPointerException ex) {
+			throw new ParserException(NOT_A_REGISTER, tokens[i]);
+		} catch (NumberFormatException ex) {
+			throw new ParserException(NOT_A_NUMBER, tokens[i]);
+		}
+	}
+
+	/**
+	 * jal relative
+	 * jal r7, relative
+	 * 
+	 * @param tokens
+	 * @return
+	 * @throws ParserException
+	 */
+	private int jType(Token[] tokens) throws ParserException {
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
+		try {
+			// reg or no reg
+			Integer	value = Registers.instance().getInteger(tokens[i].getString());
+			if (value==null) {
+				instr.setRd(1);
+			} else {
+				instr.setRd(value);
+				i++;
+				expect(tokens[i++], ",");
+			}
+			instr.setImmJ(Integer.decode(tokens[i++].getString()) - segmentPointer_.get());
 			if (i < tokens.length - 1) {
 				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
 			}
+			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
 		} catch (InstructionException ex) {
@@ -631,184 +494,136 @@ public class Parser {
 	}
 
 	/**
-	 * nop
+	 * j relative
 	 * 
-	 * @param instr
 	 * @param tokens
 	 * @return
 	 * @throws ParserException
 	 */
-	private void nop(Instruction instr, Token[] tokens) throws ParserException {
-		//TODO: there must be a better solution for the same opcode problem with slli and nop
-		if (tokens[0].getString().equalsIgnoreCase("slli")) {
-			shiftImmediate(instr, tokens);
-			return;
-		}
-		if (!tokens[0].getString().equalsIgnoreCase("nop"))
-			throw new ParserException(NO_NOP, tokens[0]);
-		if (tokens.length != 1)
-			throw new ParserException(UNEXPECTED_TRASH, tokens[1]);
-	}
-
-	/**
-	 * e.g. sb Label+4(r0),r1
-	 * 
-	 * @param instr
-	 * @param tokens
-	 * @return
-	 * @throws ParserException
-	 */
-	private void save(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
+	private int jump(Token[] tokens) throws ParserException {
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
 		try {
-			Integer value = new Integer(0);
-			//optional Label
-			if (!tokens[i + 1].getString().equals("(")) {
-				++i;
+			instr.setImmJ(Integer.decode(tokens[i++].getString()) - segmentPointer_.get());
+			if (i < tokens.length - 1) {
+				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
+			}
+			return instr.instrWord();
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
+		} catch (InstructionException ex) {
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
+		} catch (NumberFormatException ex) {
+			throw new ParserException(NOT_A_NUMBER, tokens[i]);
+		}
+	}
+	
+	/**
+	 * e.g. add r1,r2,r3
+	 * or   add r1,r2,7
+	 * 
+	 * @param tokens
+	 * @return
+	 * @throws ParserException
+	 */
+	private int arith(Token[] tokens, boolean shift) throws ParserException {
+		int i=1;
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		try {
+			instr.setRd(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setRs(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			// rt or imm
+			Integer value = Registers.instance().getInteger(tokens[i].getString());
+			if (value!=null) {
+				instr.setRt(value);
+				instr.setRegNotImm(true); // reg
+			} else {
 				value = Integer.decode(tokens[i].getString());
-				instr.setOffset(value);
+				if (value==null)
+					throw new ParserException(REG_OR_IMM, tokens[i]);
+				if (shift) instr.setShamt(value);
+				else instr.setImmI(value);
+				instr.setRegNotImm(false); // imm
 			}
-
-			//TODO do it better
-			//optional +4
-			++i;
-			if (tokens[i].getString().equals("+")) {
-				++i;
-				value += Integer.decode(tokens[i].getString());
-				instr.setOffset(value);
-				++i;
+			if (i < tokens.length - 1) {
+				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
 			}
-			if (tokens[i].getString().equals("-")) {
-				++i;
-				value -= Integer.decode(tokens[i].getString());
-				instr.setOffset(value);
-				++i;
-			}
-
-			//optional (r0)
-			if (tokens[i].getString().equals("(")) {
-				//(
-				if (!tokens[i].getString().equals("("))
-					throw new ParserException(MISSING_PARANTHESIS, tokens[i]);
-				//r0
-				++i;
-				value = Registers.instance().getInteger(tokens[i].getString());
-				instr.setBase(value);
-				//)
-				++i;
-				if (!tokens[i].getString().equals(")"))
-					throw new ParserException(MISSING_PARANTHESIS, tokens[i]);
-				++i;
-			}
-			//,
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRt(value);
+			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
-		} catch (InstructionException ex) {
-			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
 		} catch (NullPointerException ex) {
 			throw new ParserException(NOT_A_REGISTER, tokens[i]);
+		} catch (InstructionException ex) {
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
 		} catch (NumberFormatException ex) {
 			throw new ParserException(NOT_A_NUMBER, tokens[i]);
 		}
 	}
-
+	
 	/**
-	 * e.g. slli r2,r1,2
+	 * rdcycle, rdtime, rdinstret
 	 * 
-	 * @param instr
-	 * @param tmpTokens
-	 * @return
-	 * @throws ParserException
-	 */
-	private void shiftImmediate(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
-		try {
-			Integer value;
-			//r2
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRd(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//r1
-			++i;
-			value = Registers.instance().getInteger(tokens[i].getString());
-			instr.setRt(value);
-			//,
-			++i;
-			if (!tokens[i].getString().equals(","))
-				throw new ParserException(MISSING_SEPARATOR, tokens[i]);
-			//2
-			++i;
-			value = Integer.decode(tokens[i].getString());
-			instr.setSa(value);
-		} catch (ArrayIndexOutOfBoundsException ex) {
-			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
-		} catch (InstructionException ex) {
-			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
-		} catch (NullPointerException ex) {
-			throw new ParserException(NOT_A_REGISTER, tokens[i]);
-		} catch (NumberFormatException ex) {
-			throw new ParserException(NOT_A_NUMBER, tokens[i]);
-		}
-	}
-
-	/**
-	 * e.g. trap 0
-	 * 
-	 * @param instr
 	 * @param tokens
 	 * @return
 	 * @throws ParserException
 	 */
-	private void trap(Instruction instr, Token[] tokens) throws ParserException {
-		int i = 0;
+	private int oneReg(Token[] tokens) throws ParserException 
+	{
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
 		try {
-			++i;
-			int trapId = Integer.decode(tokens[i].getString());
-			if (trapId < 0 || trapId > 5)
-				throw new ParserException(UNKNOWN_TRAP_ID, tokens[i]);
-			instr.setRs(trapId);
-			//if someone wants an explicit breakdown
-			/*switch (trapId) {
-			//terminate
-			case 0:
-				break;
-			//open file
-			case 1:
-				break;
-			//close file
-			case 2:
-				break;
-			//read file
-			case 3:
-				break;
-			//write file
-			case 4:
-				break;
-			//formatted output to std out
-			case 5:
-				break;
-			default:
-				throw new ParserException("", null);
-			}*/
+			instr.setRd(expect_reg(tokens[1]));
+			if (tokens.length > 2)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[1]);
+			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
+		} catch (NullPointerException ex) {
+			throw new ParserException(NOT_A_REGISTER, tokens[1]);
 		} catch (InstructionException ex) {
-			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
-		} catch (NumberFormatException ex) {
-			throw new ParserException(NOT_A_NUMBER, tokens[i]);
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[1]);
 		}
 	}
 
+	/**
+	 * jr ra
+	 * 
+	 * @param tokens
+	 * @return
+	 * @throws ParserException
+	 */
+	private int srcReg(Token[] tokens) throws ParserException 
+	{
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		try {
+			instr.setRs(expect_reg(tokens[1]));
+			if (tokens.length > 2)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[1]);
+			return instr.instrWord();
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
+		} catch (NullPointerException ex) {
+			throw new ParserException(NOT_A_REGISTER, tokens[1]);
+		} catch (InstructionException ex) {
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[1]);
+		}
+	}
+	
+	/**
+	 * fence, fence.i, scall, sbreak
+	 * 
+	 * @param tokens
+	 * @return
+	 * @throws ParserException
+	 */
+	private int noArgs(Token[] tokens) throws ParserException {
+		if (tokens.length > 1)
+			throw new ParserException(UNEXPECTED_TRASH, tokens[1]);
+		return Instructions.instance().getInstruction(tokens[0].getString()).instrWord();
+	}
+	
+	
 	/*
 	 * =============================* Directives *=============================
 	 */

@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,14 +19,15 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.command.userLevel;
+package riscVivid.gui.command.userLevel;
 
 import java.io.File;
 import javax.swing.JOptionPane;
-import openDLX.gui.MainFrame;
-import openDLX.gui.command.Command;
-import openDLX.gui.command.systemLevel.CommandOpenCodeFile;
-import openDLX.gui.command.systemLevel.CommandLoadCodeFileToEditor;
+
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.command.Command;
+import riscVivid.gui.command.systemLevel.CommandLoadCodeFileToEditor;
+import riscVivid.gui.command.systemLevel.CommandOpenCodeFile;
 
 public class CommandLoadFile implements Command
 {
@@ -61,6 +62,7 @@ public class CommandLoadFile implements Command
                 {
                     new CommandLoadCodeFileToEditor(mf, f, true).execute();
                     mf.setLoadedCodeFilePath(f.getAbsolutePath());
+                    mf.setEditorFrameVisible();
                 }
             }
             catch (Exception e)

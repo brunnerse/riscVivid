@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,14 +19,20 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.datatypes;
+package riscVivid.datatypes;
 
 
-import openDLX.PipelineConstants;
-import openDLX.exception.PipelineDataTypeException;
+import riscVivid.PipelineConstants;
+import riscVivid.exception.PipelineDataTypeException;
 
 public class Instruction
 {
+	private int funct3;
+	private int funct12;
+	private ImmType immType;
+
+	
+	
 	private uint32 instr;
 	private uint8 opcode;
 	private uint8 function;
@@ -79,6 +85,11 @@ public class Instruction
 	{
 		this.instr = instr;
 		opcode = new uint8();
+	
+		funct3 = 0;
+		funct12 = 0;
+		immType = ImmType.UNKNOWN;
+
 		function = new uint8();
 		rs = new uint8();
 		rt = new uint8();
@@ -138,19 +149,68 @@ public class Instruction
 
 	private void chopInstruction()
 	{
-		opcode.setValue((byte) ((instr.getValue() >> 26) & 0x3F));
+		int iw = instr.getValue();
+		funct3 = (iw>>12) & 0x7;
+		funct12 = (iw>>20) & 0xfff;
+		
+		opcode.setValue((byte) ((instr.getValue()) & 0x7f));
 		function.setValue((byte) (instr.getValue() & 0x3F));
 		offset.setValue((short) (instr.getValue() & 0xFFFF));
 		instr_index.setValue(instr.getValue() & 0x1FFFFFF);
 		sa.setValue((byte) ((instr.getValue() >> 6) & 0x1F));
-		rd.setValue((byte) ((instr.getValue() >> 11) & 0x1F));
-		rt.setValue((byte) ((instr.getValue() >> 16) & 0x1F));
-		rs.setValue((byte) ((instr.getValue() >> 21) & 0x1F));
+		rd.setValue((byte)((iw>>7) & 0x1f));
+		rs.setValue((byte)((iw>>15) & 0x1f));
+		rt.setValue((byte)((iw>>20) & 0x1f));
+
 
 		//logger.trace("Opcode is: " + opcode.getHex() + " Special: "
 			//	+ function.getHex() + " Regimm: " + rt.getHex());
 	}
 
+	
+	// useful functions
+	
+	public int getFunct3()
+	{
+		return funct3;
+	}
+	public int getFunct12()
+	{
+		return funct12;
+	}
+
+	public void setImmType(ImmType i)
+	{
+		immType = i;
+	}
+	
+	public int getImm()
+	{
+		int iw = instr.getValue();
+		switch (immType) {
+		case ITYPE:
+			return iw>>20;
+		case STYPE:
+			return ((iw>>20)& ~0x1f) | ((iw>>7)&0x1f);
+		case UTYPE:
+			return (iw & 0xfffff000);
+		case BTYPE:
+			return ((iw>>19)&0xfffff000) |
+				((iw<<4)    &0x00000800) |
+				((iw>>20)   &0x000007e0) |
+				((iw>>7)    &0x0000001e);
+		case JTYPE:
+			return ((iw>>11)&0xfff00000) |
+				((iw)       &0x000ff000) |
+				((iw>>9)    &0x00000800) |
+				((iw>>20)   &0x000007fe);
+		default:
+		}
+		return 0; // TODO: error handling
+	}
+	
+	
+	
 	/**
 	 * Returns the type of the instruction.
 	 * @see InstructionType
@@ -587,6 +647,24 @@ public class Instruction
 		}
 	}
 
+	public void setWriteRISCVSyscallResultRegister(boolean b) throws PipelineDataTypeException
+	{
+		if(write_rd == true)
+		{
+			throw new PipelineDataTypeException("RISCV syscall result register parameter already set.");
+		}
+
+		if(b)
+		{
+			rd.setValue(new uint8(16));
+			write_rd = true;
+		}
+		else
+		{
+			throw new PipelineDataTypeException("Cannot reset syscall result parameters.");
+		}
+	}
+	
 
 	public void setMemoryWidth(MemoryWidth mem_width)
 	{
@@ -627,7 +705,8 @@ public class Instruction
 				+ ((getWriteRd()) ? (" (" + rd.getValue() + "/" + ArchCfg.getRegisterDescription(rd.getValue()) + ")") : (""))
 				+ " uIMM:"
 				+ getUseImmediate() 
-				+ ((getUseImmediate()) ? (" (" + offset.getValue() + ")")
++ " Instr=" + String.format("%08x", instr.getValue()) + ", ImmType" + immType + ", but "
+				+ ((getUseImmediate()) ? (" (" + Integer.toHexString(getImm()) + ")")
 						: (""))
 				+ " uSA:" + getUseShiftAmount() + ((getUseShiftAmount())?(" (" + sa.getValue() + ")"):(""))
 				+ " uIDX:" + getUseInstrIndex() + ((getUseInstrIndex())?(" (" + instr_index.getValueAsHexString() + ")"):(""))

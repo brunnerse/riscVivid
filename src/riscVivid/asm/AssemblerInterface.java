@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,13 +19,13 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.asm;
+package riscVivid.asm;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import openDLX.asm.AssemblerException;
+import riscVivid.asm.AssemblerException;
 
 /**
  * <p>
@@ -81,11 +81,13 @@ public interface AssemblerInterface {
 	 * E.g. <b>0x20507fff</b> returns "<b>addi r16,r2,32767</b>"
 	 * </p>
 	 * 
+	 * @param pc
+	 *            memory address of the instruction (for pc-relative addresses)
 	 * @param instr
 	 *            instruction word treated as big endian
 	 * @return string representation of instruction word
 	 */
-	public String Instr2Str(int instr);
+	public String Instr2Str(int pc, int instr);
 
 	/**
 	 * <p>

@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui;
+package riscVivid.gui;
 
 import java.awt.Color;
 
@@ -38,9 +38,9 @@ public interface GUI_CONST
     static final Color MEM_COLOR = Color.GREEN;
 
     /*current state of the program
-     LAZY = no openDLXSim loaded
-     EXECUTING = openDLXSim Loaded 
-     RUNNING = openDLXSim in step through loop */
+     LAZY = no riscVividSim loaded
+     EXECUTING = riscVividSim Loaded 
+     RUNNING = riscVividSim in step through loop */
     public enum OpenDLXSimState
     {
         RUNNING, IDLE, EXECUTING

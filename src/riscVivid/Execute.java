@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,16 +19,16 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX;
+package riscVivid;
 
 import java.util.Queue;
 
 import org.apache.log4j.Logger;
 
-import openDLX.datatypes.*;
-import openDLX.exception.ExecuteStageException;
-import openDLX.exception.PipelineException;
-import openDLX.util.Statistics;
+import riscVivid.datatypes.*;
+import riscVivid.exception.ExecuteStageException;
+import riscVivid.exception.PipelineException;
+import riscVivid.util.Statistics;
 
 public class Execute
 {
@@ -384,7 +384,7 @@ public class Execute
 		// ALU OPERATION END
 
 		// BRANCH CONTROL
-		boolean jump = branch_control.checkBranch(inst, branch_ctrl_in_a, branch_ctrl_in_b);
+		boolean jump = branch_control.checkBranch(inst, branch_ctrl_in_a.getValue(), branch_ctrl_in_b.getValue());
 		// BRANCH CONTROL END
 
 		// count the jumps if there is a branch
@@ -518,7 +518,7 @@ public class Execute
 			}
 			else
 			{
-				logger.info("{FW} suppressing forwarding of register 0/" + ArchCfg.getRegisterDescription(0));
+				logger.debug("{FW} suppressing forwarding of register 0/" + ArchCfg.getRegisterDescription(0));
 			}
 		}
 
@@ -539,7 +539,7 @@ public class Execute
 			}
 			else
 			{
-				logger.info("{FW} suppressing forwarding of register 0/" + ArchCfg.getRegisterDescription(0));
+				logger.debug("{FW} suppressing forwarding of register 0/" + ArchCfg.getRegisterDescription(0));
 			}
 		}
 	}

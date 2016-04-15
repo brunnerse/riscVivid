@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.internalframes.factories.tableFactories;
+package riscVivid.gui.internalframes.factories.tableFactories;
 
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
@@ -28,13 +28,13 @@ import java.awt.event.MouseEvent;
 import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
 
-import openDLX.RegisterSet;
-import openDLX.datatypes.ArchCfg;
-import openDLX.datatypes.uint8;
-import openDLX.gui.Preference;
-import openDLX.gui.command.userLevel.CommandChangeRegister;
-import openDLX.gui.internalframes.renderer.ChangeableFrameTableCellRenderer;
-import openDLX.gui.internalframes.util.NotSelectableTableModel;
+import riscVivid.RegisterSet;
+import riscVivid.datatypes.ArchCfg;
+import riscVivid.datatypes.uint8;
+import riscVivid.gui.Preference;
+import riscVivid.gui.command.userLevel.CommandChangeRegister;
+import riscVivid.gui.internalframes.renderer.ChangeableFrameTableCellRenderer;
+import riscVivid.gui.internalframes.util.NotSelectableTableModel;
 
 public class RegisterTableFactory extends TableFactory
 {

@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,14 +19,16 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX;
+package riscVivid;
 
 import java.util.Queue;
 
-import openDLX.datatypes.*;
-import openDLX.util.Statistics;
 
 import org.apache.log4j.Logger;
+
+import riscVivid.datatypes.*;
+import riscVivid.util.RISCVSyscallHandler;
+import riscVivid.util.Statistics;
 
 public class WriteBack
 {
@@ -57,6 +59,7 @@ public class WriteBack
 		boolean jump = mwd.getJump();
 		boolean caught_break = false;
 
+/*
 		if((ArchCfg.isa_type == ISAType.MIPS) && (inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.BREAK))
 		{
 			logger.info("Caught BREAK instruction - finishing simulation.");
@@ -67,12 +70,14 @@ public class WriteBack
 			logger.info("Caught TRAP 0 - finishing simulation.");
 			caught_break = true;
 		}
+*/
 
+		
 		boolean regWrite = false;
 		uint8 regWriteSelect = new uint8(0);
 		uint32 regWriteValue = new uint32(0);
 
-		logger.info("PC: " + pc.getValueAsHexString());
+//		logger.info("PC: " + pc.getValueAsHexString());
 		if (inst.getLoad())
 		{
 			// write load result into the register
@@ -81,7 +86,10 @@ public class WriteBack
 		else if(inst.getBranchAndLink())
 		{
 			// write return address into the return address register (RA, reg 31)
-			regWriteValue = new uint32(pc.getValue() + 8);
+			// for MIPS/DLX +8 is correct, for RISCV +4
+			// Completely replace the ALU results, otherwise forwarding won't
+			// work for the first instruction after the two branch delay slots 
+			regWriteValue = alu_outLO = alu_out[0] = new uint32(pc.getValue() + 4);
 		}
 		else
 		{
@@ -92,7 +100,8 @@ public class WriteBack
 		if (inst.getWriteRd())
 		{
 			// write the register RD
-			// if for a non-BranchAndLink instruction or if the BranchAndLink instruction jumps  
+			// if for a non-BranchAndLink instruction or if the BranchAndLink instruction jumps
+			// Is this condition necessary? (in other words: if BAL but no jump then don't write)
 			if((!inst.getBranchAndLink()) || (inst.getBranchAndLink() && jump))
 			{
 				regWrite = true;
@@ -115,7 +124,7 @@ public class WriteBack
 			}
 			else
 			{
-				logger.info("suppressing writing of register 0/" + ArchCfg.getRegisterDescription(0) + " with value: " + regWriteValue.getValueAsHexString());
+				logger.debug("suppressing writing of register 0/" + ArchCfg.getRegisterDescription(0) + " with value: " + regWriteValue.getValueAsHexString());
 			}
 		}
 
@@ -135,6 +144,22 @@ public class WriteBack
 			}
 		}
 
+		
+		if((inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.BREAK)) {
+			logger.info("Caught SBREAK instruction - finishing simulation.");
+			caught_break = true;
+		} else if((inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.SYSCALL)) {
+			caught_break = RISCVSyscallHandler.getInstance().checkExit(reg_set.read(new uint8(17)).getValue());
+			int r = RISCVSyscallHandler.getInstance().doSyscall(
+					reg_set.read(new uint8(17)).getValue(), // a7 (number)
+					reg_set.read(new uint8(10)).getValue(), // a0 (1st argument)
+					reg_set.read(new uint8(11)).getValue(), // a1 (2nd argument)
+					reg_set.read(new uint8(12)).getValue(), // a2 (3rd argument)
+					reg_set.read(new uint8(13)).getValue()); // a3 (4th argument)
+			reg_set.write(new uint8(10), new uint32(r)); // a0 (return value)
+			
+		}
+		
 		if (regWrite)
 		{
 			reg_set.printContent();

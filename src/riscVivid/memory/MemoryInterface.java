@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,27 +19,31 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.memory;
+package riscVivid.memory;
 
-import openDLX.datatypes.RequestType;
-import openDLX.datatypes.uint32;
-import openDLX.datatypes.uint8;
-import openDLX.exception.MemoryException;
+import riscVivid.datatypes.RequestType;
+import riscVivid.datatypes.uint16;
+import riscVivid.datatypes.uint32;
+import riscVivid.datatypes.uint64;
+import riscVivid.datatypes.uint8;
+import riscVivid.exception.MemoryException;
 
 public interface MemoryInterface {
 
 	short getRequestDelay(RequestType instrRd, uint32 addr) throws MemoryException;
 
-	uint32 read_u32(uint32 addr) throws MemoryException;
-
 	uint8 read_u8(uint32 addr, boolean log_output) throws MemoryException;
-
+	uint16 read_u16(uint32 addr, boolean log_output) throws MemoryException;
 	uint32 read_u32(uint32 addr, boolean log_output) throws MemoryException;
+	uint64 read_u64(uint32 addr, boolean log_output) throws MemoryException;
 
-	void write_u8(uint32 addr, uint32 value) throws MemoryException;
-
-	void write_u32(uint32 addr, uint32 value) throws MemoryException;
+//	uint32 read_u32(uint32 addr) throws MemoryException;
 
 	void write_u8(uint32 addr, uint8 value) throws MemoryException;
+//	void write_u8(uint32 addr, uint32 value) throws MemoryException;
+	void write_u16(uint32 addr, uint16 value) throws MemoryException;
+	void write_u32(uint32 addr, uint32 value) throws MemoryException;
+	void write_u64(uint32 addr, uint64 value) throws MemoryException;
+
 
 }

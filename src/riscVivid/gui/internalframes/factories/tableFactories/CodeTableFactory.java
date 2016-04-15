@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,25 +19,25 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.internalframes.factories.tableFactories;
+package riscVivid.gui.internalframes.factories.tableFactories;
 
 import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
 
-import openDLX.OpenDLXSimulator;
-import openDLX.asm.DLXAssembler;
-import openDLX.datatypes.uint32;
-import openDLX.exception.MemoryException;
-import openDLX.gui.MainFrame;
-import openDLX.gui.internalframes.renderer.CodeFrameTableCellRenderer;
-import openDLX.gui.internalframes.util.NotSelectableTableModel;
+import riscVivid.RiscVividSimulator;
+import riscVivid.asm.DLXAssembler;
+import riscVivid.datatypes.uint32;
+import riscVivid.exception.MemoryException;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.internalframes.renderer.CodeFrameTableCellRenderer;
+import riscVivid.gui.internalframes.util.NotSelectableTableModel;
 
 public class CodeTableFactory extends TableFactory
 {
 
-    private OpenDLXSimulator openDLXSim;
+    private RiscVividSimulator openDLXSim;
 
-    public CodeTableFactory(OpenDLXSimulator openDLXSim)
+    public CodeTableFactory(RiscVividSimulator openDLXSim)
     {
         this.openDLXSim = openDLXSim;
     }
@@ -52,14 +52,14 @@ public class CodeTableFactory extends TableFactory
 
         model.addColumn("address");
         model.addColumn("code hex");
-        model.addColumn("code DLX");
+        model.addColumn("code RISCV");
 
         //default max width values change here
         TableColumnModel tcm = table.getColumnModel();
-        final int defaultWidth = 150;
+        final int defaultWidth = 120;
         tcm.getColumn(0).setMaxWidth(defaultWidth);
         tcm.getColumn(1).setMaxWidth(defaultWidth);
-        tcm.getColumn(2).setMaxWidth(defaultWidth);
+        tcm.getColumn(2).setMaxWidth(2*defaultWidth);
         table.setDefaultRenderer(Object.class, new CodeFrameTableCellRenderer());
 
         //insert code
@@ -87,7 +87,7 @@ public class CodeTableFactory extends TableFactory
                         {
                             addr,
                             inst,
-                            asm.Instr2Str(inst.getValue())
+                            asm.Instr2Str(addr.getValue(), inst.getValue())
                         });
             }
         }

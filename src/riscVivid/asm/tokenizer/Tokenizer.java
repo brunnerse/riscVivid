@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,20 +19,20 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.asm.tokenizer;
+package riscVivid.asm.tokenizer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Vector;
 
-import openDLX.asm.fsm.CharacterList;
-import openDLX.asm.fsm.FunctionTransition;
-import openDLX.asm.fsm.InverseCharacterList;
-import openDLX.asm.fsm.Procedure;
-import openDLX.asm.fsm.State;
-import openDLX.asm.fsm.Transition;
-import openDLX.asm.instruction.Instructions;
-import openDLX.asm.instruction.Registers;
+import riscVivid.asm.fsm.CharacterList;
+import riscVivid.asm.fsm.FunctionTransition;
+import riscVivid.asm.fsm.InverseCharacterList;
+import riscVivid.asm.fsm.Procedure;
+import riscVivid.asm.fsm.State;
+import riscVivid.asm.fsm.Transition;
+import riscVivid.asm.instruction.Instructions;
+import riscVivid.asm.instruction.Registers;
 
 /*
  * TODO:
@@ -55,8 +55,9 @@ public class Tokenizer {
 	private State identifierState;
 	private State labelState;
 	private State directiveState;
-	private State operatorState;
+//	private State operatorState;
 	private State separatorState;
+	private State signedConstantState;
 	private State hexOctalConstantState;
 	private State octalConstantState;
 	private State hexConstantState;
@@ -78,8 +79,9 @@ public class Tokenizer {
 		identifierState = new State(true, "identifier");
 		labelState = new State(true, "label");
 		directiveState = new State(false, "directive");
-		operatorState = new State(true, "operator");
+//		operatorState = new State(true, "operator");
 		separatorState = new State(true, "separator");
+		signedConstantState = new State(true, "signed constant");
 		hexOctalConstantState = new State(true, "hex or octal constant");
 		octalConstantState = new State(true, "octal constant");
 		hexConstantState = new State(true, "hex constant");
@@ -110,6 +112,7 @@ public class Tokenizer {
 						appendChar();
 					}
 				}));
+/*
 		//operator
 		startState.addTransition(new FunctionTransition(operatorState, new CharacterList(
 				Properties.T_OPERATOR), new Procedure() {
@@ -119,6 +122,7 @@ public class Tokenizer {
 				appendChar();
 			}
 		}));
+*/
 		//separator
 		startState.addTransition(new FunctionTransition(separatorState, new CharacterList(
 				Properties.T_SEPARATOR), new Procedure() {
@@ -128,6 +132,17 @@ public class Tokenizer {
 				appendChar();
 			}
 		}));
+
+		// constant starting with sign
+		startState.addTransition(new FunctionTransition(signedConstantState, 
+			new CharacterList(new char[] {'+', '-'}), new Procedure() {
+			public void procedure(Object o) {
+				startToken();
+				setTokenType(TokenType.Operator);
+				appendChar();
+			}
+		}));
+
 		//decimal constant
 		startState.addTransition(new FunctionTransition(decimalConstantState, new CharacterList(
 				Properties.T_DECIMAL_DIGIT_BEGIN), new Procedure() {
@@ -180,6 +195,21 @@ public class Tokenizer {
 		// ================* directiveState *================
 		directiveState.addTransition(new FunctionTransition(identifierState, new CharacterList(
 				Properties.T_IDENTIFIER_START), new Procedure() {
+			public void procedure(Object o) {
+				appendChar();
+			}
+		}));
+		// ================* signedConstantState *================
+		//decimal constant
+		signedConstantState.addTransition(new FunctionTransition(decimalConstantState, 
+			new CharacterList(Properties.T_DECIMAL_DIGIT_BEGIN), new Procedure() {
+			public void procedure(Object o) {
+				appendChar();
+			}
+		}));
+		//octal constant
+		signedConstantState.addTransition(new FunctionTransition(hexOctalConstantState, 
+			new Character('0'), new Procedure() {
 			public void procedure(Object o) {
 				appendChar();
 			}

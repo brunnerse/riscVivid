@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,19 +19,19 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.memory;
+package riscVivid.memory;
 
 import java.util.Properties;
 
-import openDLX.datatypes.CacheReplacementPolicy;
-import openDLX.datatypes.CacheType;
-import openDLX.datatypes.DCacheWritePolicy;
-import openDLX.datatypes.RequestType;
-import openDLX.datatypes.uint32;
-import openDLX.exception.CacheException;
-import openDLX.exception.MemoryException;
-import openDLX.exception.PipelineDataTypeException;
-import openDLX.util.Statistics;
+import riscVivid.datatypes.CacheReplacementPolicy;
+import riscVivid.datatypes.CacheType;
+import riscVivid.datatypes.DCacheWritePolicy;
+import riscVivid.datatypes.RequestType;
+import riscVivid.datatypes.uint32;
+import riscVivid.exception.CacheException;
+import riscVivid.exception.MemoryException;
+import riscVivid.exception.PipelineDataTypeException;
+import riscVivid.util.Statistics;
 
 /**
  * Encapsulates instruction memory hierarchy.
@@ -120,8 +120,8 @@ public class InstructionMemory
 		return mem.getRequestDelay(RequestType.INSTR_RD, addr);
 	}
 	
-	public uint32 read_u32(uint32 addr) throws MemoryException
+ 	public uint32 read_u32(uint32 addr) throws MemoryException
 	{
-		return mem.read_u32(addr);
+		return mem.read_u32(addr, false);
 	}
 }

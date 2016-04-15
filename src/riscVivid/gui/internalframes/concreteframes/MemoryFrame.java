@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.internalframes.concreteframes;
+package riscVivid.gui.internalframes.concreteframes;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -38,17 +38,17 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.TableModel;
 
-import openDLX.asm.Labels;
-import openDLX.datatypes.uint32;
-import openDLX.exception.MemoryException;
-import openDLX.gui.MainFrame;
-import openDLX.gui.Preference;
-import openDLX.gui.command.systemLevel.CommandLoadFrameConfigurationSysLevel;
-import openDLX.gui.internalframes.OpenDLXSimInternalFrame;
-import openDLX.gui.internalframes.factories.InternalFrameFactory;
-import openDLX.gui.internalframes.factories.tableFactories.MemoryTableFactory;
-import openDLX.gui.internalframes.util.TableSizeCalculator;
-import openDLX.gui.internalframes.util.ValueInput;
+import riscVivid.asm.Labels;
+import riscVivid.datatypes.uint32;
+import riscVivid.exception.MemoryException;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.Preference;
+import riscVivid.gui.command.systemLevel.CommandLoadFrameConfigurationSysLevel;
+import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.internalframes.factories.InternalFrameFactory;
+import riscVivid.gui.internalframes.factories.tableFactories.MemoryTableFactory;
+import riscVivid.gui.internalframes.util.TableSizeCalculator;
+import riscVivid.gui.internalframes.util.ValueInput;
 
 @SuppressWarnings("serial")
 public final class MemoryFrame extends OpenDLXSimInternalFrame implements ActionListener, KeyListener, FocusListener
@@ -84,7 +84,9 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
             {
                 for (int i = 0; i < model.getRowCount(); ++i)
                 {
-                    final uint32 uint_val = MainFrame.getInstance().getOpenDLXSim().getPipeline().getMainMemory().read_u32(new uint32(Integer.parseInt(startAddrString.substring(2), 16) + i * 4));
+                    final uint32 uint_val = MainFrame.getInstance().
+                    	getOpenDLXSim().getPipeline().getMainMemory().
+                    	read_u32(new uint32(Integer.parseInt(startAddrString.substring(2), 16) + i * 4), false);
                     final Object value;
                     if (Preference.displayMemoryAsHex())
                         value = uint_val.getValueAsHexString();

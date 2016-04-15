@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,23 +19,25 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.memory;
+package riscVivid.memory;
 
 import org.apache.log4j.Logger;
 
-import openDLX.PipelineConstants;
-import openDLX.datatypes.CacheReplacementPolicy;
-import openDLX.datatypes.CacheType;
-import openDLX.datatypes.DCacheWritePolicy;
-import openDLX.datatypes.RequestType;
-import openDLX.datatypes.uint32;
-import openDLX.datatypes.uint8;
-import openDLX.exception.CacheException;
-import openDLX.exception.MemoryException;
-import openDLX.exception.PipelineDataTypeException;
-import openDLX.util.CacheAddressCalculator;
-import openDLX.util.CalculationHelper;
-import openDLX.util.Statistics;
+import riscVivid.PipelineConstants;
+import riscVivid.datatypes.CacheReplacementPolicy;
+import riscVivid.datatypes.CacheType;
+import riscVivid.datatypes.DCacheWritePolicy;
+import riscVivid.datatypes.RequestType;
+import riscVivid.datatypes.uint16;
+import riscVivid.datatypes.uint32;
+import riscVivid.datatypes.uint64;
+import riscVivid.datatypes.uint8;
+import riscVivid.exception.CacheException;
+import riscVivid.exception.MemoryException;
+import riscVivid.exception.PipelineDataTypeException;
+import riscVivid.util.CacheAddressCalculator;
+import riscVivid.util.CalculationHelper;
+import riscVivid.util.Statistics;
 
 public abstract class Cache implements MemoryInterface {
 
@@ -168,72 +170,6 @@ public abstract class Cache implements MemoryInterface {
 		logger.info("Initialized " + cache_type + " with " + associativity + " ways, " + line_no + " lines, " + lines_per_set + " lines per set, " + words_per_line + " words per line, " + tag_size + " bits for tag, " + index_size + " bits for index, and " + block_offset_size + " bits for block offset. Cache is of type: " + this.getClass());
 	}
 
-	public uint32 read_u32(uint32 addr) throws MemoryException 
-	{
-		return read_u32(addr, false);
-	}
-
-
-	public uint32 read_u32(uint32 addr, boolean log_output) throws MemoryException 
-	{
-		
-		uint32 value = new uint32();
-		
-		if(log_output)
-		{
-			logger.debug("Read u32 from addr: " + addr.getValueAsHexString());
-		}
-		
-		if(isHit(addr))
-		{
-			int index = getIndex(addr);
-			int way = getCacheWayForHit(addr);
-			value.setValue(cache_memory[way][index].getWord(getBlockOffset(addr)));
-			
-			if(log_output)
-			{
-				logger.debug("Hit in way " + way + " in cache line " + index + " for address " + addr.getValueAsHexString() + " value: " + value.getValueAsHexString());
-				dumpCacheLine(index);
-			}
-			
-			updateReplacementCountersOnAccess(way, index);
-			
-			stat.countCacheHit(cache_type);
-			
-		}
-		else
-		{
-			int cache_line_address = getCacheLineAddr(addr);
-			
-			byte line[] = new byte[line_size];
-			
-			for(int i = 0; i < line_size; i++)
-			{
-				line[i] = mem.read_u8(new uint32(cache_line_address + i)).getValue();
-			}
-			
-			value.setValue(mem.read_u32(addr));
-			int index = getIndex(addr);
-			int way = getCacheWayForReplacement(addr);
-			
-			logger.debug("Accessing way: " + way + " index: " + index);
-			
-			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
-			
-			if(log_output)
-			{
-				logger.debug("Miss in cache for address " + addr.getValueAsHexString() + " replaced cache line " + index + " in way " + way + " loaded value: " + value.getValueAsHexString());
-				dumpCacheLine(index);
-			}
-
-			updateReplacementCountersOnMiss(way, index);
-			
-			stat.countCacheMiss(cache_type);
-		}
-		
-		return value;
-	}
-	
 	public uint8 read_u8(uint32 addr, boolean log_output) throws MemoryException 
 	{
 		if(cache_type != CacheType.DCACHE)
@@ -265,15 +201,10 @@ public abstract class Cache implements MemoryInterface {
 		else
 		{
 			int cache_line_address = getCacheLineAddr(addr);
-			
 			byte line[] = new byte[line_size];
-			
 			for(int i = 0; i < line_size; i++)
-			{
-				line[i] = mem.read_u8(new uint32(cache_line_address + i)).getValue();
-			}
-			
-			value.setValue(mem.read_u8(addr));
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
+			value.setValue(mem.read_u8(addr, false));
 			int index = getIndex(addr);
 			int way = getCacheWayForReplacement(addr);
 			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
@@ -283,11 +214,266 @@ public abstract class Cache implements MemoryInterface {
 				logger.debug("Miss in cache for address " + addr.getValueAsHexString() + " replaced cache line " + index + " in way " + way + " loaded value: " + value.getValueAsHexString() + " (read byte " + (getBlockOffset(addr)&0x3) + " from word " + cache_memory[way][index].getWord(getBlockOffset(addr)&(~0x3)) + ")");
 				dumpCacheLine(index);
 			}
-			
 			updateReplacementCountersOnMiss(way, index);
 		}
-		
 		return value;
+	}
+
+	public uint16 read_u16(uint32 addr, boolean log_output) throws MemoryException 
+	{
+		uint16 value = new uint16();
+		
+		if(log_output)
+			logger.debug("Read u16 from addr: " + addr.getValueAsHexString());
+		if(isHit(addr)) {
+			int index = getIndex(addr);
+			int way = getCacheWayForHit(addr);
+			value.setValue(cache_memory[way][index].getHWord(getBlockOffset(addr)));
+			
+			if(log_output)
+			{
+				logger.debug("Hit in way " + way + " in cache line " + index
+					+ " for address " + addr.getValueAsHexString() 
+					+ " value: " + value.getValueAsHexString());
+				dumpCacheLine(index);
+			}
+			updateReplacementCountersOnAccess(way, index);
+			stat.countCacheHit(cache_type);
+		} else {
+			int cache_line_address = getCacheLineAddr(addr);
+			byte line[] = new byte[line_size];
+
+			for(int i = 0; i < line_size; i++)
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
+			value.setValue(mem.read_u16(addr, false));
+			int index = getIndex(addr);
+			int way = getCacheWayForReplacement(addr);
+			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
+			
+			logger.debug("Accessing way: " + way + " index: " + index);
+			if(log_output){
+				logger.debug("Miss in cache for address " + addr.getValueAsHexString() + " replaced cache line " + index + " in way " + way + " loaded value: " + value.getValueAsHexString());
+				dumpCacheLine(index);
+			}
+			updateReplacementCountersOnMiss(way, index);
+			stat.countCacheMiss(cache_type);
+		}
+		return value;
+	}
+
+	public uint32 read_u32(uint32 addr) throws MemoryException 
+	{
+		return read_u32(addr, false);
+	}
+
+
+	public uint32 read_u32(uint32 addr, boolean log_output) throws MemoryException 
+	{
+		
+		uint32 value = new uint32();
+		
+		if(log_output)
+		{
+			logger.debug("Read u32 from addr: " + addr.getValueAsHexString());
+		}
+		
+		if(isHit(addr))
+		{
+			int index = getIndex(addr);
+			int way = getCacheWayForHit(addr);
+			value.setValue(cache_memory[way][index].getWord(getBlockOffset(addr)));
+			
+			if(log_output)
+			{
+				logger.debug("Hit in way " + way + " in cache line " + index + " for address " + addr.getValueAsHexString() + " value: " + value.getValueAsHexString());
+				dumpCacheLine(index);
+			}
+			updateReplacementCountersOnAccess(way, index);
+			stat.countCacheHit(cache_type);
+		}
+		else
+		{
+			int cache_line_address = getCacheLineAddr(addr);
+			byte line[] = new byte[line_size];
+			for(int i = 0; i < line_size; i++)
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
+			value.setValue(mem.read_u32(addr, false));
+			int index = getIndex(addr);
+			int way = getCacheWayForReplacement(addr);
+			logger.debug("Accessing way: " + way + " index: " + index);
+			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
+			if(log_output)
+			{
+				logger.debug("Miss in cache for address " + addr.getValueAsHexString() + " replaced cache line " + index + " in way " + way + " loaded value: " + value.getValueAsHexString());
+				dumpCacheLine(index);
+			}
+			updateReplacementCountersOnMiss(way, index);
+			stat.countCacheMiss(cache_type);
+		}
+		return value;
+	}
+
+	public uint64 read_u64(uint32 addr, boolean log_output) throws MemoryException 
+	{
+		
+		uint64 value = new uint64();
+		
+		if(log_output)
+			logger.debug("Read u64 from addr: " + addr.getValueAsHexString());
+		
+		if(isHit(addr)) 
+		{
+			int index = getIndex(addr);
+			int way = getCacheWayForHit(addr);
+			value.setValue(cache_memory[way][index].getDWord(getBlockOffset(addr)));
+			
+			if(log_output)
+			{
+				logger.debug("Hit in way " + way + " in cache line " + index
+					+ " for address " + addr.getValueAsHexString() 
+					+ " value: " + value.getValueAsHexString());
+				dumpCacheLine(index);
+			}
+			updateReplacementCountersOnAccess(way, index);
+			stat.countCacheHit(cache_type);
+		} else {
+			int cache_line_address = getCacheLineAddr(addr);
+			byte line[] = new byte[line_size];
+
+			for(int i = 0; i < line_size; i++)
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
+			value.setValue(mem.read_u64(addr, false));
+			int index = getIndex(addr);
+			int way = getCacheWayForReplacement(addr);
+			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
+			
+			logger.debug("Accessing way: " + way + " index: " + index);
+			if(log_output){
+				logger.debug("Miss in cache for address " + addr.getValueAsHexString() + " replaced cache line " + index + " in way " + way + " loaded value: " + value.getValueAsHexString());
+				dumpCacheLine(index);
+			}
+			updateReplacementCountersOnMiss(way, index);
+			stat.countCacheMiss(cache_type);
+		}
+		return value;
+	}
+	
+	public void write_u8(uint32 addr, uint32 value) throws MemoryException 
+	{
+		write_u8(addr, new uint8(value.getValue()));
+	}
+
+	public void write_u8(uint32 addr, uint8 value) throws MemoryException 
+	{
+		if(cache_type != CacheType.DCACHE)
+		{
+			throw new CacheException("Method write_u32() only supports data caches, but cache type is: " + cache_type); 
+		}
+		
+		if(write_policy != DCacheWritePolicy.WRITE_THROUGH)
+		{
+			throw new CacheException("Currently only write through caches are supported, but cache write policy is: " + write_policy);
+		}
+	
+		
+		logger.debug("Write u8 to addr: " + addr.getValueAsHexString() + " value: " + value.getValueAsHexString());
+		
+		
+		if(isHit(addr))
+		{
+			int index = getIndex(addr);
+			int way = getCacheWayForHit(addr);
+			uint8 old_value = cache_memory[way][index].getByte(getBlockOffset(addr));
+			
+			cache_memory[way][index].setByte(getBlockOffset(addr), value);
+			
+			
+			logger.debug("Hit in way " + way + " in cache line " + index + " for address " + addr.getValueAsHexString() + " old value: " + old_value.getValueAsHexString() + " new value: " + cache_memory[way][index].getByte(getBlockOffset(addr)) + " (written byte " + (getBlockOffset(addr)&0x3) + " of word " + cache_memory[way][index].getWord(getBlockOffset(addr)&(~0x3)) + ")");
+			dumpCacheLine(index);
+			
+			updateReplacementCountersOnAccess(way, index);
+			
+		}
+		else
+		{
+			int cache_line_address = getCacheLineAddr(addr);
+			uint32 old_value = new uint32();
+			byte line[] = new byte[line_size];
+			for(int i = 0; i < line_size; i++)
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
+			old_value.setValue(mem.read_u32(addr, false));
+			int index = getIndex(addr);
+			int way = getCacheWayForReplacement(addr);
+
+			// load cache line from memory
+			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
+			
+			// write word into cache
+			cache_memory[way][index].setByte(getBlockOffset(addr), value);
+			
+			logger.debug("Miss in cache for address " + addr.getValueAsHexString() + " replaced cache line " + index + " in way " + way + " old_value: " + old_value.getValueAsHexString() + " new value: " + cache_memory[way][index].getByte(getBlockOffset(addr)) + " (written byte " + (getBlockOffset(addr)&0x3) + " of word " + cache_memory[way][index].getWord(getBlockOffset(addr)&(~0x3)) + ")");
+			dumpCacheLine(index);
+			updateReplacementCountersOnMiss(way, index);
+		}
+
+		if(write_policy == DCacheWritePolicy.WRITE_THROUGH)
+		{
+			// also always write value into memory
+			mem.write_u8(addr, value);
+		}
+		
+	}
+
+	public void write_u16(uint32 addr, uint16 value) throws MemoryException 
+	{
+		if(cache_type != CacheType.DCACHE)
+			throw new CacheException("Method write_u16() only supports data caches, but cache type is: " + cache_type); 
+		if(write_policy != DCacheWritePolicy.WRITE_THROUGH)
+			throw new CacheException("Currently only write through caches are supported, but cache write policy is: " + write_policy);
+		if((addr.getValue()&1) != 0)	{
+			logger.error("Write u16 to unaligned addr: " + addr.getValueAsHexString());
+			throw new CacheException("Write u16 to unaligned addr: " + addr.getValueAsHexString());
+		}
+		logger.debug("Write u16 to addr: " + addr.getValueAsHexString() + " value: " + value.getValueAsHexString());
+		
+		if(isHit(addr)) {
+			int index = getIndex(addr);
+			int way = getCacheWayForHit(addr);
+			uint16 old_value = cache_memory[way][index].getHWord(getBlockOffset(addr));
+			cache_memory[way][index].setHWord(getBlockOffset(addr), value);
+			logger.debug("Hit in way " + way + " in cache line " + index
+				+ " for address " + addr.getValueAsHexString() 
+				+ " old value: " + old_value.getValueAsHexString() 
+				+ " new value: " + cache_memory[way][index].getWord(getBlockOffset(addr)));
+			dumpCacheLine(index);
+			updateReplacementCountersOnAccess(way, index);
+		} else {
+			int cache_line_address = getCacheLineAddr(addr);
+			uint16 old_value = new uint16();
+			byte line[] = new byte[line_size];
+			for(int i = 0; i < line_size; i++)
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
+			old_value.setValue(mem.read_u16(addr, false));
+			int index = getIndex(addr);
+			int way = getCacheWayForReplacement(addr);
+
+			// load cache line from memory
+			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
+			
+			// write word into cache
+			cache_memory[way][index].setHWord(getBlockOffset(addr), value);
+			
+			logger.debug("Miss in cache for address " + addr.getValueAsHexString()
+				+ " replaced cache line " + index + " in way " + way 
+				+ " old_value: " + old_value.getValueAsHexString() 
+				+ " new value: " + cache_memory[way][index].getWord(getBlockOffset(addr)));
+			dumpCacheLine(index);
+			updateReplacementCountersOnMiss(way, index);
+		}
+
+		// also always write value into memory
+		if(write_policy == DCacheWritePolicy.WRITE_THROUGH)
+			mem.write_u16(addr, value);
 	}
 
 	public void write_u32(uint32 addr, uint32 value) throws MemoryException 
@@ -336,10 +522,10 @@ public abstract class Cache implements MemoryInterface {
 			
 			for(int i = 0; i < line_size; i++)
 			{
-				line[i] = mem.read_u8(new uint32(cache_line_address + i)).getValue();
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
 			}
 			
-			old_value.setValue(mem.read_u32(addr));
+			old_value.setValue(mem.read_u32(addr, false));
 			int index = getIndex(addr);
 			int way = getCacheWayForReplacement(addr);
 
@@ -363,55 +549,36 @@ public abstract class Cache implements MemoryInterface {
 
 	}
 
-	public void write_u8(uint32 addr, uint32 value) throws MemoryException 
-	{
-		write_u8(addr, new uint8(value.getValue()));
-	}
-
-	public void write_u8(uint32 addr, uint8 value) throws MemoryException 
+	public void write_u64(uint32 addr, uint64 value) throws MemoryException 
 	{
 		if(cache_type != CacheType.DCACHE)
-		{
-			throw new CacheException("Method write_u32() only supports data caches, but cache type is: " + cache_type); 
-		}
-		
+			throw new CacheException("Method write_u64() only supports data caches, but cache type is: " + cache_type); 
 		if(write_policy != DCacheWritePolicy.WRITE_THROUGH)
-		{
 			throw new CacheException("Currently only write through caches are supported, but cache write policy is: " + write_policy);
+		if((addr.getValue()&7) != 0)	{
+			logger.error("Write u64 to unaligned addr: " + addr.getValueAsHexString());
+			throw new CacheException("Write u64 to unaligned addr: " + addr.getValueAsHexString());
 		}
-	
+		logger.debug("Write u64 to addr: " + addr.getValueAsHexString() + " value: " + value.getValueAsHexString());
 		
-		logger.debug("Write u8 to addr: " + addr.getValueAsHexString() + " value: " + value.getValueAsHexString());
-		
-		
-		if(isHit(addr))
-		{
+		if(isHit(addr)) {
 			int index = getIndex(addr);
 			int way = getCacheWayForHit(addr);
-			uint8 old_value = cache_memory[way][index].getByte(getBlockOffset(addr));
-			
-			cache_memory[way][index].setByte(getBlockOffset(addr), value);
-			
-			
-			logger.debug("Hit in way " + way + " in cache line " + index + " for address " + addr.getValueAsHexString() + " old value: " + old_value.getValueAsHexString() + " new value: " + cache_memory[way][index].getByte(getBlockOffset(addr)) + " (written byte " + (getBlockOffset(addr)&0x3) + " of word " + cache_memory[way][index].getWord(getBlockOffset(addr)&(~0x3)) + ")");
+			uint64 old_value = cache_memory[way][index].getDWord(getBlockOffset(addr));
+			cache_memory[way][index].setDWord(getBlockOffset(addr), value);
+			logger.debug("Hit in way " + way + " in cache line " + index
+				+ " for address " + addr.getValueAsHexString() 
+				+ " old value: " + old_value.getValueAsHexString() 
+				+ " new value: " + cache_memory[way][index].getWord(getBlockOffset(addr)));
 			dumpCacheLine(index);
-			
 			updateReplacementCountersOnAccess(way, index);
-			
-		}
-		else
-		{
+		} else {
 			int cache_line_address = getCacheLineAddr(addr);
-			uint32 old_value = new uint32();
-			
+			uint64 old_value = new uint64();
 			byte line[] = new byte[line_size];
-			
 			for(int i = 0; i < line_size; i++)
-			{
-				line[i] = mem.read_u8(new uint32(cache_line_address + i)).getValue();
-			}
-			
-			old_value.setValue(mem.read_u32(addr));
+				line[i] = mem.read_u8(new uint32(cache_line_address + i), false).getValue();
+			old_value.setValue(mem.read_u64(addr, false));
 			int index = getIndex(addr);
 			int way = getCacheWayForReplacement(addr);
 
@@ -419,20 +586,19 @@ public abstract class Cache implements MemoryInterface {
 			cache_memory[way][index].setLine(getTagFromAddress(addr), line);
 			
 			// write word into cache
-			cache_memory[way][index].setByte(getBlockOffset(addr), value);
+			cache_memory[way][index].setDWord(getBlockOffset(addr), value);
 			
-			logger.debug("Miss in cache for address " + addr.getValueAsHexString() + " replaced cache line " + index + " in way " + way + " old_value: " + old_value.getValueAsHexString() + " new value: " + cache_memory[way][index].getByte(getBlockOffset(addr)) + " (written byte " + (getBlockOffset(addr)&0x3) + " of word " + cache_memory[way][index].getWord(getBlockOffset(addr)&(~0x3)) + ")");
+			logger.debug("Miss in cache for address " + addr.getValueAsHexString()
+				+ " replaced cache line " + index + " in way " + way 
+				+ " old_value: " + old_value.getValueAsHexString() 
+				+ " new value: " + cache_memory[way][index].getWord(getBlockOffset(addr)));
 			dumpCacheLine(index);
-
 			updateReplacementCountersOnMiss(way, index);
 		}
 
+		// also always write value into memory
 		if(write_policy == DCacheWritePolicy.WRITE_THROUGH)
-		{
-			// also always write value into memory
-			mem.write_u8(addr, value);
-		}
-		
+			mem.write_u64(addr, value);
 	}
 	
 	protected uint32 getTagFromAddress(uint32 addr)

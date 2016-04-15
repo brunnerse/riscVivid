@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,12 +19,14 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.memory;
+package riscVivid.memory;
 
-import openDLX.PipelineConstants;
-import openDLX.datatypes.uint32;
-import openDLX.datatypes.uint8;
-import openDLX.exception.CacheException;
+import riscVivid.PipelineConstants;
+import riscVivid.datatypes.uint16;
+import riscVivid.datatypes.uint32;
+import riscVivid.datatypes.uint64;
+import riscVivid.datatypes.uint8;
+import riscVivid.exception.CacheException;
 
 public class CacheLine {
 
@@ -57,6 +59,59 @@ public class CacheLine {
 	public boolean compareTag(uint32 tag)
 	{
 		return (this.tag.getValue() == tag.getValue());
+	}
+	
+	public uint8 getByte(int block_offset) throws CacheException
+	{
+		if(!valid)
+		{
+			throw new CacheException("Cannot read from cache line, it is not valid. tag: " + tag.getValueAsHexString());
+		}
+		if(block_offset >= bytes_per_line)
+		{
+			throw new CacheException("Block offset out of range: " + block_offset + "/" + bytes_per_line);
+		}
+		
+		return new uint8(line[block_offset]);
+	}
+	
+	public void setByte(int block_offset, uint8 value) throws CacheException
+	{
+		if(!valid)
+		{
+			throw new CacheException("Cannot write to cache line, it is not valid. tag: " + tag.getValueAsHexString());
+		}
+		if(block_offset >= bytes_per_line)
+		{
+			throw new CacheException("Block offset out of range: " + block_offset + "/" + bytes_per_line);
+		}
+		
+		line[block_offset]= value.getValue();
+		
+	}
+	
+	public uint16 getHWord(int block_offset) throws CacheException
+	{
+		if(!valid)
+			throw new CacheException("Cannot read from cache line, invalid tag: " + tag.getValueAsHexString());
+		if((block_offset&1) != 0)
+			throw new CacheException("Block offset not aligned to half word size (" + block_offset + ")");
+		if(block_offset >= bytes_per_line)
+			throw new CacheException("Block offset out of range: " + block_offset + "/" + bytes_per_line);
+		return new uint16((line[block_offset] & 0xFF) | ((line[block_offset+1] & 0xFF) << 8));
+	}
+	
+	public void setHWord(int block_offset, uint16 value) throws CacheException 
+	{
+		if(!valid)
+			throw new CacheException("Cannot write to cache line, invalid tag: " + tag.getValueAsHexString());
+		if((block_offset&1) != 0)
+			throw new CacheException("Block offset not aligned to half word size (" + block_offset + ")");
+		if(block_offset >= bytes_per_line)
+			throw new CacheException("Block offset out of range: " + block_offset + "/" + bytes_per_line);
+		
+		line[block_offset] = (byte) (value.getValue() & 0xFF);
+		line[block_offset + 1] = (byte) ((value.getValue() >> 8) & 0xFF);
 	}
 	
 	public uint32 getWord(int block_offset) throws CacheException
@@ -99,33 +154,42 @@ public class CacheLine {
 		line[block_offset + 3] = (byte) ((value.getValue() >> 24) & 0xFF);
 	}
 	
-	public uint8 getByte(int block_offset) throws CacheException
+	public uint64 getDWord(int block_offset) throws CacheException
 	{
 		if(!valid)
-		{
-			throw new CacheException("Cannot read from cache line, it is not valid. tag: " + tag.getValueAsHexString());
-		}
+			throw new CacheException("Cannot read from cache line, invalid tag: " + tag.getValueAsHexString());
+		if((block_offset&7) != 0)
+			throw new CacheException("Block offset not aligned to double word size (" + block_offset + ")");
 		if(block_offset >= bytes_per_line)
-		{
 			throw new CacheException("Block offset out of range: " + block_offset + "/" + bytes_per_line);
-		}
-		
-		return new uint8(line[block_offset]);
+		return new uint64((line[block_offset] & 0xFF) 
+			| ((long)(line[block_offset+1] & 0xFF) << 8)
+			| ((long)(line[block_offset+2] & 0xFF) << 16)
+			| ((long)(line[block_offset+3] & 0xFF) << 24)
+			| ((long)(line[block_offset+4] & 0xFF) << 32)
+			| ((long)(line[block_offset+5] & 0xFF) << 40)
+			| ((long)(line[block_offset+6] & 0xFF) << 48)
+			| ((long)(line[block_offset+7] & 0xFF) << 56));
 	}
 	
-	public void setByte(int block_offset, uint8 value) throws CacheException
+	public void setDWord(int block_offset, uint64 value) throws CacheException 
 	{
 		if(!valid)
-		{
-			throw new CacheException("Cannot write to cache line, it is not valid. tag: " + tag.getValueAsHexString());
-		}
+			throw new CacheException("Cannot write to cache line, invalid tag: " + tag.getValueAsHexString());
+		if((block_offset&1) != 0)
+			throw new CacheException("Block offset not aligned to half word size (" + block_offset + ")");
 		if(block_offset >= bytes_per_line)
-		{
 			throw new CacheException("Block offset out of range: " + block_offset + "/" + bytes_per_line);
-		}
 		
-		line[block_offset]= value.getValue();
-		
+		long v = value.getValue();
+		line[block_offset] = (byte) (v & 0xFF);
+		line[block_offset + 1] = (byte) ((v >> 8) & 0xFF);
+		line[block_offset + 2] = (byte) ((v >> 16) & 0xFF);
+		line[block_offset + 3] = (byte) ((v >> 24) & 0xFF);
+		line[block_offset + 4] = (byte) ((v >> 32) & 0xFF);
+		line[block_offset + 5] = (byte) ((v >> 40) & 0xFF);
+		line[block_offset + 6] = (byte) ((v >> 48) & 0xFF);
+		line[block_offset + 7] = (byte) ((v >> 56) & 0xFF);
 	}
 	
 	public void setLine(uint32 tag, byte line[])

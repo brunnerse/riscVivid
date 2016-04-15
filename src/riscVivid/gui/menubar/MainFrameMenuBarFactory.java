@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.menubar;
+package riscVivid.gui.menubar;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
@@ -33,44 +33,45 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
-import openDLX.gui.GUI_CONST.OpenDLXSimState;
-import openDLX.gui.MainFrame;
-import openDLX.gui.Preference;
-import openDLX.gui.command.Command;
-import openDLX.gui.command.EventCommandLookUp;
-import openDLX.gui.command.userLevel.CommandChangeWindowVisibility;
-import openDLX.gui.command.userLevel.CommandClearAllPreferences;
-import openDLX.gui.command.userLevel.CommandDisplayTooltips;
-import openDLX.gui.command.userLevel.CommandDoCycle;
-import openDLX.gui.command.userLevel.CommandDoXCycles;
-import openDLX.gui.command.userLevel.CommandExitProgram;
-import openDLX.gui.command.userLevel.CommandForwarding;
-import openDLX.gui.command.userLevel.CommandLoadAndRunFile;
-import openDLX.gui.command.userLevel.CommandLoadFile;
-import openDLX.gui.command.userLevel.CommandLoadFileBelow;
-import openDLX.gui.command.userLevel.CommandLoadFrameConfigurationUsrLevel;
-import openDLX.gui.command.userLevel.CommandNewFile;
-import openDLX.gui.command.userLevel.CommandPerformEditorRedo;
-import openDLX.gui.command.userLevel.CommandPerformEditorUndo;
-import openDLX.gui.command.userLevel.CommandResetCurrentProgram;
-import openDLX.gui.command.userLevel.CommandRun;
-import openDLX.gui.command.userLevel.CommandRunFromConfigurationFile;
-import openDLX.gui.command.userLevel.CommandRunSlowly;
-import openDLX.gui.command.userLevel.CommandRunToAddressX;
-import openDLX.gui.command.userLevel.CommandSave;
-import openDLX.gui.command.userLevel.CommandSaveFrameConfigurationUsrLevel;
-import openDLX.gui.command.userLevel.CommandSetLaF;
-import openDLX.gui.command.userLevel.CommandShowAbout;
-import openDLX.gui.command.userLevel.CommandShowOptionDialog;
-import openDLX.gui.command.userLevel.CommandStopRunning;
-import openDLX.gui.internalframes.concreteframes.ClockCycleFrame;
-import openDLX.gui.internalframes.concreteframes.CodeFrame;
-import openDLX.gui.internalframes.concreteframes.LogFrame;
-import openDLX.gui.internalframes.concreteframes.MemoryFrame;
-import openDLX.gui.internalframes.concreteframes.RegisterFrame;
-import openDLX.gui.internalframes.concreteframes.StatisticsFrame;
-import openDLX.gui.internalframes.concreteframes.editor.EditorFrame;
-import openDLX.gui.internalframes.factories.InternalFrameFactory;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.Preference;
+import riscVivid.gui.GUI_CONST.OpenDLXSimState;
+import riscVivid.gui.command.Command;
+import riscVivid.gui.command.EventCommandLookUp;
+import riscVivid.gui.command.userLevel.CommandChangeWindowVisibility;
+import riscVivid.gui.command.userLevel.CommandClearAllPreferences;
+import riscVivid.gui.command.userLevel.CommandDisplayTooltips;
+import riscVivid.gui.command.userLevel.CommandDoCycle;
+import riscVivid.gui.command.userLevel.CommandDoXCycles;
+import riscVivid.gui.command.userLevel.CommandExitProgram;
+import riscVivid.gui.command.userLevel.CommandForwarding;
+import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
+import riscVivid.gui.command.userLevel.CommandLoadFile;
+import riscVivid.gui.command.userLevel.CommandLoadFileBelow;
+import riscVivid.gui.command.userLevel.CommandLoadFrameConfigurationUsrLevel;
+import riscVivid.gui.command.userLevel.CommandNewFile;
+import riscVivid.gui.command.userLevel.CommandPerformEditorRedo;
+import riscVivid.gui.command.userLevel.CommandPerformEditorUndo;
+import riscVivid.gui.command.userLevel.CommandResetCurrentProgram;
+import riscVivid.gui.command.userLevel.CommandRun;
+import riscVivid.gui.command.userLevel.CommandRunFromConfigurationFile;
+import riscVivid.gui.command.userLevel.CommandRunFromEditor;
+import riscVivid.gui.command.userLevel.CommandRunSlowly;
+import riscVivid.gui.command.userLevel.CommandRunToAddressX;
+import riscVivid.gui.command.userLevel.CommandSave;
+import riscVivid.gui.command.userLevel.CommandSaveFrameConfigurationUsrLevel;
+import riscVivid.gui.command.userLevel.CommandSetLaF;
+import riscVivid.gui.command.userLevel.CommandShowAbout;
+import riscVivid.gui.command.userLevel.CommandShowOptionDialog;
+import riscVivid.gui.command.userLevel.CommandStopRunning;
+import riscVivid.gui.internalframes.concreteframes.ClockCycleFrame;
+import riscVivid.gui.internalframes.concreteframes.CodeFrame;
+import riscVivid.gui.internalframes.concreteframes.LogFrame;
+import riscVivid.gui.internalframes.concreteframes.MemoryFrame;
+import riscVivid.gui.internalframes.concreteframes.RegisterFrame;
+import riscVivid.gui.internalframes.concreteframes.StatisticsFrame;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
+import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 
 public class MainFrameMenuBarFactory
 {
@@ -82,16 +83,18 @@ public class MainFrameMenuBarFactory
     private static final String STRING_MENU_HELP = "Help";
 
     private static final String STRING_MENU_FILE_NEW = "New";
-    private static final String STRING_MENU_FILE_OPEN = "Open";
-    private static final String STRING_MENU_FILE_OPEN_AND_ASSEMBLE = "Open and Assemble";
-    private static final String STRING_MENU_FILE_ADD_CODE = "Add Code";
-    private static final String STRING_MENU_FILE_SAVE = "Save";
+    private static final String STRING_MENU_FILE_OPEN = "Open...";
+    private static final String STRING_MENU_FILE_OPEN_AND_ASSEMBLE = "Open and Assemble...";
+    private static final String STRING_MENU_FILE_ASSEMBLE = "Assemble";
+    private static final String STRING_MENU_FILE_ADD_CODE = "Add Code...";
+    private static final String STRING_MENU_FILE_SAVE = "Save As...";
     private static final String STRING_MENU_FILE_RUN_FROM_CONF = "Run from Configuration File";
     private static final String STRING_MENU_FILE_EXIT = "Exit Program";
 
     private static final KeyStroke KEY_MENU_FILE_NEW = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_FILE_OPEN = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_FILE_OPEN_AND_ASSEMBLE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.Event.CTRL_MASK);
+    private static final KeyStroke KEY_MENU_FILE_ASSEMBLE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.Event.ALT_MASK);
     private static final KeyStroke KEY_MENU_FILE_ADD_CODE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_FILE_SAVE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_FILE_RUN_FROM_CONF = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.Event.ALT_MASK);
@@ -186,23 +189,24 @@ public class MainFrameMenuBarFactory
         //if  parameter command = null, command is not yet implemented and should be implemented soon
         addMenuItem(fileMenu, STRING_MENU_FILE_NEW, KEY_MENU_FILE_NEW, StateValidator.executingOrLazyStates, new CommandNewFile(mf));
         addMenuItem(fileMenu, STRING_MENU_FILE_OPEN, KEY_MENU_FILE_OPEN, StateValidator.executingOrLazyStates, new CommandLoadFile(mf));
-        addMenuItem(fileMenu, STRING_MENU_FILE_OPEN_AND_ASSEMBLE, KEY_MENU_FILE_OPEN_AND_ASSEMBLE, StateValidator.executingOrLazyStates, new CommandLoadAndRunFile(mf));
         addMenuItem(fileMenu, STRING_MENU_FILE_ADD_CODE, KEY_MENU_FILE_ADD_CODE, StateValidator.executingOrLazyStates, new CommandLoadFileBelow(mf));
         addMenuItem(fileMenu, STRING_MENU_FILE_SAVE, KEY_MENU_FILE_SAVE, StateValidator.executingOrLazyStates, new CommandSave());
+        addMenuItem(fileMenu, STRING_MENU_FILE_ASSEMBLE, KEY_MENU_FILE_ASSEMBLE, StateValidator.executingOrLazyStates, new CommandRunFromEditor(mf));
+        fileMenu.addSeparator();
+        addMenuItem(fileMenu, STRING_MENU_FILE_OPEN_AND_ASSEMBLE, KEY_MENU_FILE_OPEN_AND_ASSEMBLE, StateValidator.executingOrLazyStates, new CommandLoadAndRunFile(mf));
         addMenuItem(fileMenu, STRING_MENU_FILE_RUN_FROM_CONF, KEY_MENU_FILE_RUN_FROM_CONF, StateValidator.executingOrLazyStates, new CommandRunFromConfigurationFile(mf));
         addMenuItem(fileMenu, STRING_MENU_FILE_EXIT, KEY_MENU_FILE_EXIT, StateValidator.allStates, new CommandExitProgram(mf));
 
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RUN_PROGRAM, KEY_MENU_SIMULATOR_RUN_PROGRAM, StateValidator.executingStates, new CommandRun(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RUN_PROGRAM_SLOWLY, KEY_MENU_SIMULATOR_RUN_PROGRAM_SLOWLY, StateValidator.executingStates, new CommandRunSlowly(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_STOP_RUNNING, KEY_MENU_SIMULATOR_STOP_RUNNING, StateValidator.RunningStates, new CommandStopRunning(mf));
-
         simulatorMenu.addSeparator();
-
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_DO_CYCLE, KEY_MENU_SIMULATOR_DO_CYCLE, StateValidator.executingStates, new CommandDoCycle(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_DO_X_CYCLES, KEY_MENU_SIMULATOR_DO_X_CYCLES, StateValidator.executingStates, new CommandDoXCycles(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RUN_TO, KEY_MENU_SIMULATOR_RUN_TO, StateValidator.executingStates, new CommandRunToAddressX(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RESTART, KEY_MENU_SIMULATOR_RESTART, StateValidator.executingStates, new CommandResetCurrentProgram(mf));
 
+/* Disable Options and Forwarding, as it is not working with the RISC_V ISA
         simulatorMenu.addSeparator();
 
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_OPTIONS, KEY_MENU_SIMULATOR_OPTIONS, StateValidator.executingOrLazyStates, new CommandShowOptionDialog());
@@ -214,6 +218,7 @@ public class MainFrameMenuBarFactory
             fw_checkitem.setSelected(Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true));
             importantItems.put(STRING_MENU_SIMULATOR_FORWARDING, fw_checkitem);
         }
+*/
         
         addMenuItem(editMenu, STRING_MENU_EDIT_UNDO, KEY_MENU_EDIT_UNDO, StateValidator.executingOrLazyStates, new CommandPerformEditorUndo(mf.getEditorUndoManager()));
         addMenuItem(editMenu, STRING_MENU_EDIT_REDO, KEY_MENU_EDIT_REDO, StateValidator.executingOrLazyStates, new CommandPerformEditorRedo(mf.getEditorUndoManager()));

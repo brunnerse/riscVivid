@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,20 +19,21 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.config;
+package riscVivid.config;
 
 public interface GlobalConfig {
-	static final String PREFERENCES_DIR = "/openDLX";
-	static final String VERSION = "1.0-6";
+	static final String PREFERENCES_DIR = "/riscVivid";
+	static final String VERSION = "1.1-1";
 	static final String ABOUT = 
-			"openDLX v"+VERSION+" - A DLX/MIPS processor simulator.\n"
-					+"Copyright (C) 2013 The openDLX project, University of Augsburg\n\n"
+			"riscVivid v"+VERSION+" - A RISC-V processor simulator.\n"
+					+"Copyright (C) 2015 The riscVivid project, University of Augsburg\n\n"
 					+"Core contributors: Stefan Metzlaff, Alexander Vogelgsang,\nand Nico Krezic-Luger\n"
 					+"Contributors: Arne Garbade, Patrick Lehner\n"
+					+"RISC-V support: Jörg Mische\n"
 					+"\n"
-					+"Project URL: <https://sourceforge.net/projects/opendlx>\n"
-					+"Development branch: <https://github.com/smetzlaff/openDLX>\n"
-					+"\n"
+//					+"Project URL: <https://sourceforge.net/projects/opendlx>\n"
+//					+"Development branch: <https://github.com/smetzlaff/riscVivid>\n"
+//					+"\n"
 					+"This program is free software: you can redistribute it and/or modify\n"
 					+"it under the terms of the GNU General Public License as published by\n"
 					+"the Free Software Foundation, either version 3 of the License, or\n"

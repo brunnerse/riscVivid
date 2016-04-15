@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX;
+package riscVivid;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,47 +30,47 @@ import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Queue;
 
-import openDLX.datatypes.ArchCfg;
-import openDLX.datatypes.BranchPredictionModuleExecuteData;
-import openDLX.datatypes.BranchPredictionModuleFetchData;
-import openDLX.datatypes.BranchPredictionModuleOutputData;
-import openDLX.datatypes.DecodeExecuteData;
-import openDLX.datatypes.DecodeOutputData;
-import openDLX.datatypes.ExecuteBranchPredictionData;
-import openDLX.datatypes.ExecuteFetchData;
-import openDLX.datatypes.ExecuteMemoryData;
-import openDLX.datatypes.ExecuteOutputData;
-import openDLX.datatypes.FetchDecodeData;
-import openDLX.datatypes.FetchOutputData;
-import openDLX.datatypes.ISAType;
-import openDLX.datatypes.Instruction;
-import openDLX.datatypes.MemoryOutputData;
-import openDLX.datatypes.MemoryWritebackData;
-import openDLX.datatypes.SpecialRegisters;
-import openDLX.datatypes.WriteBackData;
-import openDLX.datatypes.WritebackOutputData;
-import openDLX.datatypes.uint32;
-import openDLX.datatypes.uint8;
-import openDLX.exception.DecodeStageException;
-import openDLX.exception.MemoryException;
-import openDLX.exception.PipelineException;
-import openDLX.gui.GUI_CONST;
-import openDLX.memory.DataMemory;
-import openDLX.memory.InstructionMemory;
-import openDLX.memory.MainMemory;
-import openDLX.util.ClockCycleLog;
-import openDLX.util.DLXTrapHandler;
-import openDLX.util.LoggerConfigurator;
-import openDLX.util.PrintHandler;
-import openDLX.util.Statistics;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class OpenDLXSimulator
+import riscVivid.datatypes.ArchCfg;
+import riscVivid.datatypes.BranchPredictionModuleExecuteData;
+import riscVivid.datatypes.BranchPredictionModuleFetchData;
+import riscVivid.datatypes.BranchPredictionModuleOutputData;
+import riscVivid.datatypes.DecodeExecuteData;
+import riscVivid.datatypes.DecodeOutputData;
+import riscVivid.datatypes.ExecuteBranchPredictionData;
+import riscVivid.datatypes.ExecuteFetchData;
+import riscVivid.datatypes.ExecuteMemoryData;
+import riscVivid.datatypes.ExecuteOutputData;
+import riscVivid.datatypes.FetchDecodeData;
+import riscVivid.datatypes.FetchOutputData;
+import riscVivid.datatypes.ISAType;
+import riscVivid.datatypes.Instruction;
+import riscVivid.datatypes.MemoryOutputData;
+import riscVivid.datatypes.MemoryWritebackData;
+import riscVivid.datatypes.SpecialRegisters;
+import riscVivid.datatypes.WriteBackData;
+import riscVivid.datatypes.WritebackOutputData;
+import riscVivid.datatypes.uint32;
+import riscVivid.datatypes.uint8;
+import riscVivid.exception.DecodeStageException;
+import riscVivid.exception.MemoryException;
+import riscVivid.exception.PipelineException;
+import riscVivid.gui.GUI_CONST;
+import riscVivid.memory.DataMemory;
+import riscVivid.memory.InstructionMemory;
+import riscVivid.memory.MainMemory;
+import riscVivid.util.ClockCycleLog;
+import riscVivid.util.LoggerConfigurator;
+import riscVivid.util.RISCVSyscallHandler;
+import riscVivid.util.Statistics;
+
+public class RiscVividSimulator
 {
 
-    private static Logger logger = Logger.getLogger("openDLX");
+    private static Logger logger = Logger.getLogger("riscVivid");
     private PipelineContainer pipeline;
     private Properties config;
     private Statistics stat;
@@ -82,7 +82,7 @@ public class OpenDLXSimulator
     /**
      * @param args
      */
-    public void openDLXCmdl_main()
+    public void riscVividCmdl_main()
     {
 
         while (!finished)
@@ -99,106 +99,8 @@ public class OpenDLXSimulator
         }
     }
 
-    public OpenDLXSimulator(String args[]) throws PipelineException
-    {
-        this(args[0]);
-    }
 
-    public OpenDLXSimulator(String cfg_file) throws PipelineException
-    {
-        config = new Properties();
-
-        try
-        {
-            config.load(new FileInputStream(cfg_file));
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
-        setDefaultConfigParameters(config);
-
-        ArchCfg.registerArchitectureConfig(config);
-
-        System.out.println("Configuration is: " + config.toString());
-
-        LoggerConfigurator.getInstance().configureLogger(config.getProperty("log4j"), config.getProperty("log_file"));
-
-        logger.info("Configuration is: " + config.toString());
-        logger.info("loading:" + config.getProperty("file"));
-
-        pipeline = new PipelineContainer();
-        pipeline.setMainMemory(new MainMemory(config.getProperty("file"), stringToUint32(config.getProperty("code_start_addr")).getValue(), (short) stringToUint32(config.getProperty("memory_latency")).getValue()));
-        pipeline.setInstructionMemory(new InstructionMemory(pipeline.getMainMemory(), config));
-        pipeline.setDataMemory(new DataMemory(pipeline.getMainMemory(), config));
-        pipeline.setFetchStage(new Fetch(new uint32(stringToUint32(config.getProperty("entry_point"))), pipeline.getInstructionMemory()));
-        pipeline.setRegisterSet(new RegisterSet());
-        pipeline.setDecodeStage(new Decode(pipeline.getRegisterSet()));
-        pipeline.setExecuteStage(new Execute());
-        pipeline.setBranchPredictionModule(new BranchPredictionModule(config));
-        pipeline.setMemoryStage(new Memory(pipeline.getDataMemory()));
-        pipeline.setWriteBackStage(new WriteBack(pipeline.getRegisterSet()));
-
-        if (ArchCfg.isa_type == ISAType.MIPS)
-        {
-            // set the output file for usage of printf
-            PrintHandler print_handler = PrintHandler.getInstance();
-            print_handler.setOutFileName(config.getProperty("print_file"));
-        }
-        else if (ArchCfg.isa_type == ISAType.DLX)
-        {
-            // set handler for printf and file management
-            DLXTrapHandler trap_handler = DLXTrapHandler.getInstance();
-            trap_handler.setMemory(pipeline.getMainMemory());
-
-            // not used, since DLX does not need a config file
-            //trap_handler.setOutFileName(config.getProperty("print_file"));
-        }
-
-        // Obtain the statistics object
-        stat = Statistics.getInstance();
-        stat.setConfig(config);
-
-        // Latches:
-        pipeline.setFetchDecodeLatch(new LinkedList<FetchDecodeData>());
-        pipeline.setDecodeExecuteLatch(new LinkedList<DecodeExecuteData>());
-        pipeline.setBranchPredictionFetchLatch(new LinkedList<BranchPredictionModuleFetchData>());
-        pipeline.setBranchPredictionExecuteLatch(new LinkedList<BranchPredictionModuleExecuteData>());
-        pipeline.setExecuteMemoryLatch(new LinkedList<ExecuteMemoryData>());
-        pipeline.setExecuteFetchLatch(new LinkedList<ExecuteFetchData>());
-        pipeline.setExecuteBranchPredictionLatch(new LinkedList<ExecuteBranchPredictionData>());
-        pipeline.setMemoryWriteBackLatch(new LinkedList<MemoryWritebackData>());
-        pipeline.setWriteBackLatch(new LinkedList<WriteBackData>());
-
-        pipeline.getFetchStage().setInputLatches(pipeline.getExecuteFetchLatch(), pipeline.getBranchPredictionFetchLatch());
-
-        pipeline.getDecodeStage().setInputLatch(pipeline.getFetchDecodeLatch());
-
-        pipeline.getExecuteStage().setInputLatches(pipeline.getDecodeExecuteLatch(), pipeline.getBranchPredictionExecuteLatch());
-        pipeline.getExecuteStage().setForwardingLatches(pipeline.getExecuteMemoryLatch(), pipeline.getMemoryWriteBackLatch(), pipeline.getWriteBackLatch());
-
-        pipeline.getBranchPredictionModule().setInputLatches(pipeline.getExecuteBranchPredictionLatch(), pipeline.getFetchDecodeLatch());
-
-        pipeline.getMemoryStage().setInputLatch(pipeline.getExecuteMemoryLatch());
-
-        pipeline.getWriteBackStage().setInputLatch(pipeline.getMemoryWriteBackLatch());
-
-        pipeline.getRegisterSet().setStackPointer(new uint32(0));
-
-        initializePipelineLatches();
-
-        sim_cycles = new Integer(config.getProperty("cycles"));
-        caught_break = false;
-        ClockCycleLog.log.clear();
-        ClockCycleLog.code.clear();
-    }
-
-    public OpenDLXSimulator(File args) throws PipelineException
+    public RiscVividSimulator(File args) throws PipelineException
     {
         config = new Properties();
 
@@ -217,6 +119,8 @@ public class OpenDLXSimulator
 
 
         setDefaultConfigParameters(config);
+            // CAUTION: if no config file exists, asm.AsmFileLoader.saveToFile()
+            // creates a config file and uses different default values
 
         ArchCfg.registerArchitectureConfig(config);
 
@@ -242,6 +146,7 @@ public class OpenDLXSimulator
         pipeline.setMemoryStage(new Memory(pipeline.getDataMemory()));
         pipeline.setWriteBackStage(new WriteBack(pipeline.getRegisterSet()));
 
+/*
         if (ArchCfg.isa_type == ISAType.MIPS)
         {
             // set the output file for usage of printf
@@ -257,6 +162,9 @@ public class OpenDLXSimulator
             // not used, since DLX does not need a config file
             //trap_handler.setOutFileName(config.getProperty("print_file"));
         }
+*/
+		RISCVSyscallHandler syscall_handler = RISCVSyscallHandler.getInstance();
+        syscall_handler.setMemory(pipeline.getMainMemory());
 
         // Obtain the statistics object
         stat = Statistics.getInstance();
@@ -450,7 +358,9 @@ public class OpenDLXSimulator
         // LATCH
         if (fod.getFlush()[PipelineConstants.DECODE_STAGE])
         {
-            logger.debug("Flushed DECODE PC: " + fetch_decode_latch.element().getPc().getValueAsHexString() + " " + fetch_decode_latch.element().getInstr().getValueAsHexString());
+            logger.debug("Flushed DECODE PC: " 
+            	+ fetch_decode_latch.element().getPc().getValueAsHexString() + " " 
+            	+ fetch_decode_latch.element().getInstr().getValueAsHexString());
             fetch_decode_latch.element().flush();
         }
 
@@ -461,7 +371,9 @@ public class OpenDLXSimulator
         // LATCH
         if (fod.getFlush()[PipelineConstants.EXECUTE_STAGE])
         {
-            logger.debug("Flushed EXECUTE PC: " + decode_execute_latch.element().getPc().getValueAsHexString() + " " + decode_execute_latch.element().getInst().toString());
+            logger.debug("Flushed EXECUTE PC: "
+            	+ decode_execute_latch.element().getPc().getValueAsHexString() + " "
+            	+ decode_execute_latch.element().getInst().toString());
             decode_execute_latch.element().flush();
         }
 
@@ -488,11 +400,16 @@ public class OpenDLXSimulator
 
         if (!stall)
         {
-            // in case the execute determines that an instruction requires to forward a value from a load that is the direct predecessor
-            // the a bubble needs to be inserted, since no forwarding is possible in the load delay slot
-            if (eod.getStall()[PipelineConstants.FETCH_STAGE] && eod.getStall()[PipelineConstants.DECODE_STAGE] && eod.getStall()[PipelineConstants.EXECUTE_STAGE])
+            // in case the execute determines that an instruction requires to
+        	// forward a value from a load that is the direct predecessor
+            // the a bubble needs to be inserted, since no forwarding is 
+        	// possible in the load delay slot
+            if (eod.getStall()[PipelineConstants.FETCH_STAGE]
+            	&& eod.getStall()[PipelineConstants.DECODE_STAGE]
+            	&& eod.getStall()[PipelineConstants.EXECUTE_STAGE])
             {
-                logger.debug("Stalling IF, ID, and EX because of load dependency for PC: " + decode_execute_latch.element().getPc().getValueAsHexString());
+                logger.debug("Stalling IF, ID, and EX because of load dependency for PC: "
+                	+ decode_execute_latch.element().getPc().getValueAsHexString());
                 // leave FETCH, DECODE, and EXECUTE untouched
 
                 // let the other latches running
@@ -588,7 +505,7 @@ public class OpenDLXSimulator
         }
 
         // add 1 bubble into decode stage
-        FetchDecodeData fdd = new FetchDecodeData(zero, zero);
+        FetchDecodeData fdd = new FetchDecodeData();
 
         fdl.add(fdd);
 
@@ -680,7 +597,7 @@ public class OpenDLXSimulator
 
         if (!config.containsKey("cycles"))
         {
-            config.setProperty("cycles", "100000");
+            config.setProperty("cycles", "10000");
         }
 
         if (!config.containsKey("log4j"))
@@ -738,6 +655,9 @@ public class OpenDLXSimulator
             }
         }
 
+        if (!config.containsKey("no_branch_delay_slot"))
+        	config.setProperty("no_branch_delay_slot", "TRUE");
+        	
     }
 
     private void checkRegisterValues(short i, Properties config, RegisterSet reg_set)

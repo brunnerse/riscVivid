@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,12 +19,13 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.datatypes;
+package riscVivid.datatypes;
 
 import java.util.Properties;
 
-import openDLX.BranchPredictionModule;
-import openDLX.gui.Preference;
+import riscVivid.BranchPredictionModule;
+import riscVivid.asm.instruction.Registers;
+import riscVivid.gui.Preference;
 
 public class ArchCfg
 {
@@ -37,6 +38,9 @@ public class ArchCfg
     // TODO: rename variable
     public static boolean  use_load_stall_bubble = Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true);
 
+    public static boolean  no_branch_delay_slot = Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true);
+    
+/*
     public static final String[] GP_NAMES_MIPS =
     {
         "ze", "at", "v0", "v1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "t4", "t5", "t6", "t7",
@@ -47,6 +51,7 @@ public class ArchCfg
         "r0 ", "r1 ", "r2 ", "r3 ", "r4 ", "r5 ", "r6 ", "r7 ", "r8 ", "r9 ", "r10", "r11", "r12", "r13", "r14", "r15",
         "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
     };
+*/
 
     public static BranchPredictorType branch_predictor_type =
             BranchPredictionModule.getBranchPredictorTypeFromString(
@@ -86,6 +91,7 @@ public class ArchCfg
         ArchCfg.isa_type = stringToISAType(config.getProperty("isa_type"));
         ArchCfg.use_forwarding = getUseForwardingCfg(config);
         ArchCfg.use_load_stall_bubble = getUseLoadStallBubble(config);
+        ArchCfg.no_branch_delay_slot = getNoBranchDelaySlot(config);
     }
 
     public static ISAType stringToISAType(String s)
@@ -146,9 +152,18 @@ public class ArchCfg
         return true;
     }
 
+    private static boolean getNoBranchDelaySlot(Properties config)
+    {
+    	if ((((config.getProperty("no_branch_delay_slot")).toLowerCase()).compareTo("true") == 0)
+    		|| ((config.getProperty("no_branch_delay_slot")).compareTo("1") == 0))
+    			return true;
+        return false;
+    }
+    
     public static String getRegisterDescription(int reg_id)
     {
-        if (isa_type == ISAType.MIPS)
+/*
+    	if (isa_type == ISAType.MIPS)
         {
             return GP_NAMES_MIPS[reg_id];
         }
@@ -158,10 +173,13 @@ public class ArchCfg
         }
 
         return "-";
+*/
+    	return reg_id + ": " + Registers.RegNames[reg_id];
     }
 
     public static int getRegisterCount()
     {
+/*
         if (isa_type == ISAType.MIPS)
         {
             return GP_NAMES_MIPS.length;
@@ -171,6 +189,8 @@ public class ArchCfg
             return GP_NAMES_DLX.length;
         }
         return 0;
+*/
+    	return 32;
     }
 
 }

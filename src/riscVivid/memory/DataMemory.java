@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,20 +19,22 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.memory;
+package riscVivid.memory;
 
 import java.util.Properties;
 
-import openDLX.datatypes.CacheReplacementPolicy;
-import openDLX.datatypes.CacheType;
-import openDLX.datatypes.DCacheWritePolicy;
-import openDLX.datatypes.RequestType;
-import openDLX.datatypes.uint32;
-import openDLX.datatypes.uint8;
-import openDLX.exception.CacheException;
-import openDLX.exception.MemoryException;
-import openDLX.exception.PipelineDataTypeException;
-import openDLX.util.Statistics;
+import riscVivid.datatypes.CacheReplacementPolicy;
+import riscVivid.datatypes.CacheType;
+import riscVivid.datatypes.DCacheWritePolicy;
+import riscVivid.datatypes.RequestType;
+import riscVivid.datatypes.uint16;
+import riscVivid.datatypes.uint32;
+import riscVivid.datatypes.uint64;
+import riscVivid.datatypes.uint8;
+import riscVivid.exception.CacheException;
+import riscVivid.exception.MemoryException;
+import riscVivid.exception.PipelineDataTypeException;
+import riscVivid.util.Statistics;
 
 /**
  * Encapsulates data memory hierarchy.
@@ -131,25 +133,39 @@ public class DataMemory
 		return mem.read_u8(addr, log_output);
 	}
 
+	public uint16 read_u16(uint32 addr, boolean log_output) throws MemoryException
+	{
+		return mem.read_u16(addr, log_output);
+	}
+
 	public uint32 read_u32(uint32 addr, boolean log_output) throws MemoryException
 	{
 		return mem.read_u32(addr, log_output);
 	}
 
-	public void write_u8(uint32 addr, uint32 value) throws MemoryException
+	public uint64 read_u64(uint32 addr, boolean log_output) throws MemoryException
 	{
-		mem.write_u8(addr, value);
+		return mem.read_u64(addr, log_output);
 	}
-
-	public void write_u32(uint32 addr, uint32 value) throws MemoryException
-	{
-		mem.write_u32(addr, value);
-	}
-
+	
 	public void write_u8(uint32 addr, uint8 value) throws MemoryException
 	{
 		mem.write_u8(addr, value);
 	}
 	
+	public void write_u16(uint32 addr, uint16 value) throws MemoryException
+	{
+		mem.write_u16(addr, value);
+	}
+	
+	public void write_u32(uint32 addr, uint32 value) throws MemoryException
+	{
+		mem.write_u32(addr, value);
+	}
+
+	public void write_u64(uint32 addr, uint64 value) throws MemoryException
+	{
+		mem.write_u64(addr, value);
+	}
 	
 }

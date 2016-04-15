@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.dialog;
+package riscVivid.gui.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
@@ -36,12 +36,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import openDLX.BranchPredictionModule;
-import openDLX.datatypes.ArchCfg;
-import openDLX.datatypes.BranchPredictorState;
-import openDLX.datatypes.BranchPredictorType;
-import openDLX.gui.MainFrame;
-import openDLX.gui.Preference;
+import riscVivid.BranchPredictionModule;
+import riscVivid.datatypes.ArchCfg;
+import riscVivid.datatypes.BranchPredictorState;
+import riscVivid.datatypes.BranchPredictorType;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.Preference;
 
 @SuppressWarnings("serial")
 public class OptionDialog extends JDialog implements ActionListener
@@ -53,7 +53,7 @@ public class OptionDialog extends JDialog implements ActionListener
     // checkBoxes
     private JCheckBox forwardingCheckBox;
     private JCheckBox mipsCompatibilityCheckBox;
-
+    private JCheckBox noBranchDelaySlotCheckBox;
     /*
      * JComboBox may be represented by Vectors or Arrays of Objects (Object [])
      * we have chosen "String[]" to be the representation (in fact - String) for
@@ -93,6 +93,9 @@ public class OptionDialog extends JDialog implements ActionListener
         forwardingCheckBox = new JCheckBox("Use Forwarding");
         forwardingCheckBox.setSelected(Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true)); // load current value
 
+        noBranchDelaySlotCheckBox = new JCheckBox("Ignore Branch Delay Slot");
+        noBranchDelaySlotCheckBox.setSelected(Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true)); // load current value
+        
         mipsCompatibilityCheckBox = new JCheckBox("MIPS compatibility mode (requires forwarding)");
         mipsCompatibilityCheckBox.setSelected(Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true)); // load current value
 
@@ -169,6 +172,7 @@ public class OptionDialog extends JDialog implements ActionListener
         //dont forget adding the components to the panel !!!
 
         optionPanel.add(forwardingCheckBox);
+        optionPanel.add(noBranchDelaySlotCheckBox);
         optionPanel.add(mipsCompatibilityCheckBox);
         optionPanel.add(bpTypeListPanel);
         optionPanel.add(bpInitialStateListPanel);
@@ -202,8 +206,16 @@ public class OptionDialog extends JDialog implements ActionListener
         {
             Preference.pref.putBoolean(Preference.forwardingPreferenceKey,
                     forwardingCheckBox.isSelected());
+            Preference.pref.putBoolean(Preference.noBranchDelaySlotPreferenceKey,
+            		noBranchDelaySlotCheckBox.isSelected());
             Preference.pref.putBoolean(Preference.mipsCompatibilityPreferenceKey,
                     mipsCompatibilityCheckBox.isSelected());
+
+            if(noBranchDelaySlotCheckBox.isSelected())
+                ArchCfg.no_branch_delay_slot = true;
+            else
+                ArchCfg.no_branch_delay_slot = false;
+            
             if (forwardingCheckBox.isSelected())
             {
                 ArchCfg.use_forwarding = true;

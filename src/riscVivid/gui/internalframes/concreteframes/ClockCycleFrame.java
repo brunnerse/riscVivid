@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.internalframes.concreteframes;
+package riscVivid.gui.internalframes.concreteframes;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -34,22 +34,22 @@ import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import openDLX.OpenDLXSimulator;
-import openDLX.asm.DLXAssembler;
-import openDLX.datatypes.uint32;
-import openDLX.exception.MemoryException;
-import openDLX.gui.GUI_CONST;
-import openDLX.gui.MainFrame;
-import openDLX.gui.internalframes.OpenDLXSimInternalFrame;
-import openDLX.gui.internalframes.renderer.ClockCycleFrameTableCellRenderer;
-import openDLX.gui.internalframes.util.NotSelectableTableModel;
-import openDLX.util.ClockCycleLog;
+import riscVivid.RiscVividSimulator;
+import riscVivid.asm.DLXAssembler;
+import riscVivid.datatypes.uint32;
+import riscVivid.exception.MemoryException;
+import riscVivid.gui.GUI_CONST;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.internalframes.renderer.ClockCycleFrameTableCellRenderer;
+import riscVivid.gui.internalframes.util.NotSelectableTableModel;
+import riscVivid.util.ClockCycleLog;
 
 @SuppressWarnings("serial")
 public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GUI_CONST
 {
 
-    private final OpenDLXSimulator openDLXSim;
+    private final RiscVividSimulator openDLXSim;
     //frame text
     private final String addrHeaderText = "Address";
     private final String instHeaderText = "Instructions/Cycles";
@@ -200,7 +200,7 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
             try
             {
                 uint32 inst = openDLXSim.getPipeline().getInstructionMemory().read_u32(addr);
-                String instStr = asm.Instr2Str(inst.getValue());
+                String instStr = asm.Instr2Str(addr.getValue(), inst.getValue());
                 addrModel.addRow(new String[] { addr.getValueAsHexString() });
                 codeModel.addRow(new String[] { instStr });
                 model.addColumn(i);

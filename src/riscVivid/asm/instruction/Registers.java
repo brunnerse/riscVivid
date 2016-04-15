@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,12 +19,25 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.asm.instruction;
+package riscVivid.asm.instruction;
 
 import java.util.Hashtable;
 
 public class Registers {
-	private Hashtable<String, Integer> str2int_;
+	public static final String[] RegNames = {
+// Old ABI
+//		"zero", "ra", "fp", "s1", "s2", "s3", "s4", "s5",
+//		"s6", "s7", "s8", "s9", "s10", "s11", "sp", "tp",
+//		"v0", "v1", "a0", "a1", "a2", "a3", "a4", "a5",
+//		"a6", "a7", "t0", "t1", "t2", "t3", "t4", "gp"
+		"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
+		"fp", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
+		"a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
+		"s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+	};
+	
+		
+		private Hashtable<String, Integer> str2int_;
 	private Hashtable<Integer, String> int2str_;
 
 	private static Registers instance_;
@@ -52,8 +65,10 @@ public class Registers {
 		int2str_ = new Hashtable<Integer, String>();
 
 		for (int i = 0; i < 32; i++) {
-			add("r" + i, i);
+			add("x" + i, i);
+			add(RegNames[i], i);
 		}
+		add("s0", 2);
 	}
 
 	private void add(String str, Integer i) {

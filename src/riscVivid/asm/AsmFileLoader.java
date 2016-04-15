@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.asm;
+package riscVivid.asm;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,16 +27,17 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import openDLX.asm.instruction.Instruction;
-import openDLX.datatypes.ArchCfg;
-import openDLX.datatypes.BranchPredictorType;
+
+import riscVivid.asm.instruction.Instruction;
+import riscVivid.datatypes.ArchCfg;
+import riscVivid.datatypes.BranchPredictorType;
 
 public class AsmFileLoader
 {
 
     private String path = null;
-    private static final String BINARY = "_openDLXFile.bin";
-    private static final String CONFIG = "_openDLXFile.cfg";
+    private static final String BINARY = "_riscVivivFile.bin";
+    private static final String CONFIG = "_riscVividFile.cfg";
     private static final boolean printDebugOutput = false;
 
     public AsmFileLoader(String path)
@@ -104,6 +105,7 @@ public class AsmFileLoader
         textOut.println("isa_type=" + ArchCfg.isa_type);
         textOut.println("use_forwarding=" + ArchCfg.use_forwarding);
         textOut.println("use_load_stall_bubble=" + ArchCfg.use_load_stall_bubble);
+        textOut.println("no_branch_delay_slot=" + ArchCfg.no_branch_delay_slot);
         if(ArchCfg.branch_predictor_type != BranchPredictorType.UNKNOWN)
         {
         	textOut.println("btb_predictor=" + ArchCfg.branch_predictor_type);

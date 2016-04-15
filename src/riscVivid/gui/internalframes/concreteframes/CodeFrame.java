@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.internalframes.concreteframes;
+package riscVivid.gui.internalframes.concreteframes;
 
 import java.awt.BorderLayout;
 
@@ -27,18 +27,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.TableModel;
 
-import openDLX.OpenDLXSimulator;
-import openDLX.PipelineContainer;
-import openDLX.gui.MainFrame;
-import openDLX.gui.internalframes.OpenDLXSimInternalFrame;
-import openDLX.gui.internalframes.factories.tableFactories.CodeTableFactory;
-import openDLX.gui.internalframes.util.TableSizeCalculator;
+import riscVivid.RiscVividSimulator;
+import riscVivid.PipelineContainer;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.internalframes.factories.tableFactories.CodeTableFactory;
+import riscVivid.gui.internalframes.util.TableSizeCalculator;
 
 @SuppressWarnings("serial")
 public final class CodeFrame extends OpenDLXSimInternalFrame
 {
 
-    private final OpenDLXSimulator openDLXSim;
+    private final RiscVividSimulator openDLXSim;
     private JTable codeTable;
     private String IFValue = "";
     private String IDValue = "";

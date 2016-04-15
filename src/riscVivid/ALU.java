@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,26 +19,26 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX;
+package riscVivid;
 
-import openDLX.datatypes.*;
-import openDLX.exception.ExecuteStageException;
-import openDLX.exception.PipelineException;
-import openDLX.util.DLXTrapHandler;
-import openDLX.util.PrintHandler;
+import java.math.BigInteger;
 import org.apache.log4j.Logger;
+
+import riscVivid.datatypes.*;
+import riscVivid.exception.ExecuteStageException;
+import riscVivid.exception.PipelineException;
+import riscVivid.util.DLXTrapHandler;
 
 public class ALU
 {
 	private static Logger logger = Logger.getLogger("EXECUTE/ALU");
-	private PrintHandler print_handler=null;
 	private DLXTrapHandler trap_handler=null;
 	
 	public ALU()
 	{
-		print_handler = PrintHandler.getInstance();
 		trap_handler = DLXTrapHandler.getInstance();
 	}
+	
 	
 	/* calculates result of ALU operation. If a 32bit result is calculated, it is available to both 32bit outputs. 
 	 * For a 64bit result, the result is split into a lower and upper 32bit results.
@@ -98,11 +98,33 @@ public class ALU
 				throw new ExecuteStageException("Division by zero.");
 			}
 			// takes usually multiple cycles (3 according to the isa)
-			// chop of sign bit
-			int q = (A.getValue()&0x7FFFFFFF) / (B.getValue()&0x7FFFFFFF);
-			int r = (A.getValue()&0x7FFFFFFF) % (B.getValue()&0x7FFFFFFF);
-			resultLO.setValue(q);
-			resultHI.setValue(r);
+			long q = ((long)A.getValue()&0xffffffff) / ((long)B.getValue()&0xffffffff);
+			long r = ((long)A.getValue()&0xffffffff) % ((long)B.getValue()&0xffffffff);
+			resultLO.setValue((int)q);
+			resultHI.setValue((int)r);
+			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " / " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " =  LO (q): " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")" + " HI (r): " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")");
+			break;
+		}
+		case REM:
+		{	
+			if(B.getValue() == 0)
+			{
+				throw new ExecuteStageException("Division by zero.");
+			}
+			// takes usually multiple cycles (3 according to the isa)
+			int r = A.getValue() % B.getValue();
+			resultLO.setValue(r);
+			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " / " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " =  LO (q): " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")" + " HI (r): " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")");
+			break;
+		}
+		case REMU:
+		{	
+			if(B.getValue() == 0)
+			{
+				throw new ExecuteStageException("Division by zero.");
+			}
+			long r = ((long)A.getValue()&0xffffffff) % ((long)B.getValue()&0xffffffff);
+			resultLO.setValue((int)r);
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " / " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " =  LO (q): " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")" + " HI (r): " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")");
 			break;
 		}
@@ -116,8 +138,8 @@ public class ALU
 		{
 			// takes usually multiple cycles (3 according to the isa)
 			long mult = (long)A.getValue() * (long)B.getValue();
-			resultLO.setValue((int)(mult & 0xFFFFFFFF));
-			resultHI.setValue((int)((mult >>> 32) & 0xFFFFFFFF));
+			resultLO.setValue((int)mult);
+			resultHI.setValue((int)(mult >>> 32));
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " * " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " = " + mult + " HI: " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")" + " LO: " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")");
 			break;
 		}
@@ -131,6 +153,38 @@ public class ALU
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " * " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " = " + mult + " HI: " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")" + " LO: " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")");
 			break;
 		}
+		case MULH:
+		{
+			long mult = (long)A.getValue() * (long)B.getValue();
+			resultLO.setValue((int)((mult >>> 32) & 0xFFFFFFFF));
+			logger.debug(A.getValue() + "(" + A.getValueAsHexString() 
+				+ ") * " + B.getValue() + "(" + B.getValueAsHexString() 
+				+ ")>>32= " + resultLO.getValue() + '(' + resultLO.getValueAsHexString() + ")");
+			break;
+		}
+		case MULHU:
+		{
+			BigInteger biga = BigInteger.valueOf(((long)A.getValue()) & 0xffffffffL);
+			BigInteger bigb = BigInteger.valueOf(((long)B.getValue()) & 0xffffffffL);
+			resultLO.setValue((int)biga.multiply(bigb).shiftRight(32).longValue());
+			logger.debug(biga.longValue() + "(" + String.format("0x%08x", biga.longValue())  
+				+ ") * " + bigb.longValue() + "(" + String.format("0x%08x", bigb.longValue())  
+				+ ")>>32= " + resultLO.getValue() + '(' + resultLO.getValueAsHexString() + ")");
+			break;
+		}
+		case MULHSU:
+		{
+			BigInteger biga = BigInteger.valueOf((long)A.getValue());
+			BigInteger bigb = BigInteger.valueOf((long)B.getValue() & 0xffffffff);
+			resultLO.setValue((int)biga.multiply(bigb).shiftRight(32).longValue());
+			logger.debug(A.getValue() + "(" + A.getValueAsHexString() 
+				+ ") * " + B.getValue() + "(" + B.getValueAsHexString() 
+				+ ")>>32= " + resultLO.getValue() + '(' + resultLO.getValueAsHexString() + ")");
+			break;
+		}
+
+		
+		
 		case OR:
 			resultLO.setValue(A.getValue() | B.getValue());
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " | " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " = " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")");
@@ -389,12 +443,16 @@ public class ALU
 			resultHI = resultLO;
 			break;
 		case SYSCALL:
+/*
 			// NOTICE: this ALU function is only needed for the MIPS ISA
 			doSyscall(A.getValue(),B.getValue());
+			riscvSyscall();
 			
 			resultLO.setValue(0);
 			// duplicate results
 			resultHI = resultLO;
+*/
+			logger.debug("syscall: handled in write back stage");
 			break;
 		case TRAP:
 			// NOTICE: this ALU function is only needed for the DLX ISA
@@ -522,20 +580,6 @@ public class ALU
 		return return_result;
 	}
 
-	private void doSyscall(int syscall_id, int value)
-	{
-		switch(syscall_id)
-		{
-		case PipelineConstants.SYSCALL_PUTCHAR:
-		{
-			print_handler.putChar(value);
-			break;
-		}
-		default:
-			logger.warn("Unknown Syscall: " + syscall_id + " value: " + value);
-		}
-	}
-	
 	private void doTrap()
 	{
 		logger.warn("Catched Trap  ... don't know what to do maybe divition by zero occured. Stopping simulation.");

@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.asm;
+package riscVivid.asm;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,10 +27,10 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import openDLX.asm.instruction.Instruction;
-import openDLX.asm.instruction.Instructions;
-import openDLX.asm.parser.Parser;
-import openDLX.asm.parser.UnresolvedInstruction;
+import riscVivid.asm.instruction.Instruction;
+import riscVivid.asm.instruction.Instructions;
+import riscVivid.asm.parser.Parser;
+import riscVivid.asm.parser.UnresolvedInstruction;
 
 public class DLXAssembler implements AssemblerInterface {
 	private static int defaultDataStart = 0x100;
@@ -63,19 +63,15 @@ public class DLXAssembler implements AssemblerInterface {
 		parser.resolve(unresolvedInstructions, globalLabels, memory);
 		Integer entryPoint = globalLabels.get("main");
 		if (entryPoint != null)
-			if (parser.hasGlobalMain())
-				memory.setEntyPoint(entryPoint);
-			else
-				throw new AssemblerException("no entry point 'main' found!\nPlease specify '.global main'.");
+			memory.setEntyPoint(entryPoint);
 		else
 			throw new AssemblerException("no entry point 'main' found!\nPlease specify '.global main' and 'main:'.");
 		return memory;
 	}
 
-	public String Instr2Str(int instr) {
+	public String Instr2Str(int pc, int instr) {
 		Instruction i = new Instruction(instr);
-		i.calcInstType();
-		return i.toString();
+		return i.toString(pc);
 	}
 
 	public String InstrDescription(String mnem) {

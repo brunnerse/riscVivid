@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.memory;
+package riscVivid.memory;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,9 +27,9 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-import openDLX.datatypes.*;
-import openDLX.exception.MemoryException;
-import openDLX.util.PagedMemory;
+import riscVivid.datatypes.*;
+import riscVivid.exception.MemoryException;
+import riscVivid.util.PagedMemory;
 
 public class MainMemory implements MemoryInterface
 {
@@ -83,11 +83,32 @@ public class MainMemory implements MemoryInterface
         return new uint8(memory.readByte(address));
     }
 
+/*
     public uint8 read_u8(uint32 address) throws MemoryException
     {
         return read_u8(address, false);
     }
+*/
+    
+    public uint16 read_u16(uint32 address, boolean log_output) throws MemoryException
+    {
+        if((address.getValue()&0x1 ) != 0) {
+            logger.error("Read u16 from unaligned addr: " + address.getValueAsHexString());
+            throw new MemoryException("Read u16 from unaligned addr: " + address.getValueAsHexString());
+        }
+        if(log_output)
+            dumpMemory(new uint32(address.getValue() - 4), new uint32(address.getValue() + 4));
+        return  new uint16((memory.readByte(address.getValue()) & 0xFF)
+        		+ ((memory.readByte(address.getValue() + 1) & 0xFF) << 8));
+    }
 
+/*
+    public uint16 read_u16(uint32 address) throws MemoryException
+    {
+        return read_u16(address, false);
+    }
+*/
+    
     public uint32 read_u32(uint32 address, boolean log_output) throws MemoryException
     {
         if((address.getValue()&0x3) != 0)
@@ -96,7 +117,10 @@ public class MainMemory implements MemoryInterface
             throw new MemoryException("Read u32 from unaligned addr: " + address.getValueAsHexString());
         }
 
-        uint32 value = new uint32((memory.readByte(address.getValue()) & 0xFF) + ((memory.readByte(address.getValue() + 1) & 0xFF) << 8) + ((memory.readByte(address.getValue() + 2) & 0xFF) << 16) + ((memory.readByte(address.getValue() + 3) & 0xFF) << 24));
+        uint32 value = new uint32((memory.readByte(address.getValue()) & 0xFF) 
+        		+ ((memory.readByte(address.getValue() + 1) & 0xFF) << 8)
+        		+ ((memory.readByte(address.getValue() + 2) & 0xFF) << 16)
+        		+ ((memory.readByte(address.getValue() + 3) & 0xFF) << 24));
         if (log_output)
         {
             //logger.trace("Read u32 from addr: " + address.getHex());
@@ -107,10 +131,32 @@ public class MainMemory implements MemoryInterface
         return value;
     }
 
+/*
     public uint32 read_u32(uint32 address) throws MemoryException
     {
         return read_u32(address, false);
     }
+*/
+    
+    public uint64 read_u64(uint32 address, boolean log_output) throws MemoryException
+    {
+        if((address.getValue()&7) != 0) {
+            logger.error("Read u64 from unaligned addr: " + address.getValueAsHexString());
+            throw new MemoryException("Read u64 from unaligned addr: " + address.getValueAsHexString());
+        }
+        if(log_output)
+            dumpMemory(new uint32(address.getValue() - 4), new uint32(address.getValue() + 4));
+
+        return new uint64((memory.readByte(address.getValue()) & 0xFF)
+        	+ ((memory.readByte(address.getValue() + 1) & 0xFF) << 8)
+        	+ ((memory.readByte(address.getValue() + 2) & 0xFF) << 16)
+        	+ ((memory.readByte(address.getValue() + 3) & 0xFF) << 24)
+        	+ ((memory.readByte(address.getValue() + 4) & 0xFF) << 32)
+        	+ ((memory.readByte(address.getValue() + 5) & 0xFF) << 40)
+        	+ ((memory.readByte(address.getValue() + 6) & 0xFF) << 48)
+        	+ ((memory.readByte(address.getValue() + 7) & 0xFF) << 56));
+    }
+
 
     /**
      * TODO ...
@@ -121,27 +167,47 @@ public class MainMemory implements MemoryInterface
         return new uint32((memory.readByteDump(address.getValue()) & 0xFF) + ((memory.readByteDump(address.getValue() + 1) & 0xFF) << 8) + ((memory.readByteDump(address.getValue() + 2) & 0xFF) << 16) + ((memory.readByteDump(address.getValue() + 3) & 0xFF) << 24));
     }
 
-    public uint16 read_u16(uint32 address, boolean log_output) throws MemoryException
+    public void write_u8(uint32 address, uint8 value) throws MemoryException
+    {
+        logger.debug("Write u8 to addr: " + address.getValueAsHexString() + " value: " + value.getValueAsHexString());
+
+        memory.writeByte(address.getValue(), value.getValue());
+
+        logger.debug("Written: " + value.getValueAsHexString() + " -> " + memory.readByteAsString(address.getValue()));
+        dumpMemory(new uint32(address.getValue() - 4), new uint32(address.getValue() + 4));
+    }
+
+/*
+    public void write_u8(uint32 address, uint32 value) throws MemoryException
+    {
+    	write_u8(address, new uint8(value.getValue()));
+    }
+*/
+
+    public void write_u16(uint32 address, uint16 value) throws MemoryException
     {
         if((address.getValue()&0x1 ) != 0)
         {
-            logger.error("Read u16 from unaligned addr: " + address.getValueAsHexString());
-            throw new MemoryException("Read u16 from unaligned addr: " + address.getValueAsHexString());
+            logger.error("Write u16 to unaligned addr: " + address.getValueAsHexString());
+            throw new MemoryException("Write u16 to unaligned addr: " + address.getValueAsHexString());
         }
+        logger.debug("Write u16 to addr: " + address.getValueAsHexString() + " value: " + value.getValueAsHexString());
 
-        uint16 value = new uint16((memory.readByte(address.getValue()) & 0xFF) + ((memory.readByte(address.getValue() + 1) & 0xFF) << 8));
-        if(log_output)
-        {
-            dumpMemory(new uint32(address.getValue() - 4), new uint32(address.getValue() + 4));
-        }
-        return value;
+        memory.writeByte(address.getValue(), (byte) (value.getValue() & 0xFF));
+        memory.writeByte(address.getValue() + 1, (byte) ((value.getValue() >> 8) & 0xFF));
+
+        logger.debug("Written: " + value.getValueAsHexString() + " -> " 
+                + memory.readByteAsString(address.getValue() + 1) + " " + memory.readByteAsString(address.getValue() + 0));
+        dumpMemory(new uint32(address.getValue() - 4), new uint32(address.getValue() + 4));
     }
 
-    public uint16 read_u16(uint32 address) throws MemoryException
+/*
+    public void write_u16(uint32 address, uint32 value) throws MemoryException
     {
-        return read_u16(address, false);
+    	write_u8(address, new uint16(value.getValue()));
     }
-
+*/
+    
     public void write_u32(uint32 address, uint32 value) throws MemoryException
     {
         if((address.getValue()&0x3 ) != 0)
@@ -162,23 +228,32 @@ public class MainMemory implements MemoryInterface
         dumpMemory(new uint32(address.getValue() - 4), new uint32(address.getValue() + 4));
     }
 
-
-    public void write_u8(uint32 address, uint32 value) throws MemoryException
+    public void write_u64(uint32 address, uint64 value) throws MemoryException
     {
-        write_u8(address, new uint8(value.getValue()));
-    }
+        if((address.getValue()&7) != 0)
+        {
+            logger.error("Write u64 to unaligned addr: " + address.getValueAsHexString());
+            throw new MemoryException("Write u64 to unaligned addr: " + address.getValueAsHexString());
+        }
+        logger.debug("Write u16 to addr: " + address.getValueAsHexString() + " value: " + value.getValueAsHexString());
 
-    public void write_u8(uint32 address, uint8 value) throws MemoryException
-    {
-        logger.debug("Write u8 to addr: " + address.getValueAsHexString() + " value: " + value.getValueAsHexString());
+        long v = value.getValue();
+        memory.writeByte(address.getValue(), (byte) (v & 0xFF));
+        memory.writeByte(address.getValue() + 1, (byte) ((v >> 8) & 0xFF));
+        memory.writeByte(address.getValue() + 2, (byte) ((v >> 16) & 0xFF));
+        memory.writeByte(address.getValue() + 3, (byte) ((v >> 24) & 0xFF));
+        memory.writeByte(address.getValue() + 4, (byte) ((v >> 32) & 0xFF));
+        memory.writeByte(address.getValue() + 5, (byte) ((v >> 40) & 0xFF));
+        memory.writeByte(address.getValue() + 6, (byte) ((v >> 48) & 0xFF));
+        memory.writeByte(address.getValue() + 7, (byte) ((v >> 56) & 0xFF));
 
-        memory.writeByte(address.getValue(), value.getValue());
-
-        logger.debug("Written: " + value.getValueAsHexString() + " -> " + memory.readByteAsString(address.getValue()));
+        logger.debug("Written: " + value.getValueAsHexString() + " -> " 
+                + memory.readByteAsString(address.getValue() + 1) + " " + memory.readByteAsString(address.getValue() + 0));
         dumpMemory(new uint32(address.getValue() - 4), new uint32(address.getValue() + 4));
     }
 
-    public void dumpMemory(uint32 start, uint32 end) throws MemoryException
+
+   public void dumpMemory(uint32 start, uint32 end) throws MemoryException
     {
         uint32 start_aligned = new uint32(start.getValue() & 0xFFFFFFE0);
 

@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.internalframes.concreteframes.editor;
+package riscVivid.gui.internalframes.concreteframes.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -43,19 +43,20 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import javax.swing.undo.*;
 
-import openDLX.gui.GUI_CONST.OpenDLXSimState;
-import openDLX.gui.MainFrame;
-import openDLX.gui.command.EventCommandLookUp;
-import openDLX.gui.command.userLevel.CommandClearEditor;
-import openDLX.gui.command.userLevel.CommandLoadAndRunFile;
-import openDLX.gui.command.userLevel.CommandLoadFile;
-import openDLX.gui.command.userLevel.CommandPerformEditorRedo;
-import openDLX.gui.command.userLevel.CommandPerformEditorUndo;
-import openDLX.gui.command.userLevel.CommandRunFromEditor;
-import openDLX.gui.command.userLevel.CommandSave;
-import openDLX.gui.internalframes.FrameConfiguration;
-import openDLX.gui.internalframes.OpenDLXSimInternalFrame;
-import openDLX.gui.internalframes.factories.InternalFrameFactory;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.GUI_CONST.OpenDLXSimState;
+import riscVivid.gui.command.EventCommandLookUp;
+import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
+import riscVivid.gui.command.userLevel.CommandLoadFile;
+import riscVivid.gui.command.userLevel.CommandLoadFileBelow;
+import riscVivid.gui.command.userLevel.CommandNewFile;
+import riscVivid.gui.command.userLevel.CommandPerformEditorRedo;
+import riscVivid.gui.command.userLevel.CommandPerformEditorUndo;
+import riscVivid.gui.command.userLevel.CommandRunFromEditor;
+import riscVivid.gui.command.userLevel.CommandSave;
+import riscVivid.gui.internalframes.FrameConfiguration;
+import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 
 @SuppressWarnings("serial")
 public final class EditorFrame extends OpenDLXSimInternalFrame implements ActionListener, KeyListener, UndoableEditListener
@@ -71,9 +72,10 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     //text area
     //private JTextArea input;
     //buttons
-    private JButton run;
+    private JButton assem;
     private JButton load;
-    private JButton loadandrun;
+    private JButton loadandassem;
+    private JButton addcode;
     private JButton save;
     private JButton clear;
     
@@ -129,8 +131,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         /*
          *  
          final JScrollPane jsp = new JScrollPane();
-         jtp.setEditorKitForContentType("text/openDLX", new OpenDLXSimEditorKit());
-         jtp.setContentType("text/openDLX");
+         jtp.setEditorKitForContentType("text/riscVivid", new OpenDLXSimEditorKit());
+         jtp.setContentType("text/riscVivid");
          jtp.getDocument().addDocumentListener(new DocumentListener()
          {
          public String getText()
@@ -185,28 +187,31 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         
         scrollPane.setRowHeaderView(tln);
         add(scrollPane, BorderLayout.CENTER);
-        run = createButton("Assemble", "Assemble and Run [ALT+A]", KeyEvent.VK_A, "/img/icons/tango/run.png");
-        load = createButton("Load", "Load Program [CRTL+O]", KeyEvent.VK_O, "/img/icons/tango/load.png");
-        loadandrun = createButton("Load and Run", "Load Program and Run [CRTL+R]", KeyEvent.VK_O, "/img/icons/tango/loadandrun.png");
+        clear = createButton("New", "Clear All [ALT+C]", KeyEvent.VK_C, "/img/icons/tango/clear.png");
+        load = createButton("Open...", "Open Program [CTRL+O]", KeyEvent.VK_O, "/img/icons/tango/load.png");
+        addcode = createButton("Add Code...", "Add Code to Programms... [CTRL+I]", KeyEvent.VK_I, "/img/icons/tango/addcode.png");
         save = createButton("Save As...", "Save Program As... [ALT+S]", KeyEvent.VK_S, "/img/icons/tango/saveas.png");
-        clear = createButton("Clear", "Clear All [ALT+C]", KeyEvent.VK_C, "/img/icons/tango/clear.png");
+        assem = createButton("Assemble", "Assemble [ALT+A]", KeyEvent.VK_A, "/img/icons/tango/run.png");
+        loadandassem = createButton("Open & Assemble...", "Open Program and Assemble [CTRL+R]", KeyEvent.VK_O, "/img/icons/tango/loadandrun.png");
         undo = createButton("Undo", "Undo [CTRL+Z]", KeyEvent.VK_U, "/img/icons/tango/undo.png");
         redo = createButton("Redo", "Redo [CTRL+SHIFT+Z]", KeyEvent.VK_R, "/img/icons/tango/redo.png"); 
         
         // if  parameter command = null, command is not yet implemented and should be implemented soon   
 
-        EventCommandLookUp.put(run, new CommandRunFromEditor(this));
+        EventCommandLookUp.put(assem, new CommandRunFromEditor(mf));
         EventCommandLookUp.put(load, new CommandLoadFile(mf));
-        EventCommandLookUp.put(loadandrun, new CommandLoadAndRunFile(mf));
+        EventCommandLookUp.put(loadandassem, new CommandLoadAndRunFile(mf));
+        EventCommandLookUp.put(addcode, new CommandLoadFileBelow(mf));
         EventCommandLookUp.put(save, new CommandSave());
-        EventCommandLookUp.put(clear, new CommandClearEditor());
+        EventCommandLookUp.put(clear, new CommandNewFile(mf));
 //        EventCommandLookUp.put(undo, undoCommand); 
 //        EventCommandLookUp.put(redo, redoCommand);
 
         
-        run.addActionListener(this);
+        assem.addActionListener(this);
         load.addActionListener(this);
-        loadandrun.addActionListener(this);
+        loadandassem.addActionListener(this);
+        addcode.addActionListener(this);
         save.addActionListener(this);
         clear.addActionListener(this);
         undo.addActionListener(this);
@@ -215,11 +220,12 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         
         // TODO deactivate toolbar when simulator is in run mode
         JToolBar toolBar = new JToolBar("Editor toolbar");
-        toolBar.add(run);
-        toolBar.add(load);
-        toolBar.add(loadandrun);
-        toolBar.add(save);
         toolBar.add(clear);
+        toolBar.add(load);
+        toolBar.add(addcode);
+        toolBar.add(save);
+        toolBar.add(assem);
+        toolBar.add(loadandassem);
         toolBar.add(undo);
         toolBar.add(redo);
         toolBar.setFloatable(false);
@@ -296,14 +302,14 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     {
         if (currentState == OpenDLXSimState.RUNNING)
         {
-            run.setEnabled(false);
+            assem.setEnabled(false);
             clear.setEnabled(false);
             save.setEnabled(false);
 
         }
         else
         {
-            run.setEnabled(true);
+            assem.setEnabled(true);
             clear.setEnabled(true);
             save.setEnabled(true);
         }

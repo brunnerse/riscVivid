@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,15 +19,16 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.util;
+package riscVivid.util;
 
-import openDLX.PipelineConstants;
-import openDLX.memory.MainMemory;
-import openDLX.datatypes.*;
-import openDLX.exception.DLXTrapException;
-import openDLX.exception.MemoryException;
-import openDLX.gui.dialog.Input;
 import org.apache.log4j.Logger;
+
+import riscVivid.PipelineConstants;
+import riscVivid.datatypes.*;
+import riscVivid.exception.DLXTrapException;
+import riscVivid.exception.MemoryException;
+import riscVivid.gui.dialog.Input;
+import riscVivid.memory.MainMemory;
 
 public class DLXTrapHandler {
 	
@@ -88,8 +89,8 @@ public class DLXTrapHandler {
 	{
 		String user_input = null;
 //		uint32 unknown = new uint32(parameter);
-		uint32 write_addr = mem.read_u32(new uint32(parameter+4));
-		int input_length = mem.read_u32(new uint32(parameter+8)).getValue();
+		uint32 write_addr = mem.read_u32(new uint32(parameter+4), false);
+		int input_length = mem.read_u32(new uint32(parameter+8), false).getValue();
 		uint32 return_value = new uint32(-1);
 		
 		if((oInput != null) && (input != null))
@@ -125,7 +126,7 @@ public class DLXTrapHandler {
 
 	public void printf(int parameter) throws MemoryException, DLXTrapException 
 	{
-		uint32 format_addr = mem.read_u32(new uint32(parameter));
+		uint32 format_addr = mem.read_u32(new uint32(parameter), false);
 		String format_string = new String("");
 		uint32 parameter_list_pointer = new uint32(parameter + 4);
 		
@@ -143,7 +144,7 @@ public class DLXTrapHandler {
 		{
 //			logger.debug("Read addr: " + format_addr.getHex() + " char: " + (char)mem.read_u8(format_addr).getValue() + "("+ mem.read_u8(format_addr).getHex() +")");
 			
-			read_char = (char)(mem.read_u8(format_addr).getValue());
+			read_char = (char)(mem.read_u8(format_addr, false).getValue());
 			String read_s = String.valueOf(read_char);
 			format_string += read_s;
 			
@@ -172,14 +173,14 @@ public class DLXTrapHandler {
 				switch(format_string.charAt(format_descr_pos+1))
 				{
 				case FORMAT_INTEGER:
-					print_string += mem.read_u32(parameter_list_pointer).getValue();
+					print_string += mem.read_u32(parameter_list_pointer, false).getValue();
 					// set pointer to next addr in the parameter list
 					parameter_list_pointer.setValue(parameter_list_pointer.getValue()+4);
 					// skip two characters: the "%" and the format descriptor
 					format_descr_pos+=2;
 					break;
 				case FORMAT_HEX:
-					print_string += mem.read_u32(parameter_list_pointer).getValueAsHexString();
+					print_string += mem.read_u32(parameter_list_pointer, false).getValueAsHexString();
 					// set pointer to next addr in the parameter list
 					parameter_list_pointer.setValue(parameter_list_pointer.getValue()+4);
 					// skip two characters: the "%" and the format descriptor

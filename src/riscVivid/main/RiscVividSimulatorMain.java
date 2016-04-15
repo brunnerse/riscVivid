@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,16 +19,16 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.main;
+package riscVivid.main;
 
-import openDLX.OpenDLXSimulator;
-import openDLX.config.GlobalConfig;
-import openDLX.datatypes.ArchCfg;
-import openDLX.datatypes.ISAType;
-import openDLX.exception.PipelineException;
-import openDLX.gui.*;
+import riscVivid.RiscVividSimulator;
+import riscVivid.config.GlobalConfig;
+import riscVivid.datatypes.ArchCfg;
+import riscVivid.datatypes.ISAType;
+import riscVivid.exception.PipelineException;
+import riscVivid.gui.*;
 
-public class OpenDLXSimulatorMain
+public class RiscVividSimulatorMain
 {
 
     /**
@@ -83,19 +83,19 @@ public class OpenDLXSimulatorMain
     	}
     	
     	System.out.println("+==============================================+");
-    	System.out.println("|   openDLX - a DLX/MIPS processor simulator   |");
+    	System.out.println("|   riscVivid - a RISC-V processor simulator   |");
     	System.out.println("|   Version "+GlobalConfig.VERSION+blanks+"|");
-    	System.out.println("|   Copyright (C) 2013 University of Augsburg  |");
+    	System.out.println("| Copyright (C) 2013-15 University of Augsburg |");
     	System.out.println("+==============================================+");
     	System.out.println("| Usage:                                       |");
     	System.out.println("| For GUI version:                             |");
-    	System.out.println("|   java -jar openDLX.jar [-g]                 |");
+    	System.out.println("|   java -jar riscVivid.jar [-g]               |");
     	System.out.println("| For non interactive version:                 |");
-    	System.out.println("|   java -jar openDLX.jar -c config_file.cfg   |");
+    	System.out.println("|   java -jar riscVivid.jar -c config_file.cfg |");
     	System.out.println("| This help message:                           |");
-    	System.out.println("|   java -jar openDLX.jar -h                   |");
+    	System.out.println("|   java -jar riscVivid.jar -h                 |");
       	System.out.println("| About & license information:                 |");
-    	System.out.println("|   java -jar openDLX.jar -about               |");
+    	System.out.println("|   java -jar riscVivid.jar -about             |");
     	System.out.println("+==============================================+");
 		
 	}
@@ -111,21 +111,21 @@ public class OpenDLXSimulatorMain
     {
     	// DLX is the default for graphical mode.
     	ArchCfg.isa_type = ISAType.DLX;
-    	OpenDLXSimGui.openDLXGui_main();
+    	RiscVividSimGui.riscVividGui_main();
     }
     
     static void main_cmd(String[] args)
     {
-    	OpenDLXSimulator cmdl;
+    	RiscVividSimulator cmdl;
 		try {
-			cmdl = new OpenDLXSimulator(args);
+			cmdl = new RiscVividSimulator(args);
 		} catch (PipelineException e) {
 			e.printStackTrace();
 			cmdl = null;
 			System.exit(1);
 			
 		}
-		cmdl.openDLXCmdl_main();
+		cmdl.riscVividCmdl_main();
     }
 
 }

@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,17 +19,18 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX;
+package riscVivid;
 
 import java.util.Queue;
 
-import openDLX.datatypes.*;
-import openDLX.exception.MemoryException;
-import openDLX.exception.MemoryStageException;
-import openDLX.memory.DataMemory;
-import openDLX.util.Statistics;
 
 import org.apache.log4j.Logger;
+
+import riscVivid.datatypes.*;
+import riscVivid.exception.MemoryException;
+import riscVivid.exception.MemoryStageException;
+import riscVivid.memory.DataMemory;
+import riscVivid.util.Statistics;
 
 public class Memory
 {
@@ -37,7 +38,6 @@ public class Memory
 	private Statistics stat = Statistics.getInstance(); 
 	private DataMemory dmem;
 	private Queue<ExecuteMemoryData> execute_memory_latch;
-	private final boolean throwExceptionForUntestedAccesses = true;
 
 	public Memory(DataMemory dmem)
 	{
@@ -55,12 +55,13 @@ public class Memory
 		uint32[] alu_out = emd.getAluOut();
 		uint32 alu_outLO = alu_out[0];
 		// uint32 alu_outHI = alu_out[1];
-		uint32 store_value = emd.getStoreValue();
+//		uint32 store_value = emd.getStoreValue();
+		uint64 sv = new uint64(emd.getStoreValue().getValue());
 		Instruction inst = emd.getInst();
 		uint32 pc = emd.getPc();
 		boolean jump = emd.getJump();
 
-		uint32 ld_result = new uint32(0);
+		long lv=0;
 
 		if (inst.getLoad())
 		{
@@ -69,58 +70,64 @@ public class Memory
 				switch(inst.getMemoryWidth())
 				{
 				case BYTE:
-					ld_result.setValue((int)dmem.read_u8(alu_outLO, true).getValue());
-					logger.debug("PC: " + pc.getValueAsHexString() + " load from addr: " + alu_outLO.getValueAsHexString() + " value: " + ld_result.getValueAsHexString());
+					lv = dmem.read_u8(alu_outLO, true).getValue();
 					break;
 				case UBYTE:
-					ld_result.setValue(dmem.read_u8(alu_outLO, true).getValue()&0xFF);
-					logger.debug("PC: " + pc.getValueAsHexString() + " load from addr: " + alu_outLO.getValueAsHexString() + " value: " + ld_result.getValueAsHexString());
+					lv = (long)dmem.read_u8(alu_outLO, true).getValue() & 0xff;
+					break;
+				case HWORD:
+					lv = dmem.read_u16(alu_outLO, true).getValue();
+					break;
+				case UHWORD:
+					lv = (long)dmem.read_u8(alu_outLO, true).getValue() & 0xffff;
 					break;
 				case WORD:
-					ld_result.setValue(dmem.read_u32(alu_outLO, true).getValue());
-					logger.debug("PC: " + pc.getValueAsHexString() + " load from addr: " + alu_outLO.getValueAsHexString() + " value: " + ld_result.getValueAsHexString());
+					lv = dmem.read_u32(alu_outLO, true).getValue();
 					break;
 				case UWORD:
-					ld_result.setValue(dmem.read_u32(alu_outLO, true).getValue());
-					logger.debug("PC: " + pc.getValueAsHexString() + " load from addr: " + alu_outLO.getValueAsHexString() + " value: " + ld_result.getValueAsHexString());
-					if(throwExceptionForUntestedAccesses)
-					{
-						throw new MemoryStageException("Untested memory width: " + inst.getMemoryWidth());
-					}
+					lv = (long)dmem.read_u32(alu_outLO, true).getValue() & 0xffffffffL;
+					break;
+				case DWORD:
+				case UDWORD:
+					lv = dmem.read_u64(alu_outLO, true).getValue();
 					break;
 				default:
 					logger.error("wrong memory width: " + inst.getMemoryWidth()); 
 					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth());
 				}
+				logger.debug("PC: " + pc.getValueAsHexString() 
+						+ " load from addr: " + alu_outLO.getValueAsHexString() 
+						+ " value: 0x" + Long.toHexString(lv));
 				stat.countMemRead();
 			}
-			else
-			{
-				// stall
-			}
+			// else stall
 		}
 		else if (inst.getStore())
 		{
 			if(dmem.getRequestDelay(RequestType.DATA_WR, alu_outLO)==0)
 			{
+				logger.debug("PC: " + pc.getValueAsHexString() 
+						+ " store value: " + sv.getValueAsHexString() 
+						+ " to addr: " + alu_outLO.getValueAsHexString());
 				switch(inst.getMemoryWidth())
 				{
 				case BYTE:
-					logger.debug("PC: " + pc.getValueAsHexString() + " store value: " + store_value.getValueAsHexString() + " to addr: " + alu_outLO.getValueAsHexString());
-					dmem.write_u8(alu_outLO, store_value);
-					break;
 				case UBYTE:
-					logger.debug("PC: " + pc.getValueAsHexString() + " store value: " + store_value.getValueAsHexString() + " to addr: " + alu_outLO.getValueAsHexString());
-					dmem.write_u8(alu_outLO, store_value);
+					dmem.write_u8(alu_outLO, new uint8((byte)sv.getValue()));
+					break;
+				case HWORD:
+				case UHWORD:
+					dmem.write_u16(alu_outLO,new uint16((short)sv.getValue()));
 					break;
 				case WORD:
-					logger.debug("PC: " + pc.getValueAsHexString() + " store value: " + store_value.getValueAsHexString() + " to addr: " + alu_outLO.getValueAsHexString());
-					dmem.write_u32(alu_outLO, store_value);
-					break;
 				case UWORD:
-					logger.debug("PC: " + pc.getValueAsHexString() + " store value: " + store_value.getValueAsHexString() + " to addr: " + alu_outLO.getValueAsHexString());
-					dmem.write_u32(alu_outLO, store_value);
+					dmem.write_u32(alu_outLO, new uint32((int)sv.getValue()));
 					break;
+				case DWORD:
+				case UDWORD:
+					dmem.write_u64(alu_outLO, sv);
+					break;
+/*
 				case WORD_RIGHT_PART:
 					// refer to page A-153 of the MIPS IV Instruction Set Rev. 3.2
 					switch(alu_outLO.getValue()&0x3)
@@ -211,7 +218,8 @@ public class Memory
 						break;
 					}
 					break;
-				default:
+*/
+					default:
 					logger.error("Wrong memory width: " + inst.getMemoryWidth()); 
 					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth());
 				}
@@ -227,7 +235,7 @@ public class Memory
 			logger.debug("PC: " + pc.getValueAsHexString() + " nothing to do");
 		}
 
-		MemoryWritebackData mwd = new MemoryWritebackData(inst, pc, alu_out, ld_result, jump);
+		MemoryWritebackData mwd = new MemoryWritebackData(inst, pc, alu_out, new uint32((int)lv), jump);
 
 		return new MemoryOutputData(mwd);
 	}

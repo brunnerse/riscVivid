@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,14 +19,14 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.command.userLevel;
+package riscVivid.gui.command.userLevel;
 
-import openDLX.OpenDLXSimulator;
-import openDLX.exception.PipelineException;
-import openDLX.gui.MainFrame;
-import openDLX.gui.command.Command;
-import openDLX.gui.command.systemLevel.CommandSimulatorFinishedInfo;
-import openDLX.gui.command.systemLevel.CommandUpdateFrames;
+import riscVivid.RiscVividSimulator;
+import riscVivid.exception.PipelineException;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.command.Command;
+import riscVivid.gui.command.systemLevel.CommandSimulatorFinishedInfo;
+import riscVivid.gui.command.systemLevel.CommandUpdateFrames;
 
 public class CommandDoCycle implements Command
 {
@@ -44,7 +44,7 @@ public class CommandDoCycle implements Command
 
         if (mf.isExecuting() && mf.isUpdateAllowed())
         {
-            OpenDLXSimulator openDLXSim = mf.getOpenDLXSim();
+            RiscVividSimulator openDLXSim = mf.getOpenDLXSim();
             try
             {
                 openDLXSim.step();

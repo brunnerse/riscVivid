@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,20 +19,21 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.util;
+package riscVivid.gui.util;
 
 import javax.swing.JOptionPane;
-import openDLX.OpenDLXSimulator;
-import openDLX.exception.DecodeStageException;
-import openDLX.exception.PipelineException;
-import openDLX.exception.UnknownInstructionException;
-import openDLX.gui.GUI_CONST.OpenDLXSimState;
-import openDLX.gui.MainFrame;
+
+import riscVivid.RiscVividSimulator;
+import riscVivid.exception.DecodeStageException;
+import riscVivid.exception.PipelineException;
+import riscVivid.exception.UnknownInstructionException;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 
 public class PipelineExceptionHandler {
 	
 	private MainFrame mf;
-	private OpenDLXSimulator sim = null;
+	private RiscVividSimulator sim = null;
 
 
 
@@ -65,8 +66,8 @@ public class PipelineExceptionHandler {
 
 
 
-	public void setSimulator(OpenDLXSimulator openDLXSim) 
+	public void setSimulator(RiscVividSimulator sim) 
 	{
-		sim = openDLXSim;
+		this.sim = sim;
 	}
 }

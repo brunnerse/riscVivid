@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,16 +19,16 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.command.userLevel;
+package riscVivid.gui.command.userLevel;
 
 import java.io.File;
 
-import openDLX.gui.MainFrame;
-import openDLX.gui.command.Command;
-import openDLX.gui.command.systemLevel.CommandOpenConfigFile;
-import openDLX.gui.command.systemLevel.CommandResetSimulator;
-import openDLX.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
-import openDLX.gui.command.systemLevel.CommandStartExecuting;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.command.Command;
+import riscVivid.gui.command.systemLevel.CommandOpenConfigFile;
+import riscVivid.gui.command.systemLevel.CommandResetSimulator;
+import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
+import riscVivid.gui.command.systemLevel.CommandStartExecuting;
 
 public class CommandRunFromConfigurationFile implements Command
 {
@@ -59,7 +59,7 @@ public class CommandRunFromConfigurationFile implements Command
                 //reset simulator before loading new content
                 new CommandResetSimulator(mf).execute();
 
-                //initialize openDLX and create internal frames, set status to executing
+                //initialize riscVivid and create internal frames, set status to executing
                 new CommandStartExecuting(mf, configFile).execute();
             }
         }

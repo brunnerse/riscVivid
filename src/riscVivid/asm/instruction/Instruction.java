@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.asm.instruction;
+package riscVivid.asm.instruction;
 
 /**
  * <p>
@@ -29,11 +29,30 @@ package openDLX.asm.instruction;
  */
 public class Instruction {
 	private int instrWord_;
+	
+	public static final int XLEN = 64;
+	
+	public static final int OPCODE_load		= 0x03;
+	public static final int OPCODE_imm		= 0x13;
+	public static final int OPCODE_store	= 0x23;
+	public static final int OPCODE_reg		= 0x33;
+	public static final int OPCODE_branch	= 0x63;
+	public static final int OPCODE_system	= 0x73;
+	public static final int OPCODE_AUIPC	= 0x17;
+	public static final int OPCODE_LUI		= 0x37;
+	public static final int OPCODE_JALR		= 0x67;
+	public static final int OPCODE_immW		= 0x1b;
+	public static final int OPCODE_regW		= 0x3b;
+	public static final int OPCODE_FENCE	= 0x0f;
+	public static final int OPCODE_atomic	= 0x2f;
+	public static final int OPCODE_JAL		= 0x6f;
+	
 
 	/*
 	 * ============================* Constructors *============================
 	 */
 
+/*	
 	public static Instruction fromMnemonic(String mnemonic) {
 		Instruction i = Instructions.instance().getInstruction(mnemonic);
 		if (i != null)
@@ -41,7 +60,8 @@ public class Instruction {
 		else
 			return null;
 	}
-
+*/
+	
 	/**
 	 * Standard constructor
 	 */
@@ -59,93 +79,54 @@ public class Instruction {
 	}
 
 	/**
-	 * Constructor for IType
+	 * Constructor for instruction word
 	 * 
 	 * @param opcode
-	 * @param rs
-	 *            source register
-	 * @param rt
-	 *            destination register
-	 * @param offset
-	 *            immediate value
-	 * @throws InstructionException
+	 * @param funct3
 	 */
-	public Instruction(int opcode, int rs, int rt, int offset) throws InstructionException {
-		setOpcode(opcode);
-		setRs(rs);
-		setRt(rt);
-		setOffset(offset);
+	public Instruction(int opcode, int funct3) throws InstructionException {
+		if (opcode>0x7f || opcode<0 || funct3<0 || funct3>7)
+			throw new InstructionException("opcode ot of range");
+		setInstrWord(opcode| (funct3<<12));
 	}
 
 	/**
-	 * Constructor for JType
+	 * Constructor for instruction word
 	 * 
 	 * @param opcode
-	 * @param index
-	 *            jump destination
-	 * @throws InstructionException
+	 * @param funct3
+	 * @param funct7
 	 */
-	public Instruction(int opcode, int index) throws InstructionException {
-		setOpcode(opcode);
-		setInstrIndex(index);
+	public Instruction(int opcode, int funct3, int funct12) throws InstructionException {
+		if (opcode>0x7f || opcode<0 ||  funct3<0 || funct3>7)
+			throw new InstructionException("opcode ot of range");
+		setInstrWord(opcode| (funct3<<12) | (funct12<<20));
 	}
 
-	/**
-	 * Constructor for RType
-	 * 
-	 * @param opcode
-	 * @param rs
-	 *            source register
-	 * @param rt
-	 *            target register or regimm opcode specifier
-	 * @param rd
-	 *            destination register
-	 * @param sa
-	 *            shift amount
-	 * @param function
-	 *            additional opcode value for special opcode
-	 * @throws InstructionException
-	 */
-	public Instruction(int opcode, int rs, int rt, int rd, int sa, int function)
-			throws InstructionException {
-		setOpcode(opcode);
-		setRs(rs);
-		setRt(rt);
-		setRd(rd);
-		setSa(sa);
-		setFunction(function);
-	}
-
-	/*
-	 * ============================* Getter/Setter *============================
-	 */
-	// ================* instrType *================
-
-	public InstructionType calcInstType() {
-		return Instructions.instance().getType(this);
-	}
-
-	// ================* opcodeType *================
-	public OpcodeType opcodeType() {
-		int opcode = opcode();
-		if (opcode == 0) {
-			return OpcodeType.Special;
-		} else if (opcode == 1) {
-			return OpcodeType.Regimm;
-		} else {
-			return OpcodeType.Normal;
-		}
-	}
 
 	// ================* skeleton *================
 	public int skeleton() {
-		OpcodeType type = opcodeType();
-		if (type == OpcodeType.Special)
-			return instrWord() & 0xFC00003F;
-		else if (type == OpcodeType.Regimm)
-			return instrWord() & 0xFC1F0000;
-		else
-			return instrWord() & 0xFC000000;
+		int iw = instrWord();
+		switch (iw & 0x7f) {
+			case OPCODE_LUI:
+			case OPCODE_AUIPC:
+			case OPCODE_JAL:
+				return (iw & 0x0000007f); // only opcode
+			case OPCODE_immW:
+			case OPCODE_imm:
+				if ((iw&0x3000)==0x1000) // shift => opcode, funct2 and funct6
+					return (iw & 0xfc00707f);
+				// else fallthrough
+			case OPCODE_JALR:
+			case OPCODE_branch:
+			case OPCODE_load:
+			case OPCODE_store:
+				return (iw & 0x0000707f); // opcode and funct3
+			case OPCODE_reg:
+			case OPCODE_regW:
+				return (iw & 0xfe00707f); // opcode, funct3 and funct7
+		}
+		return (iw & 0xfff0707f); // opcode, funct3 and funct12
 	}
 
 	// ================* instrWord *================
@@ -159,217 +140,273 @@ public class Instruction {
 
 	// ================* opcode *================
 	public int opcode() {
-		return (instrWord_ >> 26) & 0x3F;
+		return instrWord_ & 0x7f;
 	}
 
 	public void setOpcode(int opcode) throws InstructionException {
-		if (opcode > 0x3F || opcode < 0x0)
-			throw new InstructionException("opcode too long");
-		instrWord_ = (instrWord_ & 0x03FFFFFF) | (opcode << 26);
+		if (opcode>0x7f || opcode<0x0)
+			throw new InstructionException("opcode ot of range (" + opcode + ")");
+		instrWord_ = (instrWord_ & 0xffffff80) | (opcode);
+	}
+
+	public void setRegNotImm(boolean r) {
+		if (r) instrWord_ |= 0x20; // true => register
+		else instrWord_ &= ~0x20; // false => immediate
+	}
+
+	public int funct3() {
+		return (instrWord_>>12) & 0x7;
 	}
 
 	// ================* rs *================
 	public int rs() {
-		return (instrWord_ >> 21) & 0x1F;
+		return (instrWord_ >> 15) & 0x1f;
+	}
+
+	public String rsStr() {
+		return Registers.RegNames[rs()];
 	}
 
 	public void setRs(int rs) throws InstructionException {
-		if (rs > 0x1F || rs < 0)
-			throw new InstructionException("register too long");
-		instrWord_ = (instrWord_ & 0xFC1FFFFF) | (rs << 21);
-	}
-
-	// ================* base *================
-	public int base() {
-		return (instrWord_ >> 21) & 0x1F;
-	}
-
-	public void setBase(int base) throws InstructionException {
-		if (base > 0x1F || base < 0)
-			throw new InstructionException("register too long");
-		instrWord_ = (instrWord_ & 0xFC1FFFFF) | (base << 21);
+		if (rs > 0x1f || rs < 0)
+			throw new InstructionException("register out of range");
+		instrWord_ = (instrWord_ & 0xfff07fff) | (rs << 15);
 	}
 
 	// ================* rt *================
 	public int rt() {
-		return (instrWord_ >> 16) & 0x1F;
+		return (instrWord_ >> 20) & 0x1f;
+	}
+
+	public String rtStr() {
+		return Registers.RegNames[rt()];
 	}
 
 	public void setRt(int rt) throws InstructionException {
-		if (rt > 0x1F || rt < 0)
-			throw new InstructionException("register too long");
-		instrWord_ = (instrWord_ & 0xFFE0FFFF) | (rt << 16);
+		if (rt > 0x1f || rt < 0)
+			throw new InstructionException("register out of range");
+		instrWord_ = (instrWord_ & 0xfe0fffff) | (rt << 20);
 	}
 
 	// ================* rd *================
 	public int rd() {
-		return (instrWord_ >> 11) & 0x1F;
+		return (instrWord_ >> 7) & 0x1f;
+	}
+
+	public String rdStr() {
+		return Registers.RegNames[rd()];
 	}
 
 	public void setRd(int rd) throws InstructionException {
-		if (rd > 0x1F || rd < 0)
-			throw new InstructionException("register too long");
-		instrWord_ = (instrWord_ & 0xFFFF07FF) | (rd << 11);
+		if (rd > 0x1f || rd < 0)
+			throw new InstructionException("register out of range");
+		instrWord_ = (instrWord_ & 0xfffff07f) | (rd << 7);
+	}
+	
+	// ================* immediates *================
+
+	public int immI() {
+		return instrWord_>>20;
 	}
 
-	// ================* sa *================
-	public int sa() {
-		return (instrWord_ >> 6) & 0x1F;
+	public void setImmI(int imm) throws InstructionException {
+		if (imm > 0x7ff || imm < -0x800)
+			throw new InstructionException("immI out of range");
+		instrWord_ = (instrWord_ & 0x000fffff) | (imm<<20);
 	}
 
-	public void setSa(int sa) throws InstructionException {
-		if (sa > 0x1F || sa < 0)
-			throw new InstructionException("shift amount too long");
-		instrWord_ = (instrWord_ & 0xFFFFFF3F) | (sa << 6);
+	public void setShamt(int imm) throws InstructionException {
+		if (imm<0 || imm > XLEN)
+			throw new InstructionException("immI out of range");
+		instrWord_ = (instrWord_ & 0x000fffff) | (imm<<20);
+	}
+	
+	public int immS() {
+		return ((instrWord_>>20)& ~0x1f) | ((instrWord_>>7)&0x1f);
 	}
 
-	// ================* function *================
-	public int function() {
-		return instrWord_ & 0x3F;
+	public void setImmS(int imm) throws InstructionException {
+		if (imm > 0x7ff || imm < -0x800)
+			throw new InstructionException("immS out of range");
+		instrWord_ = (instrWord_ & 0x01fff07f) | ((imm&0x00000fe0)<<20) | ((imm&0x00001f)<<7);
 	}
 
-	public void setFunction(int function) throws InstructionException {
-		if (function > 0x3F || function < 0)
-			throw new InstructionException("function too long");
-		instrWord_ = (instrWord_ & 0xFFFFFFC0) | function;
+	public int immU() {
+		return (instrWord_>>12) & 0x000fffff;
 	}
 
-	// ================* offset *================
-	public int offset() {
-		return instrWord_ & 0xFFFF;
+	public void setImmU(int imm) throws InstructionException {
+		if (imm > 0xfffff || imm < 0)
+			throw new InstructionException("immU out of range");
+		instrWord_ = (instrWord_ & 0x00000fff) | (imm<<12);
 	}
 
-	public int offset2k() {
-		int offset = instrWord_ & 0x7FFF;
-		if ((instrWord_ & 0x8000) != 0) {
-			//TODO???
-			offset = offset | 0xFFFF8000;
-		}
-		return offset;
+	public int immB() {
+		return ((instrWord_>>19)&0xfffff000) |
+			((instrWord_<<4)    &0x00000800) |
+			((instrWord_>>20)   &0x000007e0) |
+			((instrWord_>>7)    &0x000001e);
 	}
 
-	public void setOffset(int offset) throws InstructionException {
-		if (offset > 0xFFFF || offset < -0xFFFF)
-			throw new InstructionException("offset too big");
-		instrWord_ = (instrWord_ & 0xFFFF0000) | (offset & 0xFFFF);
+	public void setImmB(int imm) throws InstructionException {
+		if (imm > 0xfff || imm < -0x1000)
+			throw new InstructionException("immB out of range");
+		if ((imm&1)!=0)
+			throw new InstructionException("immB not aligned");
+		instrWord_ = (instrWord_ & 0x01fff07f) 
+			| ((imm<<19) & 0x80000000)
+			| ((imm<<20) & 0x7e000000)
+			| ((imm<<7)  & 0x00000f00)
+			| ((imm>>4)  & 0x00000080);
 	}
 
-	// ================* instrIndex *================
-	public int instrIndex() {
-		return instrWord_ & 0x03FFFFFF;
+	public int immJ() {
+		return ((instrWord_>>11)&0xfff00000) |
+			((instrWord_)       &0x000ff000) |
+			((instrWord_>>9)    &0x00000800) |
+			((instrWord_>>20)   &0x000007fe);
 	}
 
-	public int instrIndex2k() {
-		int index = instrWord_ & 0x01FFFFFF;
-		if ((instrWord_ & 0x02000000) != 0) {
-			index = index | 0xfe000000;
-		}
-		return index;
+	public void setImmJ(int imm) throws InstructionException {
+		if (imm > 0xfffff || imm < -0x100000)
+			throw new InstructionException("immJ out of range");
+		if ((imm&1)!=0)
+			throw new InstructionException("immJ not aligned");
+		instrWord_ = (instrWord_ & 0x00000fff) 
+			| ((imm<<11) & 0x80000000)
+			| ((imm<<20) & 0x7fe00000)
+			| ((imm<<9)  & 0x00100000)
+			| ((imm)     & 0x000ff000);
 	}
 
-	public void setInstrIndex(int index) throws InstructionException {
-		if (index > 0x3FFFFFF || index < 0)
-			throw new InstructionException("index too big");
-		instrWord_ = (instrWord_ & 0xFC000000) | (index & 0x3FFFFFF);
-	}
+
+
+
+
+
+
+
+
+
+
 
 	/*
 	 * ===============================* String *===============================
 	 */
-	public String toString() {
+	public String toString(int pc) {
+		int i;
 		StringBuffer strBuf = new StringBuffer();
 		String mnemonic = toMnemonic();
-		if (mnemonic != null) {
-			strBuf.append(mnemonic);
-		} else {
-			strBuf.append("unknown");
-		}
-		InstructionType type = calcInstType();
-		if (type != null)
-			switch (type) {
-			case LOAD:
+		if (mnemonic==null) mnemonic = "unknown";
+		
+		switch (opcode()) {
+			case OPCODE_load:
+				strBuf.append(mnemonic);
 				strBuf.append(' ');
-				strBuf.append('r');
-				strBuf.append(rt());
+				strBuf.append(rdStr());
 				strBuf.append(',');
-				strBuf.append(offset2k());
+				strBuf.append(immI());
 				strBuf.append('(');
-				strBuf.append('r');
-				strBuf.append(base());
+				strBuf.append(rsStr());
 				strBuf.append(')');
 				break;
-			case SAVE:
+			case OPCODE_store:
+				strBuf.append(mnemonic);
 				strBuf.append(' ');
-				strBuf.append(offset2k());
+				strBuf.append(rtStr());
+				strBuf.append(',');
+				strBuf.append(immS());
 				strBuf.append('(');
-				strBuf.append('r');
-				strBuf.append(base());
+				strBuf.append(rsStr());
 				strBuf.append(')');
-				strBuf.append(',');
-				strBuf.append('r');
-				strBuf.append(rt());
 				break;
-			case ALU_REGISTER:
+			case OPCODE_reg:
+			case OPCODE_regW:
+				strBuf.append(mnemonic);
 				strBuf.append(' ');
-				strBuf.append('r');
-				strBuf.append(rd());
+				strBuf.append(rdStr());
 				strBuf.append(',');
-				strBuf.append('r');
-				strBuf.append(rs());
+				strBuf.append(rsStr());
 				strBuf.append(',');
-				strBuf.append('r');
-				strBuf.append(rt());
+				strBuf.append(rtStr());
 				break;
-			case ALU_IMMEDIATE:
+			case OPCODE_imm:
+			case OPCODE_immW:
+				if (instrWord_==0x00000013) {
+					strBuf.append("nop");
+					break;
+				}
+				strBuf.append(mnemonic);
 				strBuf.append(' ');
-				strBuf.append('r');
-				strBuf.append(rt());
+				strBuf.append(rdStr());
 				strBuf.append(',');
-				strBuf.append('r');
-				strBuf.append(rs());
+				strBuf.append(rsStr());
 				strBuf.append(',');
-				strBuf.append(offset2k());
+				i = funct3();
+				if (i==1 || i==5) { // for shift operations
+					strBuf.append(immI() & 0x3f);
+				} else {
+					strBuf.append(immI());
+				}
 				break;
-			case BRANCH:
+			case OPCODE_branch:
+				strBuf.append(mnemonic);
 				strBuf.append(' ');
-				strBuf.append('r');
-				strBuf.append(rs());
+				strBuf.append(rsStr());
 				strBuf.append(',');
-				strBuf.append("0x");
-				strBuf.append(Integer.toHexString(offset2k() << 2));
+				strBuf.append(rtStr());
+				strBuf.append(",pc");
+				strBuf.append(String.format("0x%08x", pc+immB()));
 				break;
-			case LOAD_IMMEDIATE:
+			case OPCODE_LUI:
+			case OPCODE_AUIPC:
+				strBuf.append(mnemonic);
 				strBuf.append(' ');
-				strBuf.append(rt());
-				strBuf.append(',');
-				strBuf.append(offset2k());
+				strBuf.append(rdStr());
+				strBuf.append(",0x");
+				strBuf.append(String.format("%05x", immU() & 0xfffff));
 				break;
-			case JUMP:
-				strBuf.append(' ');
-				strBuf.append("0x");
-				strBuf.append(Integer.toHexString(instrIndex() << 2));
+			case OPCODE_JAL:
+				if (rd()==0) {
+					strBuf.append("j ");
+				} else {
+					strBuf.append("jal ");
+					if (rd()!=1) {
+						strBuf.append(rdStr());
+						strBuf.append(',');
+					}
+				}
+				strBuf.append(String.format("0x%08x", pc+immJ()));
 				break;
-			case JUMP_REGISTER:
-				strBuf.append(' ');
-				strBuf.append('r');
-				strBuf.append(rs());
+			case OPCODE_JALR:
+				// missing: funct3!=0
+				if (instrWord_==0x00008067) {
+					strBuf.append("ret");
+				} else {
+					if (rd()==0) {
+						strBuf.append("jr ");
+					} else {
+						strBuf.append("jalr ");
+						if (rd()!=1) {
+							strBuf.append(rdStr());
+							strBuf.append(',');
+						}
+					}
+					strBuf.append(rsStr());
+					if (immI()!=0) {
+						strBuf.append(',');
+						strBuf.append(Integer.toHexString(immI()));
+					}
+				}
 				break;
-			case SHIFT_IMMEDIATE:
-				strBuf.append(' ');
-				strBuf.append('r');
-				strBuf.append(rd());
-				strBuf.append(',');
-				strBuf.append('r');
-				strBuf.append(rt());
-				strBuf.append(',');
-				strBuf.append(sa());
-				break;
-			case TRAP:
-				strBuf.append(' ');
-				strBuf.append(rs());
-				break;
-			case NOP:
-				//"nop" already in strBuf
+			case OPCODE_FENCE:
+			case OPCODE_system:
+				// can be improved
+				strBuf.append(mnemonic);
+				if (rd()!=0) {
+					strBuf.append(' ');
+					strBuf.append(rdStr());
+				}
 			default:
 			}
 		return strBuf.toString();
@@ -390,70 +427,6 @@ public class Instruction {
 		return hex;
 	}
 
-	/*public String toFormatedBinString(InstructionType type) {
-		// String printStr = toString() + "\n";
-		String printStr = new String();
-		int mask = 1;
-		switch (type) {
-		case IType:
-			for (int i = 32; i > 0; i--) {
-				if (i == 6 || i == 11 || i == 16)
-					printStr = ' ' + printStr;
-				if ((instrWord_ & mask) == 0)
-					printStr = '0' + printStr;
-				else
-					printStr = '1' + printStr;
-				mask = mask << 1;
-			}
-			printStr = "\n+-----------------------------------+\n"
-					+ "|opcode  rs    rt        offset     |\n|" + printStr
-					+ "|\n+-----------------------------------+\n";
-			break;
-		case JType:
-			for (int i = 0; i < 32; i++) {
-				if (i == 26)
-					printStr = ' ' + printStr;
-				if ((instrWord_ & mask) == 0)
-					printStr = '0' + printStr;
-				else
-					printStr = '1' + printStr;
-				mask = mask << 1;
-			}
-			printStr = "\n+---------------------------------+\n"
-					+ "|opcode        instr_index        |\n|" + printStr
-					+ "|\n+---------------------------------+\n";
-			break;
-		case RType:
-			for (int i = 0; i < 32; i++) {
-				if (i == 6 || i == 11 || i == 16 || i == 21 || i == 26)
-					printStr = ' ' + printStr;
-				if ((instrWord_ & mask) == 0)
-					printStr = '0' + printStr;
-				else
-					printStr = '1' + printStr;
-				mask = mask << 1;
-			}
-			printStr = "\n+-------------------------------------+\n"
-					+ "|opcode  rs    rt    rd    sa    func |\n|" + printStr
-					+ "|\n+-------------------------------------+\n";
-			break;
-		case Unknown:
-			for (int i = 0; i < 32; i++) {
-				if (i % 4 == 0 && i != 0)
-					printStr = ' ' + printStr;
-				if ((instrWord_ & mask) == 0)
-					printStr = '0' + printStr;
-				else
-					printStr = '1' + printStr;
-				mask = mask << 1;
-			}
-			printStr = "\n+---------------------------------------+\n|" + printStr
-					+ "|\n+---------------------------------------+\n";
-		}
-
-		return printStr;
-	}*/
-
 	/*
 	 * ==============================* Equality *==============================
 	 */
@@ -473,6 +446,7 @@ public class Instruction {
 	 * @param i
 	 * @return
 	 */
+
 	public boolean equalsFamily(Instruction i) {
 		if (i.skeleton() == skeleton())
 			return true;

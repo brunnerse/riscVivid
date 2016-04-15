@@ -1,8 +1,8 @@
 /*******************************************************************************
- * openDLX - A DLX/MIPS processor simulator.
- * Copyright (C) 2013 The openDLX project, University of Augsburg, Germany
+ * riscVivid - A DLX/MIPS processor simulator.
+ * Copyright (C) 2013 The riscVivid project, University of Augsburg, Germany
  * Project URL: <https://sourceforge.net/projects/opendlx>
- * Development branch: <https://github.com/smetzlaff/openDLX>
+ * Development branch: <https://github.com/smetzlaff/riscVivid>
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui;
+package riscVivid.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -41,20 +41,20 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.undo.UndoManager;
 
-import openDLX.OpenDLXSimulator;
-import openDLX.config.GlobalConfig;
-import openDLX.gui.GUI_CONST.OpenDLXSimState;
-import openDLX.gui.command.EventCommandLookUp;
-import openDLX.gui.command.userLevel.CommandExitProgram;
-import openDLX.gui.dialog.Input;
-import openDLX.gui.dialog.Output;
-import openDLX.gui.internalframes.OpenDLXSimInternalFrame;
-import openDLX.gui.internalframes.concreteframes.editor.EditorFrame;
-import openDLX.gui.menubar.MainFrameMenuBarFactory;
-import openDLX.gui.menubar.StateValidator;
-import openDLX.gui.util.PipelineExceptionHandler;
-import openDLX.util.DLXTrapHandler;
-import openDLX.util.TrapObservableDefault;
+import riscVivid.RiscVividSimulator;
+import riscVivid.config.GlobalConfig;
+import riscVivid.gui.GUI_CONST.OpenDLXSimState;
+import riscVivid.gui.command.EventCommandLookUp;
+import riscVivid.gui.command.userLevel.CommandExitProgram;
+import riscVivid.gui.dialog.Input;
+import riscVivid.gui.dialog.Output;
+import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
+import riscVivid.gui.menubar.MainFrameMenuBarFactory;
+import riscVivid.gui.menubar.StateValidator;
+import riscVivid.gui.util.PipelineExceptionHandler;
+import riscVivid.util.RISCVSyscallHandler;
+import riscVivid.util.TrapObservableDefault;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame implements ActionListener, ItemListener
@@ -68,7 +68,7 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     public Output output;
     public Input input;
 
-    private OpenDLXSimulator openDLXSim = null;
+    private RiscVividSimulator sim = null;
     private UndoManager undoMgr;
     private EditorFrame editor;
     private JDesktopPane desktop;
@@ -85,21 +85,21 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private MainFrame()
     {
         initialize();
-        final ImageIcon icon = new ImageIcon(getClass().getResource("/img/openDLX-quadrat128x128.png"), "openDLX icon");
+        final ImageIcon icon = new ImageIcon(getClass().getResource("/img/riscVivid-quadrat128x128.png"), "riscVivid icon");
         setIconImage(icon.getImage());
 
-        setTitle("openDLX " + GlobalConfig.VERSION);
+        setTitle("riscVivid " + GlobalConfig.VERSION);
 
         // Register output for pipeline
         TrapObservableDefault observableOutput = new TrapObservableDefault();
         observableOutput.addObserver(output);
-        DLXTrapHandler.getInstance().setTrapObserverOutput(observableOutput);
+        RISCVSyscallHandler.getInstance().setTrapObserverOutput(observableOutput);
 
         // Register input for pipeline
         TrapObservableDefault observableInput = new TrapObservableDefault();
         observableInput.addObserver(input);
-        DLXTrapHandler.getInstance().setTrapObserverInput(observableInput);
-        DLXTrapHandler.getInstance().setInput(input);
+        RISCVSyscallHandler.getInstance().setTrapObserverInput(observableInput);
+        RISCVSyscallHandler.getInstance().setInput(input);
     }
 
     //thus it has a static access method
@@ -177,9 +177,9 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     }
 
     //INTERFACE
-    public OpenDLXSimulator getOpenDLXSim()
+    public RiscVividSimulator getOpenDLXSim()
     {
-        return openDLXSim;
+        return sim;
     }
 
     public JInternalFrame[] getinternalFrames()
@@ -187,10 +187,10 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         return desktop.getAllFrames();
     }
 
-    public void setOpenDLXSim(OpenDLXSimulator openDLXSim)
+    public void setOpenDLXSim(RiscVividSimulator sim)
     {
-        this.openDLXSim = openDLXSim;
-        pexHandler.setSimulator(openDLXSim);
+        this.sim = sim;
+        pexHandler.setSimulator(sim);
     }
 
     public void setOpenDLXSimState(OpenDLXSimState s)
@@ -267,6 +267,11 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         return editor.isTextSaved();
     }
 
+    public void setEditorFrameVisible()
+    {
+    	editor.setVisible(true);
+    }
+    
     public void setRunSpeed(int speed)
     {
         this.runSpeed = speed;
