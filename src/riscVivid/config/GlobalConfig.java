@@ -1,7 +1,7 @@
 /*******************************************************************************
  * riscVivid - A RISC-V processor simulator.
- * Copyright (C) 2013-2016 The riscVivid project, University of Augsburg, Germany
- * <https://github.com/unia-sik/riscVivid>
+ * (C)opyright 2013-2016 The riscVivid project, University of Augsburg, Germany
+ * https://github.com/unia-sik/riscVivid
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ public interface GlobalConfig {
 					+"Contributors: Arne Garbade, Patrick Lehner\n"
 					+"RISC-V support: Jörg Mische\n"
 					+"\n"
-//					+"<https://github.com/unia-sik/riscVivid>\n"
+//					+"https://github.com/unia-sik/riscVivid\n"
 //					+"\n"
 					+"This program is free software: you can redistribute it and/or modify\n"
 					+"it under the terms of the GNU General Public License as published by\n"

@@ -1,7 +1,7 @@
 /*******************************************************************************
- * openDLX - A RISC-V processor simulator.
- * Copyright (C) 2013-2016 The openDLX project, University of Augsburg, Germany
- * <https://github.com/unia-sik/riscVivid>
+ * riscVivid - A RISC-V processor simulator.
+ * (C)opyright 2013-2016 The riscVivid project, University of Augsburg, Germany
+ * https://github.com/unia-sik/riscVivid
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,14 +18,14 @@
  * along with this program, see <LICENSE>. If not, see
  * <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package openDLX.gui.command.systemLevel;
+package riscVivid.gui.command.systemLevel;
 
 import java.awt.EventQueue;
 
-import openDLX.OpenDLXSimulator;
-import openDLX.exception.PipelineException;
-import openDLX.gui.GUI_CONST;
-import openDLX.gui.MainFrame;
+import riscVivid.RiscVividSimulator;
+import riscVivid.exception.PipelineException;
+import riscVivid.gui.GUI_CONST;
+import riscVivid.gui.MainFrame;
 
 public class ThreadCommandRunSlowly implements Runnable
 {
@@ -40,11 +40,11 @@ public class ThreadCommandRunSlowly implements Runnable
     @Override
     public void run()
     {
-        OpenDLXSimulator openDLXSim = mf.getOpenDLXSim();
+        RiscVividSimulator sim = mf.getOpenDLXSim();
         //start running
         mf.setOpenDLXSimState(GUI_CONST.OpenDLXSimState.RUNNING);
         //check if running was paused/quit or if openDLXSim has finished
-        while (!openDLXSim.isFinished() && mf.isRunning())
+        while (!sim.isFinished() && mf.isRunning())
         {
             while (mf.isPause())
             {
@@ -55,10 +55,10 @@ public class ThreadCommandRunSlowly implements Runnable
                 catch (Exception e) {}
             }
 
-            // do a cycle within openDLX
+            // do a cycle within riscVivid
             try
             {
-                openDLXSim.step();
+                sim.step();
             }
             catch (PipelineException e)
             {
@@ -88,10 +88,10 @@ public class ThreadCommandRunSlowly implements Runnable
             }
 
         }
-        // when running stops or openDLX has finished, set state back to executing, as executing means a openDLX is loaded but not running through
+        // when running stops or riscVivid has finished, set state back to executing, as executing means a riscVivid is loaded but not running through
         mf.setOpenDLXSimState(GUI_CONST.OpenDLXSimState.EXECUTING);
-        // if the current openDLX has finished, dont allow any gui updates any more
-        if (openDLXSim.isFinished())
+        // if the current riscVivid has finished, dont allow any gui updates any more
+        if (sim.isFinished())
         {
             mf.setUpdateAllowed(false);
             new CommandSimulatorFinishedInfo().execute();

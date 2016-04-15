@@ -1,7 +1,7 @@
 /*******************************************************************************
  * riscVivid - A RISC-V processor simulator.
- * Copyright (C) 2013-2016 The riscVivid project, University of Augsburg, Germany
- * <https://github.com/unia-sik/riscVivid>
+ * (C)opyright 2013-2016 The riscVivid project, University of Augsburg, Germany
+ * https://github.com/unia-sik/riscVivid
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -84,7 +84,7 @@ public class RiscVividSimulatorMain
     	System.out.println("+==============================================+");
     	System.out.println("|   riscVivid - a RISC-V processor simulator   |");
     	System.out.println("|   Version "+GlobalConfig.VERSION+blanks+"|");
-    	System.out.println("| Copyright (C) 2013-2016-15 University of Augsburg |");
+    	System.out.println("| (C)opyright 2013-2016-15 University of Augsburg |");
     	System.out.println("+==============================================+");
     	System.out.println("| Usage:                                       |");
     	System.out.println("| For GUI version:                             |");
