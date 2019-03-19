@@ -21,9 +21,13 @@
 package riscVivid.gui.internalframes.concreteframes;
 
 import java.awt.BorderLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 
 import riscVivid.RegisterSet;
 import riscVivid.datatypes.ArchCfg;
@@ -36,11 +40,12 @@ import riscVivid.gui.internalframes.factories.tableFactories.RegisterTableFactor
 import riscVivid.gui.internalframes.util.TableSizeCalculator;
 
 @SuppressWarnings("serial")
-public final class RegisterFrame extends OpenDLXSimInternalFrame
+public final class RegisterFrame extends OpenDLXSimInternalFrame implements ItemListener
 {
 
     private RegisterSet rs;
     private JTable registerTable;
+    private JCheckBox checkBoxHex;
 
     public RegisterFrame(String title)
     {
@@ -79,6 +84,13 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame
         //config internal frame
         setLayout(new BorderLayout());
         add(scrollpane, BorderLayout.CENTER);
+        // new checkbox
+        checkBoxHex = new JCheckBox("values as hex");
+		checkBoxHex.setSelected(Preference.displayRegistersAsHex());
+		checkBoxHex.addItemListener(this);
+        JPanel controlPanel = new JPanel();
+		controlPanel.add(checkBoxHex);
+		add(controlPanel, BorderLayout.SOUTH);
         pack();
         setVisible(true);
     }
@@ -89,5 +101,12 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame
         setVisible(false);
         dispose();
     }
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		Preference.pref.putBoolean(Preference.displayRegistersAsHex, checkBoxHex.isSelected());
+		update();
+		
+	}
 
 }
