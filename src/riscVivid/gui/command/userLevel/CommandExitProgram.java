@@ -30,6 +30,7 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
+import riscVivid.gui.util.AskForSave;
 import riscVivid.util.TmpFileCleaner;
 
 public class CommandExitProgram implements Command
@@ -55,10 +56,9 @@ public class CommandExitProgram implements Command
     {
         if (!mf.isEditorTextSaved())
         {
-            if (JOptionPane.showConfirmDialog(mf, "Discard unsaved editor changes?") != JOptionPane.OK_OPTION)
-            {
-                return false;
-            }
+         	if (!AskForSave.askAndSave(false)) {
+         		return false;
+         	}
         }
         
         if (Preference.pref.getBoolean(Preference.showExitMessage, true))

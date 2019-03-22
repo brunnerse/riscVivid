@@ -26,17 +26,17 @@ import javax.swing.JInternalFrame;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
-import riscVivid.gui.menubar.OpenDLXSimMenuItem;
+
 
 public class CommandChangeWindowVisibility implements Command
 {
 
-    private OpenDLXSimMenuItem internalFrameMenuItem;
+    private Class<? extends JInternalFrame> internalFrameClass;
     private MainFrame mf;
 
-    public CommandChangeWindowVisibility(OpenDLXSimMenuItem internalFrameMenuItem, MainFrame mf)
+    public CommandChangeWindowVisibility(Class<? extends JInternalFrame> internalFrameClass, MainFrame mf)
     {
-        this.internalFrameMenuItem = internalFrameMenuItem;
+        this.internalFrameClass = internalFrameClass;
         this.mf = mf;
     }
 
@@ -45,7 +45,7 @@ public class CommandChangeWindowVisibility implements Command
     {
         for (JInternalFrame internalFrame : mf.getinternalFrames())
         {
-            if (internalFrame.getTitle().equals(internalFrameMenuItem.getName()))
+            if (internalFrame.getClass().equals(internalFrameClass))
             {
                 if (internalFrame.isIcon())
                 {

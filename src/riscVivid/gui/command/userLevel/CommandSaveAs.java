@@ -20,25 +20,36 @@
  ******************************************************************************/
 package riscVivid.gui.command.userLevel;
 
-import javax.swing.JOptionPane;
+import java.io.File;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.dialog.FileSaver;
 
-public class CommandClearEditor implements Command
+public class CommandSaveAs implements Command
 {
 
     @Override
     public void execute()
     {
         MainFrame mf = MainFrame.getInstance();
-        if (!mf.isRunning() && JOptionPane.showConfirmDialog(mf,
-                "Confirm to clear. All code in the editor will be deleted.") ==
-                JOptionPane.OK_OPTION)
+        if (!mf.isRunning())
         {
-        	mf.setLoadedCodeFilePath("");
-            mf.setEditorText("");
-            mf.setEditorSavedState();
+            File saveFile = new FileSaver().saveAs(mf);
+            // cancel saving if user cancelled selection
+            if (saveFile == null)
+            	return;
+            File loadedFile = new File(mf.getLoadedCodeFilePath());
+            //if there's no valid file currently loaded, 
+            // set the loaded file to the chosen one
+            if (!loadedFile.exists()) {
+            	mf.setLoadedCodeFilePath(saveFile.getAbsolutePath());
+            	new CommandSave().execute();
+            } else if (loadedFile.equals(saveFile)){
+            	new CommandSave().execute();
+            } else {
+                CommandSave.save(saveFile);
+            }
         }
     }
 

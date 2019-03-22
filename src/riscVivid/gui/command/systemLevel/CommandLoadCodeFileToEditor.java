@@ -59,7 +59,8 @@ public class CommandLoadCodeFileToEditor implements Command
                 text = mf.getEditorText() + "\n";
             text += CodeLoader.loadCode(help);
             mf.setEditorText(text);
-            mf.setEditorSavedState();
+            if (clean)
+            	mf.setEditorSavedState();
         }
         catch (Exception e)
         {

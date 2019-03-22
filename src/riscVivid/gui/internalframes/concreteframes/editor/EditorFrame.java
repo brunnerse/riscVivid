@@ -52,6 +52,7 @@ import riscVivid.gui.command.userLevel.CommandNewFile;
 import riscVivid.gui.command.userLevel.CommandPerformEditorRedo;
 import riscVivid.gui.command.userLevel.CommandPerformEditorUndo;
 import riscVivid.gui.command.userLevel.CommandRunFromEditor;
+import riscVivid.gui.command.userLevel.CommandSaveAs;
 import riscVivid.gui.command.userLevel.CommandSave;
 import riscVivid.gui.internalframes.FrameConfiguration;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
@@ -75,6 +76,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private JButton load;
     private JButton loadandassem;
     private JButton addcode;
+    private JButton saveAs;
     private JButton save;
     private JButton clear;
     
@@ -189,7 +191,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         clear = createButton("New", "Clear All [ALT+C]", KeyEvent.VK_C, "/img/icons/tango/clear.png");
         load = createButton("Open...", "Open Program [CTRL+O]", KeyEvent.VK_O, "/img/icons/tango/load.png");
         addcode = createButton("Add Code...", "Add Code to Programms... [CTRL+I]", KeyEvent.VK_I, "/img/icons/tango/addcode.png");
-        save = createButton("Save As...", "Save Program As... [ALT+S]", KeyEvent.VK_S, "/img/icons/tango/saveas.png");
+        save = createButton("Save", "Save current file[CTRL+S]", KeyEvent.VK_S, "/img/icons/tango/save.png");
+        saveAs = createButton("Save As...", "Save Program As... [CTRL+D]", KeyEvent.VK_D, "/img/icons/tango/saveas.png");
         assem = createButton("Assemble", "Assemble [ALT+A]", KeyEvent.VK_A, "/img/icons/tango/run.png");
         loadandassem = createButton("Open & Assemble...", "Open Program and Assemble [CTRL+R]", KeyEvent.VK_O, "/img/icons/tango/loadandrun.png");
         undo = createButton("Undo", "Undo [CTRL+Z]", KeyEvent.VK_U, "/img/icons/tango/undo.png");
@@ -202,6 +205,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         EventCommandLookUp.put(loadandassem, new CommandLoadAndRunFile(mf));
         EventCommandLookUp.put(addcode, new CommandLoadFileBelow(mf));
         EventCommandLookUp.put(save, new CommandSave());
+        EventCommandLookUp.put(saveAs, new CommandSaveAs());
         EventCommandLookUp.put(clear, new CommandNewFile(mf));
 //        EventCommandLookUp.put(undo, undoCommand); 
 //        EventCommandLookUp.put(redo, redoCommand);
@@ -212,6 +216,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         loadandassem.addActionListener(this);
         addcode.addActionListener(this);
         save.addActionListener(this);
+        saveAs.addActionListener(this);
         clear.addActionListener(this);
         undo.addActionListener(this);
         redo.addActionListener(this);
@@ -223,6 +228,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         toolBar.add(load);
         toolBar.add(addcode);
         toolBar.add(save);
+        toolBar.add(saveAs);
         toolBar.add(assem);
         toolBar.add(loadandassem);
         toolBar.add(undo);
@@ -303,14 +309,16 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         {
             assem.setEnabled(false);
             clear.setEnabled(false);
-            save.setEnabled(false);
+			save.setEnabled(false);
+            saveAs.setEnabled(false);
 
         }
         else
         {
             assem.setEnabled(true);
             clear.setEnabled(true);
-            save.setEnabled(true);
+			save.setEnabled(true);
+            saveAs.setEnabled(true);
         }
     }
     
@@ -389,5 +397,14 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         button.setToolTipText(tooltip);
         button.setFocusable(false);
         return button;
+    }
+    
+    public String getFrameTitle() {
+    	return editor_frame_title;
+    }
+    
+    public void setFrameTitle(String title) {
+    	this.editor_frame_title = title;
+    	updateTitle();
     }
 }

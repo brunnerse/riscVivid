@@ -20,10 +20,9 @@
  ******************************************************************************/
 package riscVivid.gui.command.userLevel;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.AskForSave;
 
 public class CommandNewFile implements Command
 {
@@ -39,34 +38,17 @@ public class CommandNewFile implements Command
     {
         if (!mf.isRunning())
         {
-            if (!mf.getEditorText().isEmpty())
+            if (!mf.isEditorTextSaved())
             {
-                if (!mf.isEditorTextSaved())
-                {
-                    int result = JOptionPane.showConfirmDialog(mf,
-                            "Save current file?");
-                    if (result == JOptionPane.OK_OPTION)
-                    {
-                        new CommandSave().execute();
-                        mf.setEditorText("");
-                        mf.setEditorSavedState();
-                    }
-                    else if (result == JOptionPane.NO_OPTION)
-                    {
-                        mf.setEditorText("");
-                        mf.setEditorSavedState();
-                    }
-                }
-                else
-                {
-                    if (JOptionPane.showConfirmDialog(mf, "Clear file?") == JOptionPane.OK_OPTION)
-                    {
-                        mf.setEditorText("");
-                        mf.setEditorSavedState();
-                    }
-                }
+            	if (!AskForSave.askAndSave(false)) {
+            		return;
+            	}
             }
+
         }
+        mf.setEditorText("");
+        mf.setEditorSavedState();
+        mf.setLoadedCodeFilePath("");
         mf.setEditorFrameVisible();
         
         // TODO Actually no file is assigned to the empty editor. 
