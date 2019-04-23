@@ -49,6 +49,7 @@ import riscVivid.gui.dialog.Input;
 import riscVivid.gui.dialog.Output;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
 import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
+import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 import riscVivid.gui.menubar.MainFrameMenuBarFactory;
 import riscVivid.gui.menubar.StateValidator;
 import riscVivid.gui.util.PipelineExceptionHandler;
@@ -79,8 +80,8 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private JMenuBar menuBar;
     private JMenuItem forwardingMenuItem;
     private PipelineExceptionHandler pexHandler = null;
-    private String loadedCodeFilePath="code.s";//default
-
+    private String loadedCodeFilePath="";
+    
     private MainFrame()
     {
         initialize();
@@ -314,6 +315,10 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     public void setLoadedCodeFilePath(String loadedCodeFilePath)
     {
         this.loadedCodeFilePath = loadedCodeFilePath;
+        String editorTitle = new File(loadedCodeFilePath).getName();
+        if (editorTitle.length() == 0)
+        	editorTitle = InternalFrameFactory.getFrameName(EditorFrame.class);
+        this.editor.setFrameTitle(editorTitle);
     }
 
     public JMenuItem getForwardingMenuItem()

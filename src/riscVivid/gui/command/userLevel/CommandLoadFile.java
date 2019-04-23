@@ -27,6 +27,7 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandLoadCodeFileToEditor;
 import riscVivid.gui.command.systemLevel.CommandOpenCodeFile;
+import riscVivid.gui.util.AskForSave;
 
 public class CommandLoadFile implements Command
 {
@@ -45,12 +46,9 @@ public class CommandLoadFile implements Command
         {
             if (!mf.isEditorTextSaved())
             {
-                if (JOptionPane.showConfirmDialog(mf, "Discard unsaved editor changes?") != JOptionPane.OK_OPTION)
-                {
-                    return;
-                }
+            	if (!AskForSave.askAndSave(true))
+            		return;
             }
-            
             CommandOpenCodeFile c10 = new CommandOpenCodeFile(mf);
             c10.execute();
             File f = c10.getCodeFile();

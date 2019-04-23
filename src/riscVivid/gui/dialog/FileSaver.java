@@ -36,6 +36,9 @@ public class FileSaver
     private String path = "/home";
     private String preferenceKey = "savefilechooserpath";
 
+    /**
+     * @return null if user cancelled selection
+     */
     public File saveAs(MainFrame mf)
     {
         path = Preference.pref.get(preferenceKey, path);
@@ -46,7 +49,8 @@ public class FileSaver
             public void approveSelection()
             {
                 File f = getSelectedFile();
-                if (f.exists())
+                // Ask for overwrite if file exists and the chosen file isn't the loaded file
+                if (f.exists() && !f.getAbsolutePath().equals(MainFrame.getInstance().getLoadedCodeFilePath()))
                 {
                     int result = JOptionPane.showConfirmDialog(this, "The file exists, overwrite?", "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
                     switch (result)
@@ -83,7 +87,10 @@ public class FileSaver
             }
         });
 
-        chooser.setSelectedFile(new File(mf.getLoadedCodeFilePath()));
+        String filePath = mf.getLoadedCodeFilePath();
+        if (filePath == "")
+        	filePath = "code.s"; //default
+        chooser.setSelectedFile(new File(filePath));
 
         if (chooser.showSaveDialog(mf) == JFileChooser.APPROVE_OPTION)
         {

@@ -24,7 +24,6 @@ import java.awt.Cursor;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-//import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
@@ -32,42 +31,55 @@ import javax.swing.JOptionPane;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
-import riscVivid.gui.dialog.FileSaver;
 
 public class CommandSave implements Command
 {
 
-    @Override
-    public void execute()
-    {
-        MainFrame mf = MainFrame.getInstance();
-        if (!mf.isRunning())
+	@Override
+	public void execute() {
+			MainFrame mf = MainFrame.getInstance();
+	        if (!mf.isRunning())
+	        {
+	            File saveFile = new File(mf.getLoadedCodeFilePath());;
+	            if (saveFile.exists()) {
+	            	save(saveFile);
+	            	mf.setEditorSavedState();
+	            } else {
+	            	new CommandSaveAs().execute();	        	 
+	            }
+	        }
+	}
+	
+	public static void save(File saveFile) {
+		MainFrame mf = MainFrame.getInstance();
+    	if (saveFile != null)
         {
             mf.getContentPane().setCursor(
                     Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            File saveFile = new FileSaver().saveAs(mf);
-            mf.getContentPane().setCursor(
-                    Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-            if (saveFile != null)
+			BufferedWriter out = null;
+            try
             {
-                try
-                {
-                	//BufferedWriter out = new BufferedWriter(new FileWriter(saveFile.getAbsolutePath()));
-                	BufferedWriter out = new BufferedWriter(new OutputStreamWriter(
-                		new FileOutputStream(saveFile.getAbsolutePath()), "UTF-8"));
-                			// always write UTF-8"
-                    out.write(mf.getEditorText());
-                    out.close();
-                    mf.setEditorSavedState();
-                }
-                catch (IOException e)
-                {
-                    System.out.println("Exception ");
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(mf, "Saving file failed: " + e.toString());
-                }
+            	out = new BufferedWriter(new OutputStreamWriter(
+            		new FileOutputStream(saveFile.getAbsolutePath()), "UTF-8"));
+            			// always write UTF-8"
+                out.write(mf.getEditorText());
+                out.close();
+            }
+            catch (IOException e)
+            {
+                System.out.println("Exception ");
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(mf, "Saving file failed: " + e.toString());
+				try {
+					if (out != null)
+						out.close();
+				} catch (IOException ex) {}
+            }
+            finally {
+                mf.getContentPane().setCursor(
+                        Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
             }
         }
-    }
+	}
 
 }

@@ -22,8 +22,6 @@ package riscVivid.gui.command.userLevel;
 
 import java.io.File;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandCompileCode;
@@ -32,6 +30,7 @@ import riscVivid.gui.command.systemLevel.CommandOpenCodeFile;
 import riscVivid.gui.command.systemLevel.CommandResetSimulator;
 import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
 import riscVivid.gui.command.systemLevel.CommandStartExecuting;
+import riscVivid.gui.util.AskForSave;
 
 public class CommandLoadAndRunFile implements Command
 {
@@ -50,10 +49,8 @@ public class CommandLoadAndRunFile implements Command
         {
             if (!mf.isEditorTextSaved())
             {
-                if (JOptionPane.showConfirmDialog(mf, "Discard unsaved editor changes?") != JOptionPane.OK_OPTION)
-                {
-                    return;
-                }
+                if(!AskForSave.askAndSave(true))
+                	return;
             }
             //save current window position
             new CommandSaveFrameConfigurationSysLevel(mf).execute();

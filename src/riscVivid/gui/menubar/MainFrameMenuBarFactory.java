@@ -57,8 +57,9 @@ import riscVivid.gui.command.userLevel.CommandRunFromConfigurationFile;
 import riscVivid.gui.command.userLevel.CommandRunFromEditor;
 import riscVivid.gui.command.userLevel.CommandRunSlowly;
 import riscVivid.gui.command.userLevel.CommandRunToAddressX;
-import riscVivid.gui.command.userLevel.CommandSave;
+import riscVivid.gui.command.userLevel.CommandSaveAs;
 import riscVivid.gui.command.userLevel.CommandSaveFrameConfigurationUsrLevel;
+import riscVivid.gui.command.userLevel.CommandSave;
 import riscVivid.gui.command.userLevel.CommandSetLaF;
 import riscVivid.gui.command.userLevel.CommandShowAbout;
 import riscVivid.gui.command.userLevel.CommandShowOptionDialog;
@@ -86,7 +87,8 @@ public class MainFrameMenuBarFactory
     private static final String STRING_MENU_FILE_OPEN_AND_ASSEMBLE = "Open and Assemble...";
     private static final String STRING_MENU_FILE_ASSEMBLE = "Assemble";
     private static final String STRING_MENU_FILE_ADD_CODE = "Add Code...";
-    private static final String STRING_MENU_FILE_SAVE = "Save As...";
+	private static final String STRING_MENU_FILE_SAVE = "Save";
+    private static final String STRING_MENU_FILE_SAVE_AS = "Save As...";
     private static final String STRING_MENU_FILE_RUN_FROM_CONF = "Run from Configuration File";
     private static final String STRING_MENU_FILE_EXIT = "Exit Program";
 
@@ -95,7 +97,8 @@ public class MainFrameMenuBarFactory
     private static final KeyStroke KEY_MENU_FILE_OPEN_AND_ASSEMBLE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_FILE_ASSEMBLE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.Event.ALT_MASK);
     private static final KeyStroke KEY_MENU_FILE_ADD_CODE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.Event.CTRL_MASK);
-    private static final KeyStroke KEY_MENU_FILE_SAVE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.Event.CTRL_MASK);
+	private static final KeyStroke KEY_MENU_FILE_SAVE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,  java.awt.Event.CTRL_MASK);
+    private static final KeyStroke KEY_MENU_FILE_SAVE_AS = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_FILE_RUN_FROM_CONF = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.Event.ALT_MASK);
     private static final KeyStroke KEY_MENU_FILE_EXIT = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.Event.ALT_MASK);
 
@@ -157,6 +160,8 @@ public class MainFrameMenuBarFactory
 //    private static final KeyStroke KEY_MENU_HELP_TUTORIAL = null;
     private static final KeyStroke KEY_MENU_HELP_ABOUT = null;
 
+
+
     private MainFrame mf;
     private ActionListener al = null;
     private ItemListener il = null;
@@ -190,6 +195,7 @@ public class MainFrameMenuBarFactory
         addMenuItem(fileMenu, STRING_MENU_FILE_OPEN, KEY_MENU_FILE_OPEN, StateValidator.executingOrLazyStates, new CommandLoadFile(mf));
         addMenuItem(fileMenu, STRING_MENU_FILE_ADD_CODE, KEY_MENU_FILE_ADD_CODE, StateValidator.executingOrLazyStates, new CommandLoadFileBelow(mf));
         addMenuItem(fileMenu, STRING_MENU_FILE_SAVE, KEY_MENU_FILE_SAVE, StateValidator.executingOrLazyStates, new CommandSave());
+        addMenuItem(fileMenu, STRING_MENU_FILE_SAVE_AS, KEY_MENU_FILE_SAVE_AS, StateValidator.executingOrLazyStates, new CommandSaveAs());
         addMenuItem(fileMenu, STRING_MENU_FILE_ASSEMBLE, KEY_MENU_FILE_ASSEMBLE, StateValidator.executingOrLazyStates, new CommandRunFromEditor(mf));
         fileMenu.addSeparator();
         addMenuItem(fileMenu, STRING_MENU_FILE_OPEN_AND_ASSEMBLE, KEY_MENU_FILE_OPEN_AND_ASSEMBLE, StateValidator.executingOrLazyStates, new CommandLoadAndRunFile(mf));
@@ -274,37 +280,37 @@ public class MainFrameMenuBarFactory
         String name = InternalFrameFactory.getFrameName(EditorFrame.class);
         OpenDLXSimMenuItem frame_item = addMenuItem(windowMenu, STRING_MENU_WINDOW_DISPLAY_EDITOR, KEY_MENU_WINDOW_DISPLAY_EDITOR, StateValidator.allStates);
         frame_item.setName(name);
-        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(frame_item, mf));
+        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(EditorFrame.class, mf));
 
         name = InternalFrameFactory.getFrameName(LogFrame.class);
         frame_item = addMenuItem(windowMenu, STRING_MENU_WINDOW_DISPLAY_LOG, KEY_MENU_WINDOW_DISPLAY_LOG, StateValidator.executingOrRunningStates);
         frame_item.setName(name);
-        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(frame_item, mf));
+        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(LogFrame.class, mf));
 
         name = InternalFrameFactory.getFrameName(CodeFrame.class);
         frame_item = addMenuItem(windowMenu, STRING_MENU_WINDOW_DISPLAY_CODE, KEY_MENU_WINDOW_DISPLAY_CODE, StateValidator.executingOrRunningStates);
         frame_item.setName(name);
-        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(frame_item, mf));
+        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(CodeFrame.class, mf));
 
         name = InternalFrameFactory.getFrameName(RegisterFrame.class);
         frame_item = addMenuItem(windowMenu, STRING_MENU_WINDOW_DISPLAY_RS, KEY_MENU_WINDOW_DISPLAY_RS, StateValidator.executingOrRunningStates);
         frame_item.setName(name);
-        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(frame_item, mf));
+        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(RegisterFrame.class, mf));
 
         name = InternalFrameFactory.getFrameName(ClockCycleFrame.class);
         frame_item = addMenuItem(windowMenu, STRING_MENU_WINDOW_DISPLAY_CC, KEY_MENU_WINDOW_DISPLAY_CC, StateValidator.executingOrRunningStates);
         frame_item.setName(name);
-        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(frame_item, mf));
+        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(ClockCycleFrame.class, mf));
 
         name = InternalFrameFactory.getFrameName(StatisticsFrame.class);
         frame_item = addMenuItem(windowMenu, STRING_MENU_WINDOW_DISPLAY_STATS, KEY_MENU_WINDOW_DISPLAY_STATS, StateValidator.executingOrRunningStates);
         frame_item.setName(name);
-        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(frame_item, mf));
+        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(StatisticsFrame.class, mf));
 
         name = InternalFrameFactory.getFrameName(MemoryFrame.class);
         frame_item = addMenuItem(windowMenu, STRING_MENU_WINDOW_DISPLAY_MEM, KEY_MENU_WINDOW_DISPLAY_MEM, StateValidator.executingOrRunningStates);
         frame_item.setName(name);
-        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(frame_item, mf));
+        EventCommandLookUp.put(frame_item, new CommandChangeWindowVisibility(MemoryFrame.class, mf));
     }
 
     protected OpenDLXSimMenuItem addMenuItem(final JMenu parent, String name, KeyStroke accelerator,
