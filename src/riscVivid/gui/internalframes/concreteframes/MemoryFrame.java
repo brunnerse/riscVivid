@@ -21,14 +21,18 @@
 package riscVivid.gui.internalframes.concreteframes;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -50,12 +54,13 @@ import riscVivid.gui.internalframes.util.TableSizeCalculator;
 import riscVivid.gui.internalframes.util.ValueInput;
 
 @SuppressWarnings("serial")
-public final class MemoryFrame extends OpenDLXSimInternalFrame implements ActionListener, KeyListener, FocusListener
+public final class MemoryFrame extends OpenDLXSimInternalFrame implements ActionListener, KeyListener, FocusListener, ItemListener
 {
 
     //tables, scrollpane and table models
     private JTable memoryTable;
     private JButton reload;
+	private JCheckBox checkBoxHex;
     private static int rows = 100, startAddr = 0;
     private JTextField rowInput;
     private JTextField addrInput;
@@ -131,10 +136,18 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
         inputPanel.add(rowInput);
         add(inputPanel, BorderLayout.NORTH);
         //controls
-        JPanel controlPanel = new JPanel();
+        JPanel controlPanel = new JPanel(new GridLayout(1, 2));
         reload = new JButton("reload");
         reload.addActionListener(this);
-        controlPanel.add(reload);
+        JPanel reloadPanel = new JPanel();
+      	reloadPanel.add(reload);
+      	controlPanel.add(reloadPanel);
+        checkBoxHex = new JCheckBox("values as hex");
+		checkBoxHex.setSelected(Preference.displayMemoryAsHex());
+		checkBoxHex.addItemListener(this);
+		JPanel checkBoxPanel = new JPanel();
+		checkBoxPanel.add(checkBoxHex);
+		controlPanel.add(checkBoxPanel);
         add(controlPanel, BorderLayout.SOUTH);
         pack();
         setVisible(true);
@@ -215,5 +228,11 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
     public void focusLost(FocusEvent e)
     {
     }
+    
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		Preference.pref.putBoolean(Preference.displayMemoryAsHex, checkBoxHex.isSelected());
+		update();
+	}
 
 }
