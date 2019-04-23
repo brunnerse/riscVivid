@@ -20,6 +20,8 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -55,6 +57,7 @@ import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 import riscVivid.gui.internalframes.factories.tableFactories.MemoryTableFactory;
 import riscVivid.gui.internalframes.util.TableSizeCalculator;
 import riscVivid.gui.internalframes.util.ValueInput;
+import riscVivid.gui.util.MWheelFontSizeChanger;
 
 @SuppressWarnings("serial")
 public final class MemoryFrame extends OpenDLXSimInternalFrame implements ActionListener, KeyListener, FocusListener, ItemListener
@@ -113,6 +116,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
         setLayout(new BorderLayout());
         memoryTable = new MemoryTableFactory(rows, startAddr).createTable();
         JScrollPane scrollpane = new JScrollPane(memoryTable);
+        MWheelFontSizeChanger.getInstance().add(scrollpane);
         scrollpane.setFocusable(false);
         memoryTable.setFillsViewportHeight(true);
         TableSizeCalculator.setDefaultMaxTableSize(scrollpane, memoryTable, TableSizeCalculator.SET_SIZE_WIDTH);
@@ -149,6 +153,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
 		checkBoxPanel.add(checkBoxHex);
 		controlPanel.add(checkBoxPanel);
         add(controlPanel, BorderLayout.SOUTH);
+        setFont(memoryTable.getFont().deriveFont((float)Preference.getFontSize()));
         pack();
         setVisible(true);
     }
@@ -230,6 +235,32 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
                 JOptionPane.showMessageDialog(this, "for input only hex (0x..) " +
                         "address, decimal address or label (e.g. \"main\") allowed");
         }
+    }
+
+    @Override
+    public void setFont(Font f) {
+    	super.setFont(f);
+    	for (Component c : new Component[] { addrLabel, addrInput, rowLabel, rowInput, reload})
+    		if (c != null)
+    			c.setFont(f);
+
+    	if (memoryTable != null) {
+    		memoryTable.setFont(f);
+    		memoryTable.getTableHeader().setFont(f);;
+    		memoryTable.setRowHeight(f.getSize() + 4);
+			int columnWidth = memoryTable.getFontMetrics(f).stringWidth("0x00000000___");
+			// if width is shortened, first set min width, then max width
+			if (columnWidth < memoryTable.getColumn("address").getMaxWidth()) {
+		    	memoryTable.getColumn("address").setMinWidth(columnWidth);
+		    	memoryTable.getColumn("address").setMaxWidth(columnWidth);
+			} else {
+		    	memoryTable.getColumn("address").setMaxWidth(columnWidth);
+		    	memoryTable.getColumn("address").setMinWidth(columnWidth);
+			}
+			// Last column may expand indefinitely
+			memoryTable.getColumn("value").setMaxWidth(Integer.MAX_VALUE);
+			memoryTable.getColumn("value").setMinWidth(columnWidth);
+    	}
     }
 
     @Override
