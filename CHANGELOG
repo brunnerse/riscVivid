@@ -1,5 +1,11 @@
 riscVivid v1.2
 ==============
-
 - fork of openDLX v1.0-6
 - replaced MIPS/DLX by RISC-V
+
+
+riscVivid v1.3
+==============
+- minor improvements
+- font size can now be increased/decreased via icons or Ctrl + Mousewheel
+- check boxes to toggle between hex and decimal display of values
