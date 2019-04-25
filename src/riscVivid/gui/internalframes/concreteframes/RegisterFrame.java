@@ -105,6 +105,8 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     @Override
     public void setFont(Font f) {
     	super.setFont(f);
+    	if (checkBoxHex != null)
+    		checkBoxHex.setFont(f);
     	if (registerTable != null) {
 	    	registerTable.setFont(f);
 	    	registerTable.getTableHeader().setFont(f);

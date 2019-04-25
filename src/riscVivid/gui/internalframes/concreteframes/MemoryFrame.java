@@ -240,7 +240,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
     @Override
     public void setFont(Font f) {
     	super.setFont(f);
-    	for (Component c : new Component[] { addrLabel, addrInput, rowLabel, rowInput, reload})
+    	for (Component c : new Component[] { addrLabel, addrInput, rowLabel, rowInput, reload, checkBoxHex})
     		if (c != null)
     			c.setFont(f);
 
