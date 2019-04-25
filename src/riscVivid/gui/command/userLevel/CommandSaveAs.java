@@ -42,13 +42,12 @@ public class CommandSaveAs implements Command
             File loadedFile = new File(mf.getLoadedCodeFilePath());
             //if there's no valid file currently loaded, 
             // set the loaded file to the chosen one
+            CommandSave.save(saveFile);
             if (!loadedFile.exists()) {
             	mf.setLoadedCodeFilePath(saveFile.getAbsolutePath());
-            	new CommandSave().execute();
-            } else if (loadedFile.equals(saveFile)){
-            	new CommandSave().execute();
-            } else {
-                CommandSave.save(saveFile);
+            	mf.setEditorSavedState();
+            } else if (loadedFile.equals(saveFile)) {
+            	mf.setEditorSavedState();
             }
         }
     }
