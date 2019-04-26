@@ -27,8 +27,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.TableModel;
 
-import riscVivid.RiscVividSimulator;
 import riscVivid.PipelineContainer;
+import riscVivid.RiscVividSimulator;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;

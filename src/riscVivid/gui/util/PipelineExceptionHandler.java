@@ -26,8 +26,8 @@ import riscVivid.RiscVividSimulator;
 import riscVivid.exception.DecodeStageException;
 import riscVivid.exception.PipelineException;
 import riscVivid.exception.UnknownInstructionException;
-import riscVivid.gui.MainFrame;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
+import riscVivid.gui.MainFrame;
 
 public class PipelineExceptionHandler {
 	

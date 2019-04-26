@@ -20,8 +20,8 @@
  ******************************************************************************/
 package riscVivid.gui.command.userLevel;
 
-import riscVivid.gui.RiscVividSimGui;
 import riscVivid.gui.Preference;
+import riscVivid.gui.RiscVividSimGui;
 import riscVivid.gui.command.Command;
 
 public class CommandSetLaF implements Command

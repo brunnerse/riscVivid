@@ -39,10 +39,11 @@ public class CommandSaveAs implements Command
             // cancel saving if user cancelled selection
             if (saveFile == null)
             	return;
-            File loadedFile = new File(mf.getLoadedCodeFilePath());
+            CommandSave.save(saveFile);
+
             //if there's no valid file currently loaded, 
             // set the loaded file to the chosen one
-            CommandSave.save(saveFile);
+            File loadedFile = new File(mf.getLoadedCodeFilePath());
             if (!loadedFile.exists()) {
             	mf.setLoadedCodeFilePath(saveFile.getAbsolutePath());
             	mf.setEditorSavedState();

@@ -40,7 +40,7 @@ public class CommandSave implements Command
 			MainFrame mf = MainFrame.getInstance();
 	        if (!mf.isRunning())
 	        {
-	            File saveFile = new File(mf.getLoadedCodeFilePath());;
+	            File saveFile = new File(mf.getLoadedCodeFilePath());
 	            if (saveFile.exists()) {
 	            	save(saveFile);
 	            	mf.setEditorSavedState();

@@ -23,8 +23,8 @@ package riscVivid.gui.internalframes.concreteframes;
 import java.awt.Dimension;
 import java.awt.Font;
 
-import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import riscVivid.gui.Preference;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;

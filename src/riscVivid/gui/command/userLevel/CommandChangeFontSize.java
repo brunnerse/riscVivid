@@ -9,6 +9,8 @@ import javax.swing.JMenuItem;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.dialog.Input;
+import riscVivid.gui.dialog.Output;
 
 public class CommandChangeFontSize implements Command {
 	final private int dir;
@@ -38,12 +40,14 @@ public class CommandChangeFontSize implements Command {
 	}
 	
 	public static void setFontSize(int fontSize) {
+        Preference.pref.putInt(Preference.fontSize, fontSize);
 		MainFrame mf = MainFrame.getInstance();
 
 		setMenuBarFontSize(mf, fontSize);
 		setInternalFramesFontSize(mf, fontSize);
 		
-        Preference.pref.putInt(Preference.fontSize, fontSize);
+		Input.getInstance(mf).setFont(Input.getInstance(mf).getFont().deriveFont((float)fontSize));
+		Output.getInstance(mf).setFont(Output.getInstance(mf).getFont().deriveFont((float)fontSize));
 	}
 	
 	private static void setMenuBarFontSize(MainFrame mf, int fontSize) {

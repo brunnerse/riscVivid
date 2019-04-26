@@ -232,6 +232,9 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
                         {
                             model.setValueAt(h.get(checkAddr), k, i);
                             forbidden.add(checkAddr);
+                            // current checkAddr is now in forbidden -> if-statement will always be false
+                            break; 
+                           
                         }
                     }
                 }

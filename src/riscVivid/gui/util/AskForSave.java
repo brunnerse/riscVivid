@@ -13,7 +13,7 @@ public final class AskForSave {
 	 * and does so in that case
 	 * To be called whenever the program modifies the text in the editor,
 	 * e.g. when loading a new file
-	 * @return: true if program can proceed,
+	 * @return: true if program can proceed with its action(closing / loading another file),
 	 * 			false if program should abort
 	 * @param clearEditor:  clear Editor except if user chooses 'Cancel'
 	 *
@@ -28,6 +28,8 @@ public final class AskForSave {
         switch(JOptionPane.showConfirmDialog(mf,dialogText)) {
         case JOptionPane.OK_OPTION:
 			new CommandSave().execute();
+			if (!mf.isEditorTextSaved()) // if user aborted saving in the SaveAs-dialog
+				return false;
         case JOptionPane.NO_OPTION:
 			if (clearEditor) {
                  mf.setEditorText("");
