@@ -63,7 +63,7 @@ public class RegisterTableFactory extends TableFactory
                 secondItem = rs.read(new uint8(i)).getValue();
 
             model.addRow(new Object[] {
-                    ArchCfg.getRegisterDescription(i), secondItem
+                    (i < 10 ? " " : "") + ArchCfg.getRegisterDescription(i), secondItem
             });
         }
 

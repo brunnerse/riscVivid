@@ -234,7 +234,6 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
                             forbidden.add(checkAddr);
                             // current checkAddr is now in forbidden -> if-statement will always be false
                             break; 
-                           
                         }
                     }
                 }

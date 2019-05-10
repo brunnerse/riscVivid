@@ -46,6 +46,7 @@ public class Parser {
 	private static final String LABEL_NOT_ALLOWED_HERE = "Label not allowed here";
 	private static final String MISSING_SEPARATOR = "missing separator before";
 	private static final String NOT_A_NUMBER = "expected number or label but got";
+	private static final String NOT_A_CHAR_OR_CHAR_ARRAY = "expected a character or string but got";
 	private static final String NOT_A_REGISTER = "expected register specifier but got";
 	private static final String NUMBER_NEGATIVE = "negative value not allowed here";
 	private static final String NUMBER_TOO_BIG = "number is too big or too small";
@@ -710,6 +711,9 @@ public class Parser {
 	 */
 	private void ascii(Token[] tokens) throws ParserException {
 		try {
+			if (tokens[1].getTokenType() != TokenType.StringLiteral &&
+					tokens[1].getTokenType() != TokenType.CharacterLiteral)
+					throw new ParserException(NOT_A_CHAR_OR_CHAR_ARRAY, tokens[1]);
 			byte[] str = replaceEscapeSequences(tokens[1].getString()).getBytes();
 			for (int i = 0; i < str.length; ++i) {
 				memory_.writeByte(segmentPointer_.get(), str[i]);
@@ -719,7 +723,8 @@ public class Parser {
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
 		} catch(ParserException ex) {
-			throw new ParserException(ex.getMessage(), tokens[1]);
+			ex.setToken(tokens[1]);
+			throw ex;
 		}
 	}
 
