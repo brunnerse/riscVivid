@@ -57,7 +57,7 @@ class ParserException extends AssemblerException {
 
 	public String getMessage() {
 		if (token != null)
-			return super.getMessage() + ":" + token.getString();
+			return super.getMessage() + ": " + token.getString();
 		else
 			return super.getMessage();
 	}

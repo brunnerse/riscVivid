@@ -34,6 +34,7 @@ import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import riscVivid.PipelineConstants;
 import riscVivid.RiscVividSimulator;
 import riscVivid.asm.DLXAssembler;
 import riscVivid.datatypes.uint32;
@@ -213,28 +214,35 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         {
             try
             {
-                uint32 inst = openDLXSim.getPipeline().getInstructionMemory().read_u32(addr);
-                String instStr = asm.Instr2Str(addr.getValue(), inst.getValue());
-                addrModel.addRow(new String[] { addr.getValueAsHexString() });
-                codeModel.addRow(new String[] { instStr });
+            	uint32 inst;
+            	if (addr == PipelineConstants.PIPELINE_BUBBLE_ADDR) {
+            		inst = PipelineConstants.PIPELINE_BUBBLE_INSTR;
+            		addrModel.addRow(new String[] {""});
+            		codeModel.addRow(new String[] {""});
+            	} else {
+            		inst = openDLXSim.getPipeline().getInstructionMemory().read_u32(addr);
+            		String instStr = asm.Instr2Str(addr.getValue(), inst.getValue());
+            		addrModel.addRow(new String[] { addr.getValueAsHexString() });
+            		codeModel.addRow(new String[] { instStr });
+            	}
                 model.addColumn(i);
                 model.addRow(new String[] { "" });
 
                 final HashMap<uint32, String> h = ClockCycleLog.log.get(i);
+                // go through the addresses of the instructions executed in Cycle i
                 for (uint32 checkAddr : h.keySet())
                 {
                     final ArrayList<uint32> forbidden = new ArrayList<>();
+                    // fill the ith column
                     for (int k = addrModel.getRowCount() - 1; k >= 0; --k)
                     {
                         if (addrModel.getValueAt(k, 0).equals(checkAddr.getValueAsHexString())
-                                && !forbidden.contains(checkAddr)
-                                && !instStr.contains("bubble"))
+                                && !forbidden.contains(checkAddr))
                         {
                             model.setValueAt(h.get(checkAddr), k, i);
                             forbidden.add(checkAddr);
                             // current checkAddr is now in forbidden -> if-statement will always be false
                             break; 
-                           
                         }
                     }
                 }

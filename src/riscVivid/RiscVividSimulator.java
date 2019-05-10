@@ -353,12 +353,57 @@ public class RiscVividSimulator
 
         boolean stall = false;
 
+        // Executing the WB-Stage first:
+        // simulates WB writing in the first half of the cycle and ID reading in the second half of the cycle
+        // also, makes handling interrupts easier
+        
+        // WRITE BACK STAGE
+        wod = pipeline.getWriteBackStage().doCycle();
+        caught_break = wod.getCaughtBreak();
+        // WRITE BACK STAGE
+
+        // Interrupt handling: flush the pipeline, start from the instruction subsequent to the scall
+        if (wod.getInterruptOccured()) {
+    		logger.debug("INTERRUPT: pipeline is being flushed, restarting the subsequent instruction at " +
+    				execute_memory_latch.element().getPc() + " in the next cycle");
+    		// flush the pipeline except memory_writeback_latch, as it has already been executed
+    		fetch_decode_latch.element().flush();
+    		decode_execute_latch.element().flush();
+    		execute_memory_latch.element().flush();
+    		// flush execute_branchprediciton_latch, branchprediction_execute_latch and branchprediction_fetch_latch
+    		// by replacing their content with dummies
+	        uint32 zero = new uint32(0x0);
+	        Instruction bubble =  pipeline.getDecodeStage().decodeInstr(PipelineConstants.PIPELINE_BUBBLE_INSTR);
+	        // add 1 bubble into the branch prediction module
+	        ExecuteBranchPredictionData ebd = new ExecuteBranchPredictionData(bubble, zero, zero, false);
+    		execute_branchprediction_latch.remove();
+    		execute_branchprediction_latch.add(ebd);
+    		branchprediction_execute_latch.remove();
+    		branchprediction_execute_latch.add(new BranchPredictionModuleExecuteData(false, zero, zero));
+    		branchprediction_fetch_latch.remove();
+    		branchprediction_fetch_latch.add(new BranchPredictionModuleFetchData(false, zero, zero));
+
+    		// feed the Fetch Stage a jump to the scall so it continues with the subsequent instruction in the next cycle
+			ExecuteFetchData efd = new ExecuteFetchData(memory_writeback_latch.element().getInst(),
+					memory_writeback_latch.element().getPc(),
+					memory_writeback_latch.element().getPc(), true, true);
+    		execute_fetch_latch.remove();
+	        execute_fetch_latch.add(efd);
+        }
+
         // FETCH STAGE
         // flush the decode on jump
         // flush the execute when a conditional "likely" branch is not taken
         fod = pipeline.getFetchStage().doCycle();
         // FETCH STAGE
 
+        if (wod.getInterruptOccured()) {
+        	// flush output of fetch stage
+        	fod.getFdd().flush();
+        	for (int i = 0; i < fod.getFlush().length; ++i) {
+        		fod.getFlush()[i] = false;
+        	}
+        }
         // LATCH
         if (fod.getFlush()[PipelineConstants.DECODE_STAGE])
         {
@@ -396,11 +441,6 @@ public class RiscVividSimulator
         // MEMORY STAGE
 
         // LATCH
-
-        // WRITE BACK STAGE
-        wod = pipeline.getWriteBackStage().doCycle();
-        caught_break = wod.getCaughtBreak();
-        // WRITE BACK STAGE
 
         if (!stall)
         {
