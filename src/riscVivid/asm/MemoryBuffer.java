@@ -99,7 +99,7 @@ public class MemoryBuffer {
 	 * 
 	 * @param entryPoint
 	 */
-	public void setEntyPoint(int entryPoint) {
+	public void setEntryPoint(int entryPoint) {
 		if (entryPoint < 0)
 			entryPoint = 0;
 		this.entryPoint = entryPoint;

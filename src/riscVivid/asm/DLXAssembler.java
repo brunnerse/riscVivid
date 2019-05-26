@@ -62,7 +62,7 @@ public class DLXAssembler implements AssemblerInterface {
 		parser.resolve(unresolvedInstructions, globalLabels, memory);
 		Integer entryPoint = globalLabels.get("main");
 		if (entryPoint != null)
-			memory.setEntyPoint(entryPoint);
+			memory.setEntryPoint(entryPoint);
 		else
 			throw new AssemblerException("no entry point 'main' found!\nPlease specify '.global main' and 'main:'.");
 		return memory;

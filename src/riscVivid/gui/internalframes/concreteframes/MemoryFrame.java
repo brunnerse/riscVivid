@@ -235,6 +235,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
                 JOptionPane.showMessageDialog(this, "for input only hex (0x..) " +
                         "address, decimal address or label (e.g. \"main\") allowed");
         }
+        memoryTable.scrollRectToVisible(memoryTable.getCellRect(0, 0, false));
     }
 
     @Override
