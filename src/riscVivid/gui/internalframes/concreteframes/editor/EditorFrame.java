@@ -56,8 +56,8 @@ import riscVivid.gui.command.userLevel.CommandNewFile;
 import riscVivid.gui.command.userLevel.CommandPerformEditorRedo;
 import riscVivid.gui.command.userLevel.CommandPerformEditorUndo;
 import riscVivid.gui.command.userLevel.CommandRunFromEditor;
-import riscVivid.gui.command.userLevel.CommandSaveAs;
 import riscVivid.gui.command.userLevel.CommandSave;
+import riscVivid.gui.command.userLevel.CommandSaveAs;
 import riscVivid.gui.internalframes.FrameConfiguration;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
 import riscVivid.gui.internalframes.factories.InternalFrameFactory;
@@ -259,10 +259,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         add(toolBar, BorderLayout.PAGE_START);
         
         
-        setPreferredSize(new Dimension(size_x, size_y));
-        setFont(jta.getFont().deriveFont((float)Preference.getFontSize()));
-
-        pack();
+        resetLocationAndSize();
         setVisible(true);
     }
 
@@ -338,6 +335,14 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     public void clean()
     {
         jta.getHighlighter().removeAllHighlights();
+    }
+
+    public void resetLocationAndSize()
+    {
+        setPreferredSize(new Dimension(size_x, size_y));
+        setFont(jta.getFont().deriveFont((float)Preference.getFontSize()));
+        pack();
+        this.setLocation(0, 0);
     }
 
     public void validateButtons(OpenDLXSimState currentState)

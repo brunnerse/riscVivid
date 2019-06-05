@@ -25,11 +25,13 @@ public class WritebackOutputData
 
 	private WriteBackData wbd;
 	private boolean caught_break;
+	private boolean interrupt_occured;
 	
-	public WritebackOutputData(WriteBackData wbd, boolean caught_break)
+	public WritebackOutputData(WriteBackData wbd, boolean caught_break, boolean interrupt_occured)
 	{
 		this.wbd = wbd; 
 		this.caught_break = caught_break;
+		this.interrupt_occured = interrupt_occured;
 	}
 
 	public WriteBackData getWbd()
@@ -40,6 +42,11 @@ public class WritebackOutputData
 	public boolean getCaughtBreak()
 	{
 		return caught_break;
+	}
+
+	public boolean getInterruptOccured()
+	{
+		return interrupt_occured;
 	}
 
 }

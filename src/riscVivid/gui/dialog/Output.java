@@ -23,6 +23,7 @@ package riscVivid.gui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -37,6 +38,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
 
+import riscVivid.gui.Preference;
 import riscVivid.util.TrapObserver;
 
 @SuppressWarnings("serial")
@@ -95,6 +97,7 @@ public class Output extends JDialog implements TrapObserver
         confirm.addKeyListener(keylis);
         addKeyListener(keylis);
 
+        setFont(textArea.getFont().deriveFont((float)Preference.getFontSize()));
         pack();
         setMinimumSize(new Dimension(250, 250));
     }
@@ -136,5 +139,13 @@ public class Output extends JDialog implements TrapObserver
     public String getText()
     {
         return textArea.getText();
+    }
+
+    @Override
+    public void setFont(Font f) {
+    	super.setFont(f);
+    	textArea.setFont(f);
+    	confirm.setFont(f);
+    	pack();
     }
 }

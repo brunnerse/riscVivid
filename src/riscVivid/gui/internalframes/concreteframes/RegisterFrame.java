@@ -20,17 +20,17 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
-import java.awt.Font;
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.table.TableColumn;
+
 import riscVivid.RegisterSet;
 import riscVivid.datatypes.ArchCfg;
 import riscVivid.datatypes.uint32;
@@ -89,7 +89,6 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
 
         //config internal frame
         setLayout(new BorderLayout());
-        setFont(registerTable.getFont().deriveFont((float)Preference.getFontSize()));
         add(scrollpane, BorderLayout.CENTER);
         // new checkbox
         checkBoxHex = new JCheckBox("values as hex");
@@ -98,6 +97,8 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
         JPanel controlPanel = new JPanel();
 		controlPanel.add(checkBoxHex);
 		add(controlPanel, BorderLayout.SOUTH);
+
+        setFont(registerTable.getFont().deriveFont((float)Preference.getFontSize()));
         pack();
         setVisible(true);
     }

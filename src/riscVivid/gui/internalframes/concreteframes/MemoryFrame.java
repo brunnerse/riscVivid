@@ -20,9 +20,9 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,6 +36,7 @@ import java.beans.PropertyVetoException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -43,7 +44,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.TableModel;
-import javax.swing.JInternalFrame;
 
 import riscVivid.asm.Labels;
 import riscVivid.datatypes.uint32;

@@ -31,17 +31,12 @@ import riscVivid.gui.Preference;
 
 public class FileSaver
 {
-
-    // FIXME using static string here ...
-    private String path = "/home";
-    private String preferenceKey = "savefilechooserpath";
-
     /**
      * @return null if user cancelled selection
      */
     public File saveAs(MainFrame mf)
     {
-        path = Preference.pref.get(preferenceKey, path);
+    	String path = Preference.getSaveFileChooserPath();
         @SuppressWarnings("serial")
         final JFileChooser chooser = new JFileChooser(path)
         {
@@ -49,6 +44,10 @@ public class FileSaver
             public void approveSelection()
             {
                 File f = getSelectedFile();
+
+                if (f.getName().indexOf('.') < 0)
+                	f = new File(f.getAbsolutePath() + ".s");
+                this.setSelectedFile(f);
                 // Ask for overwrite if file exists and the chosen file isn't the loaded file
                 if (f.exists() && !f.getAbsolutePath().equals(MainFrame.getInstance().getLoadedCodeFilePath()))
                 {
@@ -88,14 +87,14 @@ public class FileSaver
         });
 
         String filePath = mf.getLoadedCodeFilePath();
-        if (filePath == "")
+        if (!new File(filePath).exists())
         	filePath = "code.s"; //default
         chooser.setSelectedFile(new File(filePath));
 
         if (chooser.showSaveDialog(mf) == JFileChooser.APPROVE_OPTION)
         {
             path = chooser.getSelectedFile().getParent();
-            Preference.pref.put(preferenceKey, path);
+            Preference.pref.put(Preference.saveChooserPathPreferenceKey, path);
             return chooser.getSelectedFile();
         }
         else

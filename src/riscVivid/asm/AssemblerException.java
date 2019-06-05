@@ -61,7 +61,7 @@ public class AssemblerException extends Exception {
 	 */
 	public String toString() {
 		if (getLine() != -1)
-			return super.toString() + " at(" + getLine() + "," + getRow() + ")";
+			return super.toString() + " at (" + getLine() + "," + getRow() + ")";
 		else
 			return super.toString();
 	}

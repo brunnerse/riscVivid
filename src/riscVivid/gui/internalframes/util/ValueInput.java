@@ -36,7 +36,7 @@ public class ValueInput
         if (valueString == null)
             return null;
         else if (valueString.contains("0x"))
-            return Integer.parseInt(valueString.substring(2), 16);
+            return Integer.parseUnsignedInt(valueString.substring(2), 16);
         else
             return Integer.parseInt(valueString);
     }

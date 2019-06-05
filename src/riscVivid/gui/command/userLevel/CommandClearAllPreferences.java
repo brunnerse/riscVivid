@@ -27,6 +27,8 @@ import javax.swing.JOptionPane;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.command.systemLevel.CommandResetSimulator;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
 
 public class CommandClearAllPreferences implements Command
 {
@@ -41,6 +43,11 @@ public class CommandClearAllPreferences implements Command
             try
             {
                 Preference.pref.clear();
+                MainFrame mf = MainFrame.getInstance();
+                new CommandResetSimulator(mf).execute();
+                EditorFrame.getInstance(mf).resetLocationAndSize();
+                // reset font size
+                CommandChangeFontSize.setFontSize(Preference.getFontSize());
             }
             catch (BackingStoreException ex)
             {

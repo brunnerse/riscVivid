@@ -24,8 +24,8 @@ import java.awt.EventQueue;
 
 import riscVivid.RiscVividSimulator;
 import riscVivid.exception.PipelineException;
-import riscVivid.gui.MainFrame;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
+import riscVivid.gui.MainFrame;
 
 public class ThreadCommandRun implements Runnable
 {

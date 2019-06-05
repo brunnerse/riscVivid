@@ -28,8 +28,8 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 
-import riscVivid.gui.MainFrame;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
+import riscVivid.gui.MainFrame;
 
 @SuppressWarnings("serial")
 public class Player extends JDialog implements ActionListener

@@ -22,12 +22,15 @@ package riscVivid.gui.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -35,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
+import riscVivid.gui.Preference;
 import riscVivid.util.TrapObserver;
 
 @SuppressWarnings("serial")
@@ -69,7 +73,8 @@ public class Input extends JDialog implements ActionListener, TrapObserver, Focu
         setLocationRelativeTo(f);
         addKeyListener(this);
         inputField.addKeyListener(this);
-        pack();
+
+        setFont(inputField.getFont().deriveFont((float)Preference.getFontSize()));
 
     }
 
@@ -147,6 +152,17 @@ public class Input extends JDialog implements ActionListener, TrapObserver, Focu
     @Override
     public void keyReleased(KeyEvent e)
     {
+    }
+
+    @Override
+    public void setFont(Font f) {
+    	super.setFont(f);
+    	confirm.setFont(f);
+    	inputField.setFont(f);
+    	int minWidth = inputField.getFontMetrics(f).stringWidth(dummy_text);
+    	inputField.setPreferredSize(new Dimension(minWidth >= 100 ? minWidth : 100, 
+    			inputField.getFontMetrics(f).getHeight() + 4));
+    	pack();
     }
 
 }

@@ -42,10 +42,15 @@ public class Preference
     public static final String showExitMessage = "showexitmessage";
     public static final String lookAndFeel = "lookandfeel";
     public static final String fontSize = "fontsize";
+    public static final String saveChooserPathPreferenceKey = "savefilechooserpath";
 
-    // TODO implement option
     public static final String displayRegistersAsHex = "displayRegistersAsHex";
 
+
+    public static String getSaveFileChooserPath() {
+        return Preference.pref.get(saveChooserPathPreferenceKey, "/home");
+    }
+    
     public static boolean displayMemoryAsHex()
     {
         return pref.getBoolean(displayMemoryAsHex, true);
