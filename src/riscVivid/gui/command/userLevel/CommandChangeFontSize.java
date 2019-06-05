@@ -53,12 +53,18 @@ public class CommandChangeFontSize implements Command {
 	private static void setMenuBarFontSize(MainFrame mf, int fontSize) {
 		for (int i = 0; i < mf.getJMenuBar().getMenuCount(); ++i) {
 			JMenu menu = mf.getJMenuBar().getMenu(i);
-			Font newFont = menu.getFont().deriveFont((float)fontSize);
-			menu.setFont(newFont);
-			for (int itemIdx = 0; itemIdx < menu.getItemCount(); ++itemIdx) {
-				JMenuItem item = menu.getItem(itemIdx);
-				if (item != null)
-					item.setFont(newFont);
+			setMenuFontSize(menu, fontSize);
+		}
+	}
+	private static void setMenuFontSize(JMenu menu, int fontSize) {
+		Font newFont = menu.getFont().deriveFont((float)fontSize);
+		menu.setFont(newFont);
+		for (int itemIdx = 0; itemIdx < menu.getItemCount(); ++itemIdx) {
+			JMenuItem item = menu.getItem(itemIdx);
+			if (item instanceof JMenu){
+			    setMenuFontSize((JMenu)item, fontSize);
+			} else if (item != null) {
+				item.setFont(newFont);
 			}
 		}
 	}

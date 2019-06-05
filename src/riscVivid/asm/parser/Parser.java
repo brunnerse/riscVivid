@@ -36,6 +36,7 @@ import riscVivid.asm.tokenizer.Token;
 import riscVivid.asm.tokenizer.TokenType;
 import riscVivid.asm.tokenizer.Tokenizer;
 import riscVivid.asm.tokenizer.TokenizerException;
+import riscVivid.gui.internalframes.util.ValueInput;
 
 public class Parser {
 	private static final String INCOMPLETE_DIRECTIVE = "incomplete directive";
@@ -105,7 +106,7 @@ public class Parser {
 		globalLabels_ = globalLabels;
 		memory_ = memory;
 		for (UnresolvedInstruction instr : unresolvedInstructions_) {
-			if (instr.inTextSegement)
+			if (instr.inTextSegment)
 				segmentPointer_ = textPointer_;
 			else
 				segmentPointer_ = dataPointer_;
@@ -763,7 +764,7 @@ public class Parser {
 			return;
 		} else if (tokens.length == 2) {
 			try {
-				int value = Integer.decode(tokens[1].getString());
+				int value = ValueInput.getValueSilent(tokens[1].getString());
 				if (value < 0)
 					throw new ParserException(NUMBER_NEGATIVE, tokens[1]);
 				dataPointer_.set(value);
@@ -827,7 +828,7 @@ public class Parser {
 		try {
 			i = 1;
 			do {
-				int value = Integer.decode(tokens[i++].getString());
+				int value = ValueInput.getValueSilent(tokens[i++].getString());
 				segmentPointer_.add(value);
 			} while (i < tokens.length && tokens[i++].getString().equals(","));
 		} catch (ArrayIndexOutOfBoundsException ex) {
@@ -874,7 +875,7 @@ public class Parser {
 		try {
 			i = 1;
 			do {
-				int value = Integer.decode(tokens[i++].getString());
+				int value = ValueInput.getValueSilent(tokens[i++].getString());
 				memory_.writeWord(segmentPointer_.get(), value);
 				segmentPointer_.add(4);
 				memory_.setDataEnd(segmentPointer_.get());
