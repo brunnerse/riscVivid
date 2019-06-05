@@ -33,6 +33,8 @@ public class FrameConfiguration
     private String sizeXPreferenceKey = "sizex";
     private String sizeYPreferenceKey = "sizey";
     private String isVisiblePreferenceKey = "isvisible";
+    private String zOrderPreferenceKey = "zorder";
+    private String iconizedPreferenceKey = "iconized";
 
     public FrameConfiguration(JInternalFrame jif)
     {
@@ -47,6 +49,10 @@ public class FrameConfiguration
         pref.putInt(frameTitle + sizeXPreferenceKey, jif.getSize().width);
         pref.putInt(frameTitle + sizeYPreferenceKey, jif.getSize().height);
         pref.putBoolean(frameTitle + isVisiblePreferenceKey, jif.isVisible());
+        pref.putBoolean(frameTitle + iconizedPreferenceKey, jif.isIcon());
+        if (jif.getParent() != null)
+        	pref.putInt(frameTitle + zOrderPreferenceKey,
+        			jif.getParent().getComponentZOrder(jif));
     }
 
     public void loadFrameConfiguration()
@@ -56,9 +62,13 @@ public class FrameConfiguration
                 pref.getInt(frameTitle + posYPreferenceKey, jif.getY()),
                 pref.getInt(frameTitle + sizeXPreferenceKey, jif.getWidth()),
                 pref.getInt(frameTitle + sizeYPreferenceKey, jif.getHeight()));
+        if (jif.getParent() != null)
+        	jif.getParent().setComponentZOrder(jif,
+        			pref.getInt(frameTitle + zOrderPreferenceKey, 0));
 
         try
         {
+        	jif.setIcon(pref.getBoolean(frameTitle + iconizedPreferenceKey,  false));
             jif.setVisible(pref.getBoolean(jif.getTitle() + isVisiblePreferenceKey, true));
         }
         catch (Exception e)
@@ -67,4 +77,5 @@ public class FrameConfiguration
             e.printStackTrace();
         }
     }
+    
 }
