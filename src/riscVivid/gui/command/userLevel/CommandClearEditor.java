@@ -24,6 +24,7 @@ import javax.swing.JOptionPane;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandClearEditor implements Command
 {
@@ -32,8 +33,9 @@ public class CommandClearEditor implements Command
     public void execute()
     {
         MainFrame mf = MainFrame.getInstance();
-        if (!mf.isRunning() && JOptionPane.showConfirmDialog(mf,
-                "Confirm to clear. All code in the editor will be deleted.") ==
+        if (!mf.isRunning() && DialogWrapper.showConfirmDialog(mf,
+                "Confirm to clear. All code in the editor will be deleted.",
+                "Confirm clear", JOptionPane.OK_CANCEL_OPTION) ==
                 JOptionPane.OK_OPTION)
         {
         	mf.setLoadedCodeFilePath("");

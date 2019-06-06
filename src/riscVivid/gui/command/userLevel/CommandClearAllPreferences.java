@@ -29,6 +29,7 @@ import riscVivid.gui.Preference;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandResetSimulator;
 import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandClearAllPreferences implements Command
 {
@@ -36,8 +37,9 @@ public class CommandClearAllPreferences implements Command
     @Override
     public void execute()
     {
-        if (JOptionPane.showConfirmDialog(MainFrame.getInstance(),
-                "All preferences will be deleted - confirm ?") ==
+        if (DialogWrapper.showConfirmDialog(MainFrame.getInstance(),
+                "All preferences will be deleted - confirm ?",
+                JOptionPane.OK_CANCEL_OPTION) ==
                 JOptionPane.OK_OPTION)
         {
             try
@@ -51,8 +53,7 @@ public class CommandClearAllPreferences implements Command
             }
             catch (BackingStoreException ex)
             {
-                JOptionPane.showMessageDialog(MainFrame.getInstance(),
-                        "Clearing all preferences failed");
+                DialogWrapper.showErrorDialog("Clearing all preferences failed", "Error");
                 System.err.println(ex);
                 ex.printStackTrace();
             }

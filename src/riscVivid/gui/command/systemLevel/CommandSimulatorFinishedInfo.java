@@ -20,11 +20,10 @@
  ******************************************************************************/
 package riscVivid.gui.command.systemLevel;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.RiscVividSimulator;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandSimulatorFinishedInfo implements Command
 {
@@ -37,15 +36,14 @@ public class CommandSimulatorFinishedInfo implements Command
         RiscVividSimulator sim = mf.getOpenDLXSim();
 
         if (sim != null && sim.getCurrentCycle() >= sim.getSimCycles()) {
-        	JOptionPane.showMessageDialog(mf, "The Simulator has reached its maximum cycle count.\n" +
-        		"This could indicate that the program is stuck in an infinite loop " +
-        		"or has not been terminated correctly.",
-        		"Simulator finished: Maximum cycle count exceeded",
-        		JOptionPane.WARNING_MESSAGE);
+        	DialogWrapper.showWarningDialog(mf, "The Simulator has reached its maximum cycle count.\n" +
+        		"This could indicate that the program is stuck in an infinite loop\n" +
+        		"or that it has not been terminated correctly.",
+        		"Simulator finished: Maximum cycle count exceeded");
         	
         			
         } else {
-        	JOptionPane.showMessageDialog(mf, "Simulator finished");
+        	DialogWrapper.showMessageDialog(mf, "Simulator finished");
         }
     }
 

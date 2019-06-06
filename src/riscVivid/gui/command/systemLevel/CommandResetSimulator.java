@@ -21,11 +21,11 @@
 package riscVivid.gui.command.systemLevel;
 
 import javax.swing.JInternalFrame;
-import javax.swing.JOptionPane;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.util.Statistics;
 
 public class CommandResetSimulator implements Command
@@ -60,7 +60,7 @@ public class CommandResetSimulator implements Command
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "resetting simulator - removing/cleaning frames failed");
+            DialogWrapper.showErrorDialog(mf, "resetting simulator - removing/cleaning frames failed");
         }
     }
 

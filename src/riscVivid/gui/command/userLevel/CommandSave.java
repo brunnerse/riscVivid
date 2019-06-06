@@ -27,10 +27,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandSave implements Command
 {
@@ -69,7 +68,7 @@ public class CommandSave implements Command
             {
                 System.out.println("Exception ");
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(mf, "Saving file failed: " + e.toString());
+                DialogWrapper.showErrorDialog(mf, "Saving file failed: " + e.toString());
 				try {
 					if (out != null)
 						out.close();

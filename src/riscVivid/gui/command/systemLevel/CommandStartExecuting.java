@@ -22,10 +22,9 @@ package riscVivid.gui.command.systemLevel;
 
 import java.io.File;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandStartExecuting implements Command
 {
@@ -58,7 +57,7 @@ public class CommandStartExecuting implements Command
         else
         {
         	System.out.println("Could not initiate riscVivid simulator.");
-            JOptionPane.showMessageDialog(mf, "Could not initiate riscVivid simulator.");
+            DialogWrapper.showErrorDialog(mf, "Could not initiate riscVivid simulator.");
         }
     }
 

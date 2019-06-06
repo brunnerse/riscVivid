@@ -21,11 +21,11 @@
 package riscVivid.gui.command.systemLevel;
 
 import javax.swing.JInternalFrame;
-import javax.swing.JOptionPane;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandUpdateFrames implements Command
 {
@@ -55,7 +55,7 @@ public class CommandUpdateFrames implements Command
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Updating frames Failed");
+            DialogWrapper.showErrorDialog(mf, "Updating frames Failed");
         }
     }
 

@@ -26,7 +26,6 @@ import java.awt.Font;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
@@ -36,6 +35,7 @@ import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
 import riscVivid.gui.internalframes.renderer.LogFrameTableCellRenderer;
 import riscVivid.gui.internalframes.util.LogReader;
 import riscVivid.gui.internalframes.util.NotSelectableTableModel;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.gui.util.MWheelFontSizeChanger;
 
 @SuppressWarnings("serial")
@@ -66,7 +66,7 @@ public final class LogFrame extends OpenDLXSimInternalFrame
         catch (Exception e)
         {
             String err = "Reading log file failed -  " + e.toString();
-            JOptionPane.showMessageDialog(mf, err);
+            DialogWrapper.showErrorDialog(mf, err);
         }
 
         // Change resize mode of the table appropriately 021if the size changes
