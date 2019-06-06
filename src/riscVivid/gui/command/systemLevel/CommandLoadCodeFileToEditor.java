@@ -22,11 +22,11 @@ package riscVivid.gui.command.systemLevel;
 
 import java.awt.Cursor;
 import java.io.File;
-
-import javax.swing.JOptionPane;
+import java.io.FileNotFoundException;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.util.CodeLoader;
 
 public class CommandLoadCodeFileToEditor implements Command
@@ -62,11 +62,16 @@ public class CommandLoadCodeFileToEditor implements Command
             if (clean)
             	mf.setEditorSavedState();
         }
+        catch (FileNotFoundException e) {
+            System.err.println(e.toString());
+            e.printStackTrace();
+            DialogWrapper.showErrorDialog(mf, "File " + codeFile.getAbsolutePath());
+        }
         catch (Exception e)
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Loading File into editor failed");
+            DialogWrapper.showErrorDialog(mf, "Loading File into editor failed");
         }
         finally
         {

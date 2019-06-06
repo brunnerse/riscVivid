@@ -24,16 +24,17 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 
 public class CodeLoader
 {
 
-    public static String loadCode(String filePath)
+    public static String loadCode(String filePath) throws FileNotFoundException
     {
         File codeFile = new File(filePath);
         String ret="";
-        if (codeFile.exists())
+        if (codeFile.exists() && codeFile.isFile())
         {
             try
             {
@@ -55,8 +56,9 @@ public class CodeLoader
                 e.printStackTrace();
                 return null;
             }
+        } else {
+            throw new FileNotFoundException();
         }
-        return null;
     }
 
 }

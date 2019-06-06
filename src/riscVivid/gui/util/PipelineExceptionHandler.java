@@ -20,8 +20,6 @@
  ******************************************************************************/
 package riscVivid.gui.util;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.RiscVividSimulator;
 import riscVivid.exception.DecodeStageException;
 import riscVivid.exception.PipelineException;
@@ -47,16 +45,13 @@ public class PipelineExceptionHandler {
 		Class<? extends PipelineException> type = e.getClass();
 		if (type == UnknownInstructionException.class) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(mf, e.getMessage(), "Unsupported Instruction Error",
-					JOptionPane.ERROR_MESSAGE);
+			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Unspported Instruction Error");
 		} else if (type == DecodeStageException.class) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(mf, e.getMessage(), "Decode Stage Error",
-					JOptionPane.ERROR_MESSAGE);
+			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Decode Stage Error");
 		} else {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(mf, e.getMessage(), "General Pipeline Error",
-					JOptionPane.ERROR_MESSAGE);
+			DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
 		}
 		sim.stopSimulation(true);
 		// TODO: better set to an error state?

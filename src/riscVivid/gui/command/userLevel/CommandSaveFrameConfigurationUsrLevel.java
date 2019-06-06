@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandSaveFrameConfigurationUsrLevel implements Command
 {
@@ -51,7 +52,7 @@ public class CommandSaveFrameConfigurationUsrLevel implements Command
             {
                 System.err.println(e.toString());
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(mf, "saving frame preferences failed");
+                DialogWrapper.showErrorDialog(mf, "saving frame preferences failed");
             }
         }
     }

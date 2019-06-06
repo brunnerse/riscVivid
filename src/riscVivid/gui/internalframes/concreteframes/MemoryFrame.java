@@ -38,7 +38,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -57,6 +56,7 @@ import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 import riscVivid.gui.internalframes.factories.tableFactories.MemoryTableFactory;
 import riscVivid.gui.internalframes.util.TableSizeCalculator;
 import riscVivid.gui.internalframes.util.ValueInput;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.gui.util.MWheelFontSizeChanger;
 
 @SuppressWarnings("serial")
@@ -232,7 +232,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
                }
             }
         } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "for input only hex (0x..) " +
+                DialogWrapper.showErrorDialog(this, "for input only hex (0x..) " +
                         "address, decimal address or label (e.g. \"main\") allowed");
         }
         memoryTable.scrollRectToVisible(memoryTable.getCellRect(0, 0, false));

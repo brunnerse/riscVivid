@@ -22,12 +22,11 @@ package riscVivid.gui.command.systemLevel;
 
 import java.io.File;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.RiscVividSimulator;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandCreateOpenDLXSim implements Command
 {
@@ -62,7 +61,7 @@ public class CommandCreateOpenDLXSim implements Command
             mf.setOpenDLXSim(sim);
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Using configFile to create riscVivid failed");
+            DialogWrapper.showErrorDialog(mf, "Using configFile to create riscVivid failed");
         }
 
     }

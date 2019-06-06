@@ -41,6 +41,7 @@ import riscVivid.datatypes.BranchPredictorState;
 import riscVivid.datatypes.BranchPredictorType;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
+import riscVivid.gui.util.DialogWrapper;
 
 @SuppressWarnings("serial")
 public class OptionDialog extends JDialog implements ActionListener
@@ -239,7 +240,8 @@ public class OptionDialog extends JDialog implements ActionListener
                     mipsCompatibilityCheckBox.setSelected(false);
                     Preference.pref.putBoolean(Preference.mipsCompatibilityPreferenceKey, false);
 
-                    JOptionPane.showMessageDialog(MainFrame.getInstance(), "Reset \"MIPS compatibility mode\", since it requires activated forwarding.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    DialogWrapper.showMessageDialog(MainFrame.getInstance(), "Reset \"MIPS compatibility mode\", since it requires activated forwarding.", "Info",
+                            JOptionPane.INFORMATION_MESSAGE);
                 }
             }
 

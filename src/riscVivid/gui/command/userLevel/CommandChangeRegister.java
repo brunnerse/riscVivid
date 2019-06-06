@@ -20,8 +20,6 @@
  ******************************************************************************/
 package riscVivid.gui.command.userLevel;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.RiscVividSimulator;
 import riscVivid.datatypes.uint32;
 import riscVivid.datatypes.uint8;
@@ -29,6 +27,7 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandUpdateFrames;
 import riscVivid.gui.internalframes.util.ValueInput;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandChangeRegister implements Command
 {
@@ -60,14 +59,15 @@ public class CommandChangeRegister implements Command
             }
             catch (NumberFormatException e)
             {
-                JOptionPane.showMessageDialog(mf, "for input only Integer - decimal or hex (0x...) allowed");
+                DialogWrapper.showErrorDialog(mf, "for input only Integer - decimal or hex (0x...) allowed",
+                        "Wrong input");
                 execute();
             }
             catch (Exception e)
             {
                 System.err.println(e.toString());
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(mf, "Changing register failed");
+                DialogWrapper.showErrorDialog(mf, "Changing register failed");
             }
         }
 
