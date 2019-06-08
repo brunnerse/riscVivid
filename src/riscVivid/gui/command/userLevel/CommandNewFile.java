@@ -22,7 +22,7 @@ package riscVivid.gui.command.userLevel;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
-import riscVivid.gui.util.AskForSave;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandNewFile implements Command
 {
@@ -40,7 +40,7 @@ public class CommandNewFile implements Command
         {
             if (!mf.isEditorTextSaved())
             {
-            	if (!AskForSave.askAndSave(false)) {
+            	if (!DialogWrapper.askForSave(false)) {
             		return;
             	}
             }
