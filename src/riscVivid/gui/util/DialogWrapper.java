@@ -7,7 +7,7 @@ import javax.swing.JOptionPane;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.userLevel.CommandSave;
 
-public final class AskForSave {
+public final class DialogWrapper {
 	/**
 	 * Asks user in a dialog if current content should be saved,
 	 * and does so in that case
