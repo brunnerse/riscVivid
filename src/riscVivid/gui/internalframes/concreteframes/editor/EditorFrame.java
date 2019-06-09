@@ -49,6 +49,7 @@ import riscVivid.gui.Preference;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.command.EventCommandLookUp;
 import riscVivid.gui.command.userLevel.CommandChangeFontSize;
+import riscVivid.gui.command.userLevel.CommandFindReplace;
 import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
 import riscVivid.gui.command.userLevel.CommandLoadFile;
 import riscVivid.gui.command.userLevel.CommandLoadFileBelow;
@@ -84,6 +85,9 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private JButton saveAs;
     private JButton save;
     private JButton clear;
+    private JButton find;
+    private JButton enlarge;
+    private JButton reduce;
     
     /* TODO
      * For now the undo/redo functionality is limited to 
@@ -92,9 +96,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private JButton undo;
     private JButton redo;
     
-    private JButton enlarge;
-    private JButton reduce;
-
     private static EditorFrame instance = null;
     private JTextArea jta;
     private JScrollPane scrollPane;
@@ -210,6 +211,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         loadandassem = createButton("Open & Assemble...", "Open Program and Assemble [CTRL+R]", KeyEvent.VK_O, "/img/icons/tango/loadandrun.png");
         undo = createButton("Undo", "Undo [CTRL+Z]", KeyEvent.VK_U, "/img/icons/tango/undo.png");
         redo = createButton("Redo", "Redo [CTRL+SHIFT+Z]", KeyEvent.VK_R, "/img/icons/tango/redo.png"); 
+        find = createButton("Find", "Find/Replace [CTRL+F]", KeyEvent.VK_F, "");
         reduce = createButton("Reduce", "Reduce [CTRL+DOWN]", KeyEvent.VK_DOWN, "/img/icons/tango/reduce.png");
         enlarge = createButton("Enlarge", "Enlarge [CTRL+UP]", KeyEvent.VK_UP, "/img/icons/tango/enlarge.png");
         
@@ -222,6 +224,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         EventCommandLookUp.put(save, new CommandSave());
         EventCommandLookUp.put(saveAs, new CommandSaveAs());
         EventCommandLookUp.put(clear, new CommandNewFile(mf));
+        EventCommandLookUp.put(find,  new CommandFindReplace(mf, this));
 //        EventCommandLookUp.put(undo, undoCommand); 
 //        EventCommandLookUp.put(redo, redoCommand);
         EventCommandLookUp.put(enlarge,  new CommandChangeFontSize(+1));
@@ -235,6 +238,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         save.addActionListener(this);
         saveAs.addActionListener(this);
         clear.addActionListener(this);
+        find.addActionListener(this);
         undo.addActionListener(this);
         redo.addActionListener(this);
         enlarge.addActionListener(this);
@@ -251,6 +255,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         toolBar.add(loadandassem);
         toolBar.add(undo);
         toolBar.add(redo);
+        toolBar.add(find);
         toolBar.add(reduce);
         toolBar.add(enlarge);
         toolBar.setFloatable(false);
@@ -438,6 +443,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         button.setMnemonic(mnemonic); 
         button.setToolTipText(tooltip);
         button.setFocusable(false);
+        
+        
         return button;
     }
     
