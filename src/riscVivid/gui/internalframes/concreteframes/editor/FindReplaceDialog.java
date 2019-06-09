@@ -1,6 +1,7 @@
 package riscVivid.gui.internalframes.concreteframes.editor;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -10,21 +11,25 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.text.BadLocationException;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 
 @SuppressWarnings("serial")
 public class FindReplaceDialog extends JDialog 
-    implements ActionListener, FocusListener, KeyListener {
+    implements ActionListener, FocusListener, KeyListener, 
+    WindowListener {
     
-    private EditorFrame editor;
+    private final EditorFrame editor;
     
     private JButton find, replace, replaceAll;
     private JTextField findField, replaceField;
@@ -33,10 +38,10 @@ public class FindReplaceDialog extends JDialog
     public FindReplaceDialog(MainFrame mf, EditorFrame editor) {
         super(mf, "Find/Replace");
         this.editor = editor;
-        //initialize();
-        pack();
-        setVisible(true);
+        initialize();
+        this.addWindowListener(this);
     }
+    
 
     private void initialize() {
         JPanel textFieldPanel = new JPanel(new GridLayout(2,2));
@@ -78,20 +83,55 @@ public class FindReplaceDialog extends JDialog
     }
 
     public void onFind() {
-        System.out.println(findField.getText());
+        String findStr = findField.getText();
+        int startIdx = editor.getSelectionStart();
+        if (startIdx < 0)
+            startIdx = 0;
+        highlightTermInEditor(findStr);
+        String text = editor.getText();
+        int findIdx = text.indexOf(findStr);
+        if (findIdx >= 0) {
+            editor.selectSection(findIdx, findIdx + findStr.length() - 1);
+        }
     }
     
     public void onReplace() {
-        System.out.println(replaceField.getText());
+        String text = editor.getText();
+        int startSection = text.indexOf(findField.getText());
+        text = text.replaceFirst(findField.getText(), replaceField.getText());
+        int endSection = text.indexOf(replaceField.getText(), startSection);
+        editor.setText(text);
+        highlightTermInEditor(findField.getText());
+        editor.selectSection(startSection,  endSection);
+    }
+    
+    public void onReplaceAll() {
+        String text = editor.getText();
+        text = text.replace(findField.getText(), replaceField.getText());
+        highlightTermInEditor(replaceField.getText());
+    }
+    
+    private void highlightTermInEditor(String term) {
+        String text = editor.getText();
+        int findIdx = text.indexOf(term);
+        while(findIdx >= 0) {
+            try {
+                editor.colorSection(findIdx, findIdx + term.length() - 1, Color.LIGHT_GRAY);
+            } catch (BadLocationException e) {
+                return;
+            }
+            findIdx = text.indexOf(term, findIdx+1);
+        }
     }
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println("clicked: " + e.getSource());
         if (e.getSource() == find) {
             onFind();
         } else if (e.getSource() == replace) {
             onReplace();
+        } else if (e.getSource() == replaceAll) {
+            onReplaceAll();
         }
     }
     
@@ -136,5 +176,27 @@ public class FindReplaceDialog extends JDialog
                 findField, replaceField, findLabel, replaceLabel})
             if (c != null)
                 c.setFont(f);
+    }
+
+    @Override
+    public void windowClosed(WindowEvent arg0) {
+        editor.removeColorHighlights();
+    }
+    @Override
+    public void windowActivated(WindowEvent arg0) {
+    }
+    @Override
+    public void windowClosing(WindowEvent arg0) {
+}
+    @Override
+    public void windowDeactivated(WindowEvent arg0) {
+    }
+    @Override
+    public void windowDeiconified(WindowEvent arg0) {    }
+    @Override
+    public void windowIconified(WindowEvent arg0) {
+    }
+    @Override
+    public void windowOpened(WindowEvent arg0) {
     }
 }

@@ -211,7 +211,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         loadandassem = createButton("Open & Assemble...", "Open Program and Assemble [CTRL+R]", KeyEvent.VK_O, "/img/icons/tango/loadandrun.png");
         undo = createButton("Undo", "Undo [CTRL+Z]", KeyEvent.VK_U, "/img/icons/tango/undo.png");
         redo = createButton("Redo", "Redo [CTRL+SHIFT+Z]", KeyEvent.VK_R, "/img/icons/tango/redo.png"); 
-        find = createButton("Find", "Find/Replace [CTRL+F]", KeyEvent.VK_F, "");
+        find = createButton("Find", "Find/Replace [CTRL+F]", KeyEvent.VK_F, "/img/icons/tango/find.png");
         reduce = createButton("Reduce", "Reduce [CTRL+DOWN]", KeyEvent.VK_DOWN, "/img/icons/tango/reduce.png");
         enlarge = createButton("Enlarge", "Enlarge [CTRL+UP]", KeyEvent.VK_UP, "/img/icons/tango/enlarge.png");
         
@@ -320,22 +320,34 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
     public void colorLine(int l)
     {
-        Highlighter.HighlightPainter redPainter =
-                new DefaultHighlighter.DefaultHighlightPainter(Color.red);
-        try
-        {
-            System.out.println(l);
-            int startIndex = jta.getLineStartOffset(l);
-            int endIndex = jta.getLineEndOffset(l);
-            jta.getHighlighter().addHighlight(startIndex, endIndex, redPainter);
-        }
-        catch (BadLocationException ble)
+        try {
+            colorSection(jta.getLineStartOffset(l), jta.getLineEndOffset(l), Color.red);
+        } catch (BadLocationException ble)
         {
             System.err.println("Failed coloring editor line");
         }
-
     }
-
+    
+    public void colorSection(int startIndex, int endIndex, Color color) throws BadLocationException {
+        Highlighter.HighlightPainter painter =
+                new DefaultHighlighter.DefaultHighlightPainter(color);
+        jta.getHighlighter().addHighlight(startIndex, endIndex, painter);
+    }
+    
+    public void removeColorHighlights() {
+        jta.getHighlighter().removeAllHighlights();
+    }
+    
+    public void selectSection(int startIndex, int endIndex) {
+        jta.select(startIndex,  endIndex);
+    }
+    public int getSelectionStart() {
+        return jta.getSelectionStart();
+    }
+    public int getSelectionEnd() {
+        return jta.getSelectionEnd();
+    }
+    
     @Override
     public void clean()
     {
