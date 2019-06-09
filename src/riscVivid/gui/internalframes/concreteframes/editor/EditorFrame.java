@@ -49,6 +49,7 @@ import riscVivid.gui.Preference;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.command.EventCommandLookUp;
 import riscVivid.gui.command.userLevel.CommandChangeFontSize;
+import riscVivid.gui.command.userLevel.CommandFindReplace;
 import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
 import riscVivid.gui.command.userLevel.CommandLoadFile;
 import riscVivid.gui.command.userLevel.CommandLoadFileBelow;
@@ -84,6 +85,9 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private JButton saveAs;
     private JButton save;
     private JButton clear;
+    private JButton find;
+    private JButton enlarge;
+    private JButton reduce;
     
     /* TODO
      * For now the undo/redo functionality is limited to 
@@ -92,9 +96,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private JButton undo;
     private JButton redo;
     
-    private JButton enlarge;
-    private JButton reduce;
-
     private static EditorFrame instance = null;
     private JTextArea jta;
     private JScrollPane scrollPane;
@@ -188,7 +189,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
          });
          */
 
-
         jta = new JTextArea();
         setSavedState();
         scrollPane = new JScrollPane(jta);
@@ -212,6 +212,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         redo = createButton("Redo", "Redo [CTRL+SHIFT+Z]", KeyEvent.VK_R, "/img/icons/tango/redo.png"); 
         reduce = createButton("Reduce", "Reduce [CTRL+DOWN]", KeyEvent.VK_DOWN, "/img/icons/tango/reduce.png");
         enlarge = createButton("Enlarge", "Enlarge [CTRL+UP]", KeyEvent.VK_UP, "/img/icons/tango/enlarge.png");
+        find = createButton("Find", "Find/Replace [CTRL+F]", KeyEvent.VK_F, "/img/icons/tango/find.png");
         
         // if  parameter command = null, command is not yet implemented and should be implemented soon   
 
@@ -226,6 +227,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 //        EventCommandLookUp.put(redo, redoCommand);
         EventCommandLookUp.put(enlarge,  new CommandChangeFontSize(+1));
         EventCommandLookUp.put(reduce,  new CommandChangeFontSize(-1));
+        EventCommandLookUp.put(find,  new CommandFindReplace(mf, this));
 
         
         assem.addActionListener(this);
@@ -235,6 +237,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         save.addActionListener(this);
         saveAs.addActionListener(this);
         clear.addActionListener(this);
+        find.addActionListener(this);
         undo.addActionListener(this);
         redo.addActionListener(this);
         enlarge.addActionListener(this);
@@ -253,6 +256,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         toolBar.add(redo);
         toolBar.add(reduce);
         toolBar.add(enlarge);
+        toolBar.add(find);
         toolBar.setFloatable(false);
         toolBar.setRollover(false);
         toolBar.setFocusable(false);
@@ -304,6 +308,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     public void setText(String text)
     {
         jta.setText(text);
+        updateTitle();
     }
 
     public void insertText(String text)
@@ -315,22 +320,40 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
     public void colorLine(int l)
     {
-        Highlighter.HighlightPainter redPainter =
-                new DefaultHighlighter.DefaultHighlightPainter(Color.red);
-        try
-        {
-            System.out.println(l);
-            int startIndex = jta.getLineStartOffset(l);
-            int endIndex = jta.getLineEndOffset(l);
-            jta.getHighlighter().addHighlight(startIndex, endIndex, redPainter);
-        }
-        catch (BadLocationException ble)
+        try {
+            colorSection(jta.getLineStartOffset(l), jta.getLineEndOffset(l), Color.red);
+        } catch (BadLocationException ble)
         {
             System.err.println("Failed coloring editor line");
         }
-
     }
-
+    
+    public void colorSection(int startIndex, int endIndex, Color color) throws BadLocationException {
+        Highlighter.HighlightPainter painter =
+                new DefaultHighlighter.DefaultHighlightPainter(color);
+        jta.getHighlighter().addHighlight(startIndex, endIndex, painter);
+    }
+    
+    
+    public void removeColorHighlights() {
+        jta.getHighlighter().removeAllHighlights();
+    }
+    
+    public void selectLine(int l) {
+        try {
+            selectSection(jta.getLineStartOffset(l), jta.getLineEndOffset(l));
+        } catch (BadLocationException e) {}
+    }
+    public void selectSection(int startIndex, int endIndex) {
+        jta.select(startIndex,  endIndex);
+    }
+    public int getSelectionStart() {
+        return jta.getSelectionStart();
+    }
+    public int getSelectionEnd() {
+        return jta.getSelectionEnd();
+    }
+    
     @Override
     public void clean()
     {
@@ -438,6 +461,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         button.setMnemonic(mnemonic); 
         button.setToolTipText(tooltip);
         button.setFocusable(false);
+        
+        
         return button;
     }
     
