@@ -41,7 +41,11 @@ public class CommandPerformEditorUndo implements Command
     public void execute()
     {
     	try {
+    	    String undoAction = manager.getUndoPresentationName();
 			manager.undo();
+            // if a deletion follows immediately to an addition, do both
+			if (undoAction.contains("addition") && manager.getUndoPresentationName().contains("deletion"))
+			    manager.undo();
 		} catch (CannotUndoException e) {
 			/* This exception is thrown, when there is no more undo available.
 			 * Nothing to be done here

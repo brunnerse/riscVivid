@@ -42,7 +42,11 @@ public class CommandPerformEditorRedo implements Command
     public void execute()
     {
     	try {
-			manager.redo();
+	        String redoAction = manager.getRedoPresentationName();
+            manager.redo();
+            // if an addition follows immediately to a deletion, do both
+            if (redoAction.contains("deletion") && manager.getRedoPresentationName().contains("addition"))
+                manager.redo();
 		} catch (CannotRedoException e) {
 			/* This exception is thrown, when there is no more redo available.
 			 * Nothing to be done here

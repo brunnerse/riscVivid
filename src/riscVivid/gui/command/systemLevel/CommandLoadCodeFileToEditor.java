@@ -65,7 +65,7 @@ public class CommandLoadCodeFileToEditor implements Command
         catch (FileNotFoundException e) {
             System.err.println(e.toString());
             e.printStackTrace();
-            DialogWrapper.showErrorDialog(mf, "File " + codeFile.getAbsolutePath());
+            DialogWrapper.showErrorDialog(mf, "File " + codeFile.getAbsolutePath() + " doesn't exist");
         }
         catch (Exception e)
         {
