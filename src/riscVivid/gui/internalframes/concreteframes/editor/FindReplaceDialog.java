@@ -11,8 +11,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -26,8 +26,7 @@ import riscVivid.gui.Preference;
 
 @SuppressWarnings("serial")
 public class FindReplaceDialog extends JDialog 
-    implements ActionListener, FocusListener, KeyListener, 
-    WindowListener {
+    implements ActionListener, FocusListener, KeyListener {
     
     private final EditorFrame editor;
     
@@ -38,12 +37,17 @@ public class FindReplaceDialog extends JDialog
     public FindReplaceDialog(MainFrame mf, EditorFrame editor) {
         super(mf, "Find/Replace");
         this.editor = editor;
-        initialize();
-        this.addWindowListener(this);
+        initialize(mf);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                EditorFrame.getInstance(mf).removeColorHighlights();
+            }
+        });
     }
     
 
-    private void initialize() {
+    private void initialize(MainFrame mf) {
         JPanel textFieldPanel = new JPanel(new GridLayout(2,2));
         findField = new JTextField("find");
         replaceField = new JTextField("replace with");
@@ -79,7 +83,11 @@ public class FindReplaceDialog extends JDialog
         
         setFont(findField.getFont().deriveFont((float)Preference.getFontSize()));
         pack();
+        
+        this.setLocation(mf.getWidth() - this.getWidth()/2,
+                mf.getHeight() - this.getHeight()/2);
         setVisible(true);
+        this.setAlwaysOnTop(true);
     }
 
     public void onFind() {
@@ -149,7 +157,8 @@ public class FindReplaceDialog extends JDialog
             } else if (e.getSource() == replaceField) {
                 replace.doClick();
             }
-        }
+        } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+            this.dispose();
     }
 
     @Override
@@ -176,27 +185,5 @@ public class FindReplaceDialog extends JDialog
                 findField, replaceField, findLabel, replaceLabel})
             if (c != null)
                 c.setFont(f);
-    }
-
-    @Override
-    public void windowClosed(WindowEvent arg0) {
-        editor.removeColorHighlights();
-    }
-    @Override
-    public void windowActivated(WindowEvent arg0) {
-    }
-    @Override
-    public void windowClosing(WindowEvent arg0) {
-}
-    @Override
-    public void windowDeactivated(WindowEvent arg0) {
-    }
-    @Override
-    public void windowDeiconified(WindowEvent arg0) {    }
-    @Override
-    public void windowIconified(WindowEvent arg0) {
-    }
-    @Override
-    public void windowOpened(WindowEvent arg0) {
     }
 }

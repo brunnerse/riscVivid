@@ -44,6 +44,7 @@ import riscVivid.gui.command.userLevel.CommandDisplayTooltips;
 import riscVivid.gui.command.userLevel.CommandDoCycle;
 import riscVivid.gui.command.userLevel.CommandDoXCycles;
 import riscVivid.gui.command.userLevel.CommandExitProgram;
+import riscVivid.gui.command.userLevel.CommandFindReplace;
 import riscVivid.gui.command.userLevel.CommandForwarding;
 import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
 import riscVivid.gui.command.userLevel.CommandLoadFile;
@@ -125,11 +126,13 @@ public class MainFrameMenuBarFactory
     
     private static final String STRING_MENU_EDIT_UNDO = "Undo";
     private static final String STRING_MENU_EDIT_REDO = "Redo";
+    private static final String STRING_MENU_EDIT_FIND = "Find/Replace";
     private static final String STRING_MENU_EDIT_ENLARGE = "Enlarge font size";
     private static final String STRING_MENU_EDIT_REDUCE = "Reduce font size";
     
     private static final KeyStroke KEY_MENU_EDIT_UNDO = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_EDIT_REDO = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.Event.CTRL_MASK | java.awt.Event.SHIFT_MASK);
+    private static final KeyStroke KEY_MENU_EDIT_FIND = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_EDIT_ENLARGE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_EDIT_REDUCE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN, java.awt.Event.CTRL_MASK);
 
@@ -232,6 +235,7 @@ public class MainFrameMenuBarFactory
         
         addMenuItem(editMenu, STRING_MENU_EDIT_UNDO, KEY_MENU_EDIT_UNDO, StateValidator.executingOrLazyStates, new CommandPerformEditorUndo(mf.getEditorUndoManager()));
         addMenuItem(editMenu, STRING_MENU_EDIT_REDO, KEY_MENU_EDIT_REDO, StateValidator.executingOrLazyStates, new CommandPerformEditorRedo(mf.getEditorUndoManager()));
+        addMenuItem(editMenu, STRING_MENU_EDIT_FIND, KEY_MENU_EDIT_FIND, StateValidator.executingOrLazyStates, new CommandFindReplace(mf, EditorFrame.getInstance(mf)));
         addMenuItem(editMenu, STRING_MENU_EDIT_ENLARGE, KEY_MENU_EDIT_ENLARGE, StateValidator.executingOrLazyStates, new CommandChangeFontSize(+1));
         addMenuItem(editMenu, STRING_MENU_EDIT_REDUCE, KEY_MENU_EDIT_REDUCE, StateValidator.executingOrLazyStates, new CommandChangeFontSize(-1));
 
