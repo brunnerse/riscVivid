@@ -69,7 +69,7 @@ public class FrameConfiguration
         try
         {
         	jif.setIcon(pref.getBoolean(frameTitle + iconizedPreferenceKey,  false));
-            jif.setVisible(pref.getBoolean(jif.getTitle() + isVisiblePreferenceKey, true));
+            	jif.setVisible(pref.getBoolean(frameTitle + isVisiblePreferenceKey, true));
         }
         catch (Exception e)
         {
