@@ -1,13 +1,16 @@
 package riscVivid.gui.util;
 
+import java.awt.Component;
 import java.io.File;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import riscVivid.gui.MainFrame;
+import riscVivid.gui.Preference;
 import riscVivid.gui.command.userLevel.CommandSave;
 
-public final class AskForSave {
+public final class DialogWrapper {
 	/**
 	 * Asks user in a dialog if current content should be saved,
 	 * and does so in that case
@@ -18,7 +21,7 @@ public final class AskForSave {
 	 * @param clearEditor:  clear Editor except if user chooses 'Cancel'
 	 *
 	 */
-	public static boolean askAndSave(boolean clearEditor) {
+	public static boolean askForSave(boolean clearEditor) {
 		MainFrame mf = MainFrame.getInstance();
 		File loadedFile = new File(mf.getLoadedCodeFilePath());
 		String dialogText = loadedFile.exists() ?
@@ -42,4 +45,78 @@ public final class AskForSave {
 			return false;         
          }
 	}
+	
+	/*
+	 * @return JOptionPane integer of the selected option
+	 * @param optionType JOptionPane optionType
+	 */
+	public static int showConfirmDialog(Component parent, String message, String title, int optionType) {
+	    return JOptionPane.showConfirmDialog(parent, generateLabel(message),
+	            title, optionType);
+	}
+    public static int showConfirmDialog(Component parent, String message, int optionType) {
+        return showConfirmDialog(parent, message, null, optionType);
+    }
+	
+	public static String showInputDialog(String message, String title, Object defaultVal) {
+        return JOptionPane.showInputDialog(generateLabel(message), message, defaultVal);
+    }
+	public static String showInputDialog(String message, Object defaultVal) {
+	    return JOptionPane.showInputDialog(MainFrame.getInstance(),
+	            generateLabel(message), defaultVal);
+	}
+    public static String showInputDialog(Component parent, String message, Object defaultVal) {
+        return JOptionPane.showInputDialog(parent, generateLabel(message), defaultVal);
+    }
+	
+	public static void showMessageDialog(String message) {
+	    JOptionPane.showMessageDialog(MainFrame.getInstance(), generateLabel(message));
+	}
+	public static void showMessageDialog(String message, String title) {
+	    showMessageDialog(message, title, JOptionPane.INFORMATION_MESSAGE);
+	}
+	public static void showMessageDialog(Component parent, String message) {
+	    JOptionPane.showMessageDialog(parent, generateLabel(message));
+	}
+	
+	public static void showWarningDialog(String message, String title) {
+	    showMessageDialog(message, title, JOptionPane.WARNING_MESSAGE);
+	}
+	   public static void showWarningDialog(Component parent, String message, String title) {
+	        showMessageDialog(parent,message, title, JOptionPane.WARNING_MESSAGE);
+	    }
+	
+	public static void showErrorDialog(String message) {
+	    showErrorDialog(message, null);
+	}
+	public static void showErrorDialog(Component parent, String message) {
+	    showErrorDialog(parent, message, null);
+	}
+	public static void showErrorDialog(String message, String title) {
+	    showMessageDialog(message, title, JOptionPane.ERROR_MESSAGE);
+	}
+	public static void showErrorDialog(Component parent, String message, String title) {
+	    showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
+	}
+	
+	public static void showMessageDialog(String message, String title, int JOptionPaneType) {
+        showMessageDialog(MainFrame.getInstance(), message, title, JOptionPaneType);
+	}
+	public static void showMessageDialog(Component parent, String message, String title, int JOptionPaneType) {
+        JOptionPane.showMessageDialog(parent, generateLabel(message),
+                title, JOptionPaneType);
+	}
+	
+	/*
+	 * Generates a label with the preferred font size
+	 */
+	private static JLabel generateLabel(String message) {
+	    if (message.contains("\n")) {
+	        message = "<html>"+message+"</html>";
+	        message = message.replace("\n", "<br>");
+	    }
+	    JLabel label = new JLabel(message);
+        label.setFont(label.getFont().deriveFont((float)Preference.getFontSize()));
+        return label;
+    }
 }
