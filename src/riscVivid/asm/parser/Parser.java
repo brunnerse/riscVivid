@@ -140,6 +140,9 @@ public class Parser {
 			parseLine(tokens);
 			tokens = tokenizer_.readLine();
 		}
+		String overlap = memory_.segmentsOverlap();
+		if (overlap.length() > 0)
+			throw new AssemblerException(overlap);
 		return unresolvedInstructions_;
 	}
 
@@ -275,15 +278,14 @@ public class Parser {
 			default:
 				throw new ParserException(UNKNOWN_MNEMONIC, tokens[0]);
 			}
-			if (memory_.getTextEnd() >= memory_.getDataBegin()
-					&& memory_.getTextEnd() <= memory_.getDataEnd()) {
-				//TODO translate text data? throw exception?
-				throw new ParserException(TEXT_OVERFLOW, tokens[0]);
-			}
 			memory_.writeWord(segmentPointer_.get(), iw);
 		}
 		segmentPointer_.add(4);
 		memory_.setTextEnd(segmentPointer_.get());
+		if (memory_.isInDataSegment(segmentPointer_.get())) {
+			//TODO translate text data? throw exception?
+			throw new ParserException(TEXT_OVERFLOW, tokens[0]);
+		}
 	}
 
 	private void expect(Token t, String s) throws ParserException
@@ -697,6 +699,7 @@ public class Parser {
 				throw new ParserException(NUMBER_TOO_BIG, tokens[1]);
 			while (segmentPointer_.get() % align != 0)
 				segmentPointer_.add(1);
+			memory_.setDataEnd(segmentPointer_.get());
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
 		} catch (NumberFormatException ex) {
@@ -831,6 +834,10 @@ public class Parser {
 				int value = ValueInput.getValueSilent(tokens[i++].getString());
 				segmentPointer_.add(value);
 			} while (i < tokens.length && tokens[i++].getString().equals(","));
+			if (segmentPointer_ == dataPointer_)
+				memory_.setDataEnd(segmentPointer_.get());
+			else if (segmentPointer_ == textPointer_)
+				memory_.setTextEnd(segmentPointer_.get());
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
 		} catch (NumberFormatException ex) {
@@ -854,7 +861,6 @@ public class Parser {
 				if (value < 0)
 					throw new ParserException(NUMBER_NEGATIVE, tokens[1]);
 				textPointer_.set(value);
-				// TODO what happens when multiple .text directives are found?
 				memory_.setTextBegin(value);
 			} catch (NumberFormatException ex) {
 				throw new ParserException(NOT_A_NUMBER, tokens[1]);
