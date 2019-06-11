@@ -23,6 +23,7 @@ package riscVivid;
 import java.util.Queue;
 
 import riscVivid.datatypes.*;
+import riscVivid.exception.PipelineException;
 import riscVivid.memory.DataMemory;
 import riscVivid.memory.InstructionMemory;
 import riscVivid.memory.MainMemory;
@@ -47,6 +48,8 @@ public class PipelineContainer {
 	private Queue<ExecuteBranchPredictionData> execute_branchprediction_latch;
 	private Queue<MemoryWritebackData> memory_writeback_latch;
 	private Queue<WriteBackData> writeback_latch;
+	
+	private PipelineException lastException = null;
 	
 	public MainMemory getMainMemory() {
 		return mem;
@@ -164,5 +167,19 @@ public class PipelineContainer {
 	}
 	public void setWriteBackLatch(Queue<WriteBackData> writeback_latch) {
 		this.writeback_latch = writeback_latch;
+	}
+	
+	public PipelineException getLastException() {
+	    return lastException;
+	}
+	
+	public PipelineException popLastException() {
+	    PipelineException e = lastException;
+	    lastException = null;
+	    return e;
+	}
+	
+	public void setLastException(PipelineException e) {
+	    this.lastException = e;
 	}
 }

@@ -64,7 +64,7 @@ public class DLXAssembler implements AssemblerInterface {
 		if (entryPoint != null)
 			memory.setEntryPoint(entryPoint);
 		else
-			throw new AssemblerException("no entry point 'main' found!\nPlease specify '.global main' and 'main:'.");
+			throw new AssemblerException("no entry point 'main' found!\nPlease specify 'main:'.");
 		return memory;
 	}
 

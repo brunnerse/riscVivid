@@ -37,12 +37,6 @@ public class WriteBack
 	private RegisterSet reg_set;
 	private Queue<MemoryWritebackData> memory_writeback_latch;
 
-	private final uint8 A0 = new uint8(Registers.instance().getInteger("a0"));
-	private final uint8 A1 = new uint8(Registers.instance().getInteger("a1"));
-	private final uint8 A2 = new uint8(Registers.instance().getInteger("a2"));
-	private final uint8 A3 = new uint8(Registers.instance().getInteger("a3"));
-	private final uint8 A7 = new uint8(Registers.instance().getInteger("a7"));
-
 	public WriteBack(RegisterSet reg_set)
 	{
 		this.reg_set = reg_set;
@@ -157,14 +151,7 @@ public class WriteBack
 			caught_break = true;
 		} else if(isSyscall(inst)) {
 			interrupt_occured = true;
-			caught_break = RISCVSyscallHandler.getInstance().checkExit(reg_set.read(A7).getValue());
-			int r = RISCVSyscallHandler.getInstance().doSyscall(
-					reg_set.read(A7).getValue(), // a7 (number)
-					reg_set.read(A0).getValue(), // a0 (1st argument)
-					reg_set.read(A1).getValue(), // a1 (2nd argument)
-					reg_set.read(A2).getValue(), // a2 (3rd argument)
-					reg_set.read(A3).getValue()); // a3 (4th argument)
-			reg_set.write(new uint8(A0), new uint32(r)); // a0 (return value)
+			caught_break = RISCVSyscallHandler.getInstance().doSyscall(reg_set);
 		}
 		
 		if (regWrite)

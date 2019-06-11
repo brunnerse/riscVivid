@@ -63,6 +63,7 @@ import riscVivid.gui.command.userLevel.CommandSaveAs;
 import riscVivid.gui.command.userLevel.CommandSaveFrameConfigurationUsrLevel;
 import riscVivid.gui.command.userLevel.CommandSetInitialize;
 import riscVivid.gui.command.userLevel.CommandSetLaF;
+import riscVivid.gui.command.userLevel.CommandSetMemoryWarningsEnabled;
 import riscVivid.gui.command.userLevel.CommandShowAbout;
 import riscVivid.gui.command.userLevel.CommandShowOptionDialog;
 import riscVivid.gui.command.userLevel.CommandStopRunning;
@@ -116,6 +117,7 @@ public class MainFrameMenuBarFactory
     private static final String STRING_MENU_SIMULATOR_RESTART = "Restart Program";
     private static final String STRING_MENU_SIMULATOR_OPTIONS = "Options";
     public static final String STRING_MENU_SIMULATOR_FORWARDING = "Forwarding";
+    private static final String STRING_MENU_SIMULATOR_ENABLE_MEM_WARNINGS = "Enable memory warnings";
 
     private static final KeyStroke KEY_MENU_SIMULATOR_RUN_PROGRAM = KeyStroke.getKeyStroke("F5");
     private static final KeyStroke KEY_MENU_SIMULATOR_RUN_PROGRAM_SLOWLY = KeyStroke.getKeyStroke("F6");
@@ -126,6 +128,7 @@ public class MainFrameMenuBarFactory
     private static final KeyStroke KEY_MENU_SIMULATOR_RESTART = KeyStroke.getKeyStroke("F4");
     private static final KeyStroke KEY_MENU_SIMULATOR_OPTIONS = null;
     private static final KeyStroke KEY_MENU_SIMULATOR_FORWARDING = null;
+    private static final KeyStroke KEY_MENU_SIMULATOR_ENABLE_MEM_WARNINGS = null;
     
     private static final String STRING_MENU_EDIT_UNDO = "Undo";
     private static final String STRING_MENU_EDIT_REDO = "Redo";
@@ -248,8 +251,14 @@ public class MainFrameMenuBarFactory
             
             EventCommandLookUp.put(registerItem, new CommandSetInitialize(c, CommandSetInitialize.Component.REGISTERS));
             EventCommandLookUp.put(memoryItem, new CommandSetInitialize(c, CommandSetInitialize.Component.MEMORY));
-            
         }
+
+        // stop on memory warning (e.g. access to unreserved memory)
+        OpenDLXSimCheckBoxMenuItem checkWarnItem = addCheckBoxMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_ENABLE_MEM_WARNINGS,
+        		KEY_MENU_SIMULATOR_ENABLE_MEM_WARNINGS, StateValidator.executingOrLazyStates);
+        EventCommandLookUp.put(checkWarnItem, new CommandSetMemoryWarningsEnabled(checkWarnItem));
+        // get preference and set selected if stop on memory warning is enabled
+        checkWarnItem.setSelected(Preference.isMemoryWarningsEnabled());
         
 /* Disable Options and Forwarding, as it is not working with the RISC_V ISA
         simulatorMenu.addSeparator();

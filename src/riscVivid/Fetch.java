@@ -26,6 +26,9 @@ import org.apache.log4j.Logger;
 
 import riscVivid.datatypes.*;
 import riscVivid.exception.MemoryException;
+import riscVivid.exception.PipelineException;
+import riscVivid.exception.UnreservedMemoryAccessException;
+import riscVivid.gui.Preference;
 import riscVivid.memory.InstructionMemory;
 import riscVivid.util.Statistics;
 
@@ -166,10 +169,14 @@ public class Fetch {
 		{
 			// stalling
 		}
+
+		PipelineException fetchEx = null;
+		if (Preference.isMemoryWarningsEnabled() && !imem.isReserved(program_counter, 4))
+			fetchEx = new UnreservedMemoryAccessException(program_counter, 4);
 		
 		FetchDecodeData fdd = new FetchDecodeData(instr, getPc());
 		
-		return new FetchOutputData(fdd, flush);
+		return new FetchOutputData(fdd, flush, fetchEx);
 	}
         
         

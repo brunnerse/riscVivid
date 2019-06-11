@@ -33,6 +33,7 @@ import riscVivid.datatypes.uint8;
 import riscVivid.exception.CacheException;
 import riscVivid.exception.MemoryException;
 import riscVivid.exception.PipelineDataTypeException;
+import riscVivid.gui.internalframes.util.ValueInput;
 import riscVivid.util.Statistics;
 
 /**
@@ -43,6 +44,7 @@ public class DataMemory
 	private MemoryInterface mem;
 	
 	private Statistics stat = Statistics.getInstance();
+	private MemoryLogger reservedMemLogger = null;
 	
 	public DataMemory(MainMemory mem, Properties config) throws MemoryException, PipelineDataTypeException
 	{
@@ -120,6 +122,22 @@ public class DataMemory
 			}
 			stat.setCacheParameters(CacheType.DCACHE, rpol, lineSize, lineNo, associativity, wpol);
 		}
+        
+		// init memory log
+		reservedMemLogger = new MemoryLogger();
+		// read all data segments
+		for (int i = 0; config.containsKey("data_begin_" + i); i++) {
+		    reservedMemLogger.add(ValueInput.strToInt(config.getProperty("data_begin_"+i)),
+		        ValueInput.strToInt(config.getProperty("data_end_"+i)));
+		}
+		System.out.println("Data segments: " + reservedMemLogger);
+	}
+	
+	public boolean isReserved(uint32 addr, int bytes) {
+	    return reservedMemLogger.checkBytes(addr, bytes);
+	}
+	public MemoryLogger getReservedMemLogger() {
+	    return reservedMemLogger;
 	}
 
 	public int getRequestDelay(RequestType type, uint32 addr) throws MemoryException

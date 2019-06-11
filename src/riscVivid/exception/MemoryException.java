@@ -27,4 +27,7 @@ public class MemoryException extends PipelineException {
 	public MemoryException(String message) {
 		super(message);
 	}
+	public MemoryException(String message, boolean isFatal) {
+		super(message, isFatal);
+	}
 }

@@ -54,6 +54,7 @@ public class ThreadCommandRun implements Runnable
             catch (PipelineException e)
             {
                 mf.getPipelineExceptionHandler().handlePipelineExceptions(e);
+                break;
             }
         }
         // when running stops or riscVivid has finished, set state back to executing, as executing means a riscVivid is loaded but not running through

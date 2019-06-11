@@ -20,16 +20,25 @@
  ******************************************************************************/
 package riscVivid.datatypes;
 
+import riscVivid.exception.PipelineException;
+
 public class FetchOutputData
 {
 	private FetchDecodeData fdd;
 	private boolean[] flush;
+	private PipelineException pe = null;
 
 	public FetchOutputData(FetchDecodeData fdd, boolean[] flush)
 	{
 		this.fdd = fdd;
 		this.flush = flush;
 	}
+
+    public FetchOutputData(FetchDecodeData fdd, boolean[] flush, PipelineException ex)
+    {
+        this(fdd, flush);
+        this.pe = ex;
+    }
 
 	public FetchDecodeData getFdd()
 	{
@@ -39,6 +48,15 @@ public class FetchOutputData
 	public boolean[] getFlush()
 	{
 		return flush;
+	}
+
+	public boolean hasExceptionOccured()
+	{
+		return pe != null;
+	}
+
+	public PipelineException getException() {
+		return pe;
 	}
 
 }

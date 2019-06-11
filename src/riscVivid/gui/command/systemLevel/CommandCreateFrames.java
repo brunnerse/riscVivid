@@ -54,7 +54,7 @@ public class CommandCreateFrames implements Command
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Creating frames Failed");
+            DialogWrapper.showErrorDialog(mf, "Creating frames failed");
         }
     }
 

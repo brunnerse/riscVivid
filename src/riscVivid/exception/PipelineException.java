@@ -22,8 +22,20 @@ package riscVivid.exception;
 
 @SuppressWarnings("serial")
 public class PipelineException extends Exception {
-
-	public PipelineException(String message) {
+    // if simulation needs to be aborted because of the exception
+    private final boolean isFatal;
+    
+    public PipelineException(String message) {
 		super(message);
+		isFatal = true;
 	}
+    
+    public PipelineException(String message, boolean isFatal) {
+        super(message);
+        this.isFatal = isFatal;
+    }
+    
+    public boolean isFatal() {
+        return this.isFatal;
+    }
 }

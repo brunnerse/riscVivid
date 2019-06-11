@@ -25,10 +25,7 @@ import java.util.Queue;
 import org.apache.log4j.Logger;
 
 import riscVivid.datatypes.*;
-import riscVivid.exception.CacheException;
-import riscVivid.exception.DecodeStageException;
-import riscVivid.exception.PipelineDataTypeException;
-import riscVivid.exception.UnknownInstructionException;
+import riscVivid.exception.*;
 
 public class Decode
 {
