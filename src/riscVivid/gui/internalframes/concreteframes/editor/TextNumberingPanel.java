@@ -21,16 +21,23 @@
 package riscVivid.gui.internalframes.concreteframes.editor;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.*;
 import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 
+import riscVivid.util.BreakpointManager;
+
 @SuppressWarnings("serial")
 public class TextNumberingPanel extends JPanel
-        implements CaretListener, DocumentListener, PropertyChangeListener
+        implements CaretListener, DocumentListener, PropertyChangeListener, MouseListener, Observer
 {
 
     public final static float WEST = 0.0f;
@@ -49,6 +56,7 @@ public class TextNumberingPanel extends JPanel
     private int lastLine;
     private Font lastFont;
     private HashMap<String, FontMetrics> fonts;
+    private BreakpointManager bm;
 
     public TextNumberingPanel(JTextComponent component)
     {
@@ -69,6 +77,10 @@ public class TextNumberingPanel extends JPanel
         component.getDocument().addDocumentListener(this);
         component.addCaretListener(this);
         component.addPropertyChangeListener("font", this);
+        this.addMouseListener(this);
+        
+        bm = BreakpointManager.getInstance();
+        bm.addObserver(this);
     }
 
     public boolean getUpdateFont()
@@ -95,6 +107,11 @@ public class TextNumberingPanel extends JPanel
         setPreferredWidth();
     }
 
+    public Color getBreakpointColor()
+    {
+        return Color.cyan;
+    }
+    
     public Color getCurrentLineForeground()
     {
         return currentLineForeground == null ? getForeground() : currentLineForeground;
@@ -155,7 +172,6 @@ public class TextNumberingPanel extends JPanel
     {
         super.paintComponent(g);
 
-
         FontMetrics fontMetrics = component.getFontMetrics(component.getFont());
         Insets insets = getInsets();
         int availableWidth = getSize().width - insets.left - insets.right;
@@ -168,6 +184,15 @@ public class TextNumberingPanel extends JPanel
         {
             try
             {
+                int lineNumber = getLineNumber(rowStartOffset);
+                
+                if (bm.isBreakpoint(lineNumber)) {
+                    int diameter = fontMetrics.getMaxAscent();
+                    g.setColor(getBreakpointColor());
+                    g.fillOval(getSize().width - insets.right - diameter, 
+                            getOffsetY(rowStartOffset, fontMetrics) - diameter, diameter, diameter);
+                }
+                
                 if (isCurrentLine(rowStartOffset))
                 {
                     g.setColor(getCurrentLineForeground());
@@ -178,12 +203,15 @@ public class TextNumberingPanel extends JPanel
                 }
 
 
-                String lineNumber = getTextLineNumber(rowStartOffset);
-                int stringWidth = fontMetrics.stringWidth(lineNumber);
+                String lineNumberText = String.valueOf(lineNumber);
+                int stringWidth = fontMetrics.stringWidth(lineNumberText);
                 int x = getOffsetX(availableWidth, stringWidth) + insets.left;
                 int y = getOffsetY(rowStartOffset, fontMetrics);
-                g.drawString(lineNumber, x, y);
+                g.drawString(lineNumberText, x, y);
 
+                
+
+                
                 rowStartOffset = Utilities.getRowEnd(component, rowStartOffset) + 1;
             }
             catch (Exception e)
@@ -208,17 +236,25 @@ public class TextNumberingPanel extends JPanel
 
     protected String getTextLineNumber(int rowStartOffset)
     {
+        int lineNumber = getLineNumber(rowStartOffset);
+        if (lineNumber >= 0)
+            return String.valueOf(lineNumber);
+        else
+            return "";
+    }
+    
+    private int getLineNumber(int rowStartOffset)
+    {      
         Element root = component.getDocument().getDefaultRootElement();
         int index = root.getElementIndex(rowStartOffset);
         Element line = root.getElement(index);
-
+    
         if (line.getStartOffset() == rowStartOffset)
         {
-            return String.valueOf(index + 1);
-        }
-        else
+            return index + 1;
+        } else
         {
-            return "";
+            return -1;
         }
     }
 
@@ -357,6 +393,50 @@ public class TextNumberingPanel extends JPanel
     	super.setFont(f);
     	if (this.component != null) //otherwise throws exception while initializing
     		setPreferredWidth();
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        Element root = component.getDocument().getDefaultRootElement();
+        int modelLineNum = component.viewToModel(e.getPoint());
+        
+        //only add if click was on a line, not behind the end of the text
+        try {
+            if (e.getPoint().y > component.modelToView(modelLineNum).getMaxY())
+                return;
+        } catch (BadLocationException ex) {
+            return;
+        }
+        
+        int lineNumber = root.getElementIndex(modelLineNum) + 1;
+
+        if (bm.addBreakpoint(lineNumber) == false) {
+            // if line is already a breakpoint, remove the breakpoint
+            bm.removeBreakpoint(lineNumber);
+        }
+
+        this.repaint();
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent arg0) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent arg0) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent arg0) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent arg0) {
+    }
+
+    @Override
+    public void update(Observable arg0, Object arg1) {
+        this.repaint();
     }
 
 }
