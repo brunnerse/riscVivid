@@ -21,6 +21,8 @@
 package riscVivid.gui.internalframes.concreteframes.editor;
 
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.*;
@@ -37,7 +39,7 @@ import riscVivid.util.BreakpointManager;
 
 @SuppressWarnings("serial")
 public class TextNumberingPanel extends JPanel
-        implements CaretListener, DocumentListener, PropertyChangeListener, MouseListener, Observer
+        implements CaretListener, DocumentListener, PropertyChangeListener, MouseListener, ItemListener
 {
 
     public final static float WEST = 0.0f;
@@ -80,7 +82,6 @@ public class TextNumberingPanel extends JPanel
         this.addMouseListener(this);
         
         bm = BreakpointManager.getInstance();
-        bm.addObserver(this);
     }
 
     public boolean getUpdateFont()
@@ -109,7 +110,7 @@ public class TextNumberingPanel extends JPanel
 
     public Color getBreakpointColor()
     {
-        return Color.cyan;
+        return Color.cyan.darker();
     }
     
     public Color getCurrentLineForeground()
@@ -237,10 +238,7 @@ public class TextNumberingPanel extends JPanel
     protected String getTextLineNumber(int rowStartOffset)
     {
         int lineNumber = getLineNumber(rowStartOffset);
-        if (lineNumber >= 0)
-            return String.valueOf(lineNumber);
-        else
-            return "";
+        return lineNumber >= 0 ? String.valueOf(lineNumber) : "";
     }
     
     private int getLineNumber(int rowStartOffset)
@@ -256,6 +254,15 @@ public class TextNumberingPanel extends JPanel
         {
             return -1;
         }
+    }
+    
+    private int getLineNumberAt(Point p) throws BadLocationException {
+        Element root = component.getDocument().getDefaultRootElement();
+        int modelLineNum = component.viewToModel(p);
+        if (p.y > component.modelToView(modelLineNum).getMaxY())
+                throw new BadLocationException("No Line here: Point.y is out of range", p.y);
+        
+        return root.getElementIndex(modelLineNum) + 1;
     }
 
     private int getOffsetX(int availableWidth, int stringWidth)
@@ -315,12 +322,9 @@ public class TextNumberingPanel extends JPanel
     public void caretUpdate(CaretEvent e)
     {
 
-
         int caretPosition = component.getCaretPosition();
         Element root = component.getDocument().getDefaultRootElement();
         int currentLine = root.getElementIndex(caretPosition);
-
-
 
         if (lastLine != currentLine)
         {
@@ -397,24 +401,17 @@ public class TextNumberingPanel extends JPanel
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        Element root = component.getDocument().getDefaultRootElement();
-        int modelLineNum = component.viewToModel(e.getPoint());
-        
-        //only add if click was on a line, not behind the end of the text
         try {
-            if (e.getPoint().y > component.modelToView(modelLineNum).getMaxY())
-                return;
-        } catch (BadLocationException ex) {
-            return;
-        }
-        
-        int lineNumber = root.getElementIndex(modelLineNum) + 1;
-
-        if (bm.addBreakpoint(lineNumber) == false) {
-            // if line is already a breakpoint, remove the breakpoint
-            bm.removeBreakpoint(lineNumber);
-        }
-
+            int lineNumber = getLineNumberAt(e.getPoint());
+            Element lineElement = component.getDocument().getDefaultRootElement().getElement(lineNumber-1);
+            if (bm.isBreakpoint(lineNumber)) {
+                bm.removeBreakpoint(lineNumber);
+            } else {
+                int lineLength = lineElement.getEndOffset() - lineElement.getStartOffset() + 1;
+                bm.addBreakpoint(lineNumber, 
+                        component.getDocument().getText(lineElement.getStartOffset(), lineLength));
+            }
+        } catch (BadLocationException blEx) {}
         this.repaint();
     }
 
@@ -435,7 +432,7 @@ public class TextNumberingPanel extends JPanel
     }
 
     @Override
-    public void update(Observable arg0, Object arg1) {
+    public void itemStateChanged(ItemEvent arg0) {
         this.repaint();
     }
 

@@ -1,91 +1,112 @@
 package riscVivid.util;
 
+import java.awt.ItemSelectable;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Observable;
+import java.util.Hashtable;
 
+import riscVivid.asm.tokenizer.TokenType;
+import riscVivid.asm.tokenizer.Token;
+import riscVivid.asm.tokenizer.Tokenizer;
+import riscVivid.asm.tokenizer.TokenizerException;
 import riscVivid.datatypes.uint32;
-import riscVivid.gui.GUI_CONST.OpenDLXSimState;
-import riscVivid.gui.MainFrame;
 
-public class BreakpointManager extends Observable {
-    private static BreakpointManager instance;
+public class BreakpointManager implements ItemSelectable {
+    
+    private static BreakpointManager instance = null;
     
     private ArrayList<Breakpoint> breakpoints = new ArrayList<Breakpoint>();
-    private Breakpoint BpStoppedAt = null;
+    private Hashtable<Integer, Integer> lineToAddressTable = new Hashtable<Integer, Integer>();
+    
+    private ArrayList<ItemListener> listeners = new ArrayList<ItemListener>();
     
     private BreakpointManager() {
-        
     }
     
     public static BreakpointManager getInstance() {
-        return instance == null ? new BreakpointManager() : instance;
+        if (instance == null)
+           instance = new BreakpointManager();
+        return instance;
     }
     
     public boolean isBreakpoint(uint32 address) {
         // simple linear search
-        return getBreakpoint(address) != null;
+        return getBreakpointIndex(address) >= 0;
     }
     
+
     public boolean isBreakpoint(int lineInEditor) {
-        return breakpoints.contains(new Breakpoint(lineInEditor));
-        /*for(int idx = 0; idx < breakpoints.size(); ++idx) {
-            if (breakpoints.get(idx).lineInEditor == lineInEditor)
-                return true;
+        return getBreakpointIndex(lineInEditor) >= 0;
+    }
+    /**
+     * checks if line starts with a mnemonic (ignoring labels)
+     * @param line
+     * @return
+     */
+    private static boolean isValidBreakpoint(String line) {
+        Tokenizer t = new Tokenizer();
+        try {
+            t.setReader(new BufferedReader(new StringReader(line)));
+            Token[] tokens = t.readLine();
+            int idx = 0;
+            while (idx < tokens.length) {
+                if (tokens[idx].getTokenType() == TokenType.Mnemonic)
+                    return true;
+                else if (tokens[idx].getTokenType() == TokenType.Label)
+                    idx++;
+                else
+                    return false;
+            }
+            // End of tokens reached and no menmonic
+            return false;
+        } catch (IOException e) {
+            return true;
+        } catch (TokenizerException e) {
+            return false;
         }
-        return false;*/
     }
     
-    /*public void setStoppedOnBreakpoint(uint32 address, boolean stopped) {
-        Breakpoint BpToModify = getBreakpoint(address);
-        if (BpToModify == null)
-            throw new IllegalArgumentException("There's no breakpoint at " + address.getValueAsHexString());
-        if (stopped)
-            BpStoppedAt = BpToModify;
-        else {
-            if (BpStoppedAt.equals(BpToModify))
-                BpStoppedAt = null;
-            else
-                throw new IllegalArgumentException("Execution isn't stopped at " + address.getValueAsHexString());
+    public void setLineToAddressTable(Hashtable<Integer, Integer> lineToAddressTable) {
+        this.lineToAddressTable = lineToAddressTable;
+        System.out.print("resolving breakpoints: ");
+        for (Breakpoint p : breakpoints) {
+            p.resolveAddress();
+            System.out.print("line " + p.lineInEditor + " to " + p.address.getValueAsHexString() + ", \t");
         }
-        this.setChanged();
-        this.notifyObservers();
-    }*/
-    
-    /*
-     * @return if execution isn't stopped, -1, otherwise the line of the breakpoint at the stop
-     */
-    public int getLineStoppedAt() {
-        // if Simulator isn't stopped and there's no breakpoint there
-        if (BpStoppedAt == null || !MainFrame.getInstance().isExecuting())
-            return -1;
-        return BpStoppedAt.lineInEditor;
+        System.out.println();
     }
+
     /*
-     * @return false if line is already a breakpoint; true if successfully added
-     * adds breakpoint; sorted by line number
+     * @return false if line isn't a valid breakpoint (isn't a instruction),
+     * true if successfully added or is already a breakpoint
      */
-    public boolean addBreakpoint(int lineInEditor) {
-        System.out.println("adding breakpoint at " + lineInEditor);
+    public boolean addBreakpoint(int lineInEditor, String lineText) {
+        if (!isValidBreakpoint(lineText))
+            return false;
         Breakpoint breakToInsert = new Breakpoint(lineInEditor);
         if (breakpoints.size() == 0) {
             breakpoints.add(breakToInsert);
-            return true;
         }
         else 
         {
-            for (int idx = 0; idx < breakpoints.size(); ++idx) {
+            int idx = 0;
+            for (; idx < breakpoints.size(); ++idx) {
                 if (breakpoints.get(idx).lineInEditor >= lineInEditor) {
-                    if (breakpoints.get(idx).equals(breakToInsert)) {
-                        return false;
+                    if (breakpoints.get(idx).lineInEditor != lineInEditor) {
+                        breakpoints.add(idx, breakToInsert);
                     }
-                    breakpoints.add(idx, breakToInsert);
-                    return true;
+                    break;
                 }
             }
-            // at this point, the new breakpoint wasnt added to the list yet -> add to the end
-            breakpoints.add(breakToInsert);
-            return true;
+            if (idx == breakpoints.size())// if new breakpoint wasnt added to the list yet -> add to the end
+                breakpoints.add(breakToInsert);
         }
+        breakToInsert.resolveAddress();
+        return true;
     }
     
     /**
@@ -93,13 +114,18 @@ public class BreakpointManager extends Observable {
      */
     public boolean removeBreakpoint(int lineInEditor) {
         System.out.println("removing breakpoint at " + lineInEditor);
-        int idx = breakpoints.indexOf(new Breakpoint(lineInEditor));
+        int idx = getBreakpointIndex(lineInEditor);
         if (idx >= 0) {
             breakpoints.remove(idx);
             return true;
         } else {
             return false;
         }
+    }
+    
+    public void clear() {
+        breakpoints.clear();
+        lineToAddressTable.clear();
     }
     
     public void shiftBreakpointsBelowLine(int lineInEditor, int linesToShift) {
@@ -110,34 +136,77 @@ public class BreakpointManager extends Observable {
         }
     }
     
-    private Breakpoint getBreakpoint(uint32 address) {
+    
+    private int getBreakpointIndex(int line) {
+        for(int idx = 0; idx < breakpoints.size(); ++idx) {
+            if (breakpoints.get(idx).lineInEditor == line)
+                return idx;
+            //else if (breakpoints.get(idx).lineInEditor > line) // breakpoints are sorted by line
+            //    break;
+        }
+        return -1;
+    }
+    
+    private int getBreakpointIndex(uint32 address) {
         for(int idx = 0; idx < breakpoints.size(); ++idx) {
             if (breakpoints.get(idx).address.equals(address))
-                return breakpoints.get(idx);
+                return idx;
         }
-        return null;
+        return -1;
     }
 
     
-    public class Breakpoint {
-        private uint32 address = new uint32(0);
+    private class Breakpoint {
+        private uint32 address;
         private int lineInEditor;
         
         public Breakpoint(int lineInEditor) {
             this.lineInEditor = lineInEditor;
+            this.address = new uint32(0);
+            resolveAddress();
         }
         
-        public void setAddress(uint32 address) {
-            if (address.getValue() % 4 != 0)
-                throw new IllegalArgumentException("address of text must be aligned");
-            this.address = address;
+        public void resolveAddress() {
+            Integer addr = BreakpointManager.getInstance().lineToAddressTable.get(lineInEditor);
+            if (addr != null)
+                address.setValue(addr);
+            else // line not found in table
+                address.setValue(0);
         }
         
         @Override
         public boolean equals(Object p) {
             if (p.getClass() != this.getClass())
                 return false;
-            return ((Breakpoint)p).lineInEditor == this.lineInEditor;
+            return ((Breakpoint)p).lineInEditor == this.lineInEditor && this.address.equals(((Breakpoint)p).address);
+        }
+    }
+
+
+    @Override
+    public void addItemListener(ItemListener il) {
+        listeners.add(il);
+        
+    }
+
+    @Override
+    public Object[] getSelectedObjects() {
+        Integer[] lines = new Integer[breakpoints.size()];
+        for (int i = 0; i < lines.length; ++i)
+            lines[i] = breakpoints.get(i).lineInEditor;
+        return lines;
+    }
+
+    @Override
+    public void removeItemListener(ItemListener il) {
+        listeners.remove(il);
+    }
+    
+    public void notifyListeners(int line, boolean added) {
+        ItemEvent e = new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, line, 
+                added ? ItemEvent.SELECTED : ItemEvent.DESELECTED);
+        for (ItemListener il : listeners) {
+            il.itemStateChanged(e);
         }
     }
 }

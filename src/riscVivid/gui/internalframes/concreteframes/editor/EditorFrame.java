@@ -376,6 +376,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
                     reduce, enlarge, find, reformat})
                 j.setEnabled(true);
         }
+        // Repaint the TextNumberingPanel if the Simulator State changes
+        tln.repaint();
     }
     
     public void setSavedState()

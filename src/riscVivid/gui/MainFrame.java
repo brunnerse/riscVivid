@@ -53,6 +53,7 @@ import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 import riscVivid.gui.menubar.MainFrameMenuBarFactory;
 import riscVivid.gui.menubar.StateValidator;
 import riscVivid.gui.util.PipelineExceptionHandler;
+import riscVivid.util.BreakpointManager;
 import riscVivid.util.RISCVSyscallHandler;
 import riscVivid.util.TrapObservableDefault;
 
@@ -315,6 +316,8 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         if (editorTitle.length() == 0)
         	editorTitle = InternalFrameFactory.getFrameName(EditorFrame.class);
         this.editor.setFrameTitle(editorTitle);
+        // file changed: remove all breakpoints
+        BreakpointManager.getInstance().clear();
     }
 
     public UndoManager getEditorUndoManager() {

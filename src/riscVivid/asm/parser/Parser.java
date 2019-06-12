@@ -68,6 +68,8 @@ public class Parser {
 	private MemoryBuffer memory_; //where binary output is saved
 	//however, there is no linker and hence no distinction between local and global labels
 	private Hashtable<String, Integer> globalLabels_;
+	private Hashtable<Integer, Integer> mnemonicLineAddress;
+	private int currentLine;
 	private Tokenizer tokenizer_;
 	private SegmentPointer dataPointer_; //data segment pointer
 	private SegmentPointer textPointer_; //text segment pointer
@@ -78,6 +80,10 @@ public class Parser {
 
 	public boolean hasGlobalMain() {
 		return hasGlobalMain;
+	}
+	
+	public final Hashtable<Integer, Integer> getLineToAddressTable() {
+	    return mnemonicLineAddress;
 	}
 
 	public Parser(int dataSegment, int textSegment) {
@@ -132,13 +138,15 @@ public class Parser {
 		stopOnUnresolvedLabel = false;
 		globalLabels_ = globalLabels;
 		tokenizer_.setReader(reader);
+		currentLine = 1;
+		mnemonicLineAddress = new Hashtable<Integer, Integer>();
 		memory_ = memory;
 		unresolvedInstructions_ = new ArrayList<UnresolvedInstruction>();
-
 		Token[] tokens = tokenizer_.readLine();
 		while (tokens != null) {
 			parseLine(tokens);
 			tokens = tokenizer_.readLine();
+			currentLine++;
 		}
 		String overlap = memory_.segmentsOverlap();
 		if (overlap.length() > 0)
@@ -198,10 +206,10 @@ public class Parser {
 
 	/**
 	 * replaces labels with their corresponding integer constant. If not
-	 * possible returns false
+	 * possible returns Label Token
 	 * 
 	 * @param tokens
-	 * @return
+	 * @return null if successful, otherwise the Identifier Token with the unresolved label
 	 */
 	private Token resolveLabels(Token[] tokens) {
 		for (int i = 0; i < tokens.length; ++i) {
@@ -279,6 +287,7 @@ public class Parser {
 				throw new ParserException(UNKNOWN_MNEMONIC, tokens[0]);
 			}
 			memory_.writeWord(segmentPointer_.get(), iw);
+			mnemonicLineAddress.put(currentLine, segmentPointer_.get());
 		}
 		segmentPointer_.add(4);
 		memory_.setTextEnd(segmentPointer_.get());

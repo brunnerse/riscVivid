@@ -111,7 +111,7 @@ public class MainFrameMenuBarFactory
     private static final String STRING_MENU_SIMULATOR_DO_CYCLE = "Do Cycle";
     private static final String STRING_MENU_SIMULATOR_DO_X_CYCLES = "Do X Cycles";
     private static final String STRING_MENU_SIMULATOR_RUN_TO = "Run to Address X";
-    private static final String STRING_MENU_SIMULATOR_RUN_TO_BREAKPOINT = "Run to Breakpoint";
+    private static final String STRING_MENU_SIMULATOR_RUN_TO_BREAKPOINT = "Run to next Breakpoint";
     private static final String STRING_MENU_SIMULATOR_RESTART = "Restart Program";
     private static final String STRING_MENU_SIMULATOR_OPTIONS = "Options";
     private static final String STRING_MENU_SIMULATOR_ENABLE_MEM_WARNINGS = "Enable memory warnings";
