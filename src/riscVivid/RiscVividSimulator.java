@@ -74,9 +74,11 @@ public class RiscVividSimulator
     private Properties config;
     private Statistics stat;
     private boolean caught_break = false;
+    private boolean caught_nonfatal_exception = false;
     private int clock_cycle;
     private int sim_cycles;
     private boolean finished;
+    private PipelineException nonFatalException = null;
 
     /**
      * @param args
@@ -229,6 +231,7 @@ public class RiscVividSimulator
             h.put(getPipeline().getWriteBackLatch().element().getPc(), GUI_CONST.WRITEBACK);
             ClockCycleLog.log.add(h);
             ClockCycleLog.code.add(getPipeline().getFetchDecodeLatch().element().getPc());
+            
         }
         else if (caught_break)
         {
@@ -254,6 +257,11 @@ public class RiscVividSimulator
         }
 
         clock_cycle++;
+        
+        // check pipeline if any exceptions occured; throwing at the end so the simulator is able continue normally!
+        if (caught_nonfatal_exception) {
+            throw nonFatalException;
+        }
     }
 
     /**
@@ -266,6 +274,8 @@ public class RiscVividSimulator
     public boolean simulateCycle() throws PipelineException
     {
         boolean caught_break = false;
+        caught_nonfatal_exception = false;
+        nonFatalException = null;
 
         Queue<FetchDecodeData> fetch_decode_latch = pipeline.getFetchDecodeLatch();
         Queue<DecodeExecuteData> decode_execute_latch = pipeline.getDecodeExecuteLatch();
@@ -494,6 +504,11 @@ public class RiscVividSimulator
                 // increase PC synchronously and if only if the FETCH is not stalled
                 pipeline.getFetchStage().increasePC();
             }
+        }
+        
+        if (mod.hasExceptionOccured()) {
+            nonFatalException = mod.getException();
+            caught_nonfatal_exception = true;
         }
 
         return caught_break;

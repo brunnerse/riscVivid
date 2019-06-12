@@ -45,17 +45,24 @@ public class PipelineExceptionHandler {
 		Class<? extends PipelineException> type = e.getClass();
 		if (type == UnknownInstructionException.class) {
 			e.printStackTrace();
-			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Unspported Instruction Error");
+			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Unsupported Instruction Error");
 		} else if (type == DecodeStageException.class) {
 			e.printStackTrace();
 			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Decode Stage Error");
 		} else {
-			e.printStackTrace();
-			DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
+			if (e.isFatal()) {
+			    e.printStackTrace();
+		         DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
+			} else {
+			    DialogWrapper.showWarningDialog(e.getMessage(), "Exception: Simulator paused");
+			}
+
 		}
-		sim.stopSimulation(true);
-		// TODO: better set to an error state?
-		mf.setOpenDLXSimState(OpenDLXSimState.IDLE);
+		if (e.isFatal()) {
+		    sim.stopSimulation(true);
+		    // TODO: better set to an error state?
+		    mf.setOpenDLXSimState(OpenDLXSimState.IDLE);
+		}
 	}
 
 

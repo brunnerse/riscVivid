@@ -20,19 +20,36 @@
  ******************************************************************************/
 package riscVivid.datatypes;
 
+import riscVivid.exception.MemoryException;
+
 public class MemoryOutputData
 {
 
 	private MemoryWritebackData mwd;
-
+	private MemoryException me = null;
+	
 	public MemoryOutputData(MemoryWritebackData mwd)
 	{
 		this.mwd = mwd;
+	}
+	
+	public MemoryOutputData(MemoryWritebackData mwd, MemoryException me) {
+	    this.mwd = mwd;
+	    this.me = me;
 	}
 
 	public MemoryWritebackData getMwd()
 	{
 		return mwd;
+	}
+	
+	public boolean hasExceptionOccured()
+	{
+	    return me != null;
+	}
+	
+	public MemoryException getException() {
+	    return me;
 	}
 
 }

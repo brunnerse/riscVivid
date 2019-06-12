@@ -76,6 +76,7 @@ public class CommandRunToAddressX implements Command
                         catch (PipelineException e)
                         {
                             mf.getPipelineExceptionHandler().handlePipelineExceptions(e);
+                            break;
                         }
                     }
 

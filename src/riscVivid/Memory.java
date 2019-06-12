@@ -28,6 +28,8 @@ import org.apache.log4j.Logger;
 import riscVivid.datatypes.*;
 import riscVivid.exception.MemoryException;
 import riscVivid.exception.MemoryStageException;
+import riscVivid.exception.UnreservedMemoryAccessException;
+import riscVivid.gui.Preference;
 import riscVivid.memory.DataMemory;
 import riscVivid.util.Statistics;
 
@@ -233,9 +235,24 @@ public class Memory
 		{
 			logger.debug("PC: " + pc.getValueAsHexString() + " nothing to do");
 		}
+		
+		MemoryException memException = null;
+		
+		if (Preference.isMemoryWarningsEnabled()) {
+		      if (inst.getStore() || inst.getLoad()) {
+		            uint32 addr = alu_outLO;
+		            int byteLen = inst.getMemoryWidth().getByteWidth();
+		            
+		            if (!dmem.isReserved(addr,  byteLen)) {
+		                memException = new UnreservedMemoryAccessException(addr, byteLen);
+		            }
+		            
+		        }
+		}
+
 
 		MemoryWritebackData mwd = new MemoryWritebackData(inst, pc, alu_out, new uint32((int)lv), jump);
 
-		return new MemoryOutputData(mwd);
+		return memException == null ? new MemoryOutputData(mwd) : new MemoryOutputData(mwd, memException);
 	}
 }
