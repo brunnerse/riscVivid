@@ -72,12 +72,23 @@ public class BreakpointManager implements ItemSelectable {
     
     public void setLineToAddressTable(Hashtable<Integer, Integer> lineToAddressTable) {
         this.lineToAddressTable = lineToAddressTable;
+        ArrayList<Breakpoint> nonResolvedBreakpoints = new ArrayList<Breakpoint>();
         System.out.print("resolving breakpoints: ");
         for (Breakpoint p : breakpoints) {
-            p.resolveAddress();
-            System.out.print("line " + p.lineInEditor + " to " + p.address.getValueAsHexString() + ", \t");
+            if (!p.resolveAddress()) {
+                nonResolvedBreakpoints.add(p);
+                continue;
+            }
+            System.out.print("line " + p.lineInEditor + " to " + p.address.getValueAsHexString());
+            if (p != breakpoints.get(breakpoints.size() - 1))
+                    System.out.print(", ");
         }
         System.out.println();
+        breakpoints.removeAll(nonResolvedBreakpoints);
+    }
+    
+    public Hashtable<Integer, Integer> getLineToAddressTable() {
+        return lineToAddressTable;
     }
 
     /*
@@ -105,7 +116,7 @@ public class BreakpointManager implements ItemSelectable {
             if (idx == breakpoints.size())// if new breakpoint wasnt added to the list yet -> add to the end
                 breakpoints.add(breakToInsert);
         }
-        breakToInsert.resolveAddress();
+        notifyListeners(lineInEditor, true);
         return true;
     }
     
@@ -113,10 +124,10 @@ public class BreakpointManager implements ItemSelectable {
      * @return false if line isnt a breakpoint, true if successfully removed
      */
     public boolean removeBreakpoint(int lineInEditor) {
-        System.out.println("removing breakpoint at " + lineInEditor);
         int idx = getBreakpointIndex(lineInEditor);
         if (idx >= 0) {
             breakpoints.remove(idx);
+            notifyListeners(lineInEditor, false);
             return true;
         } else {
             return false;
@@ -166,12 +177,18 @@ public class BreakpointManager implements ItemSelectable {
             resolveAddress();
         }
         
-        public void resolveAddress() {
+        /**
+         * @return true if successful, false if address not found and default value assigned
+         */
+        public boolean resolveAddress() {
             Integer addr = BreakpointManager.getInstance().lineToAddressTable.get(lineInEditor);
-            if (addr != null)
+            if (addr != null) {
                 address.setValue(addr);
-            else // line not found in table
+                return true;
+            } else { // line not found in table
                 address.setValue(0);
+                return false;
+            }
         }
         
         @Override

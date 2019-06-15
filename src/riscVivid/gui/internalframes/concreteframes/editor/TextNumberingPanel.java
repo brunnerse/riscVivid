@@ -35,11 +35,14 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 
+import riscVivid.datatypes.uint32;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.internalframes.Updateable;
 import riscVivid.util.BreakpointManager;
 
 @SuppressWarnings("serial")
 public class TextNumberingPanel extends JPanel
-        implements CaretListener, DocumentListener, PropertyChangeListener, MouseListener, ItemListener
+        implements CaretListener, DocumentListener, PropertyChangeListener, MouseListener, ItemListener, Updateable
 {
 
     public final static float WEST = 0.0f;
@@ -180,13 +183,20 @@ public class TextNumberingPanel extends JPanel
         Rectangle clip = g.getClipBounds();
         int rowStartOffset = component.viewToModel(new Point(0, clip.y));
         int endOffset = component.viewToModel(new Point(0, clip.y + clip.height));
-
+        
+        uint32 addrStoppedOn = new uint32(0);
+        MainFrame mf = MainFrame.getInstance();
+        boolean drawStoppedOnLine = (mf.isExecuting() || mf.isRunning()) && mf.getOpenDLXSim() != null && !mf.getOpenDLXSim().isFinished();
+        if (drawStoppedOnLine) {
+            addrStoppedOn = MainFrame.getInstance().getOpenDLXSim().getPipeline().getMemoryWriteBackLatch().element().getPc();
+            if (addrStoppedOn.getValue() == 0)
+                drawStoppedOnLine = false;
+        }
         while (rowStartOffset <= endOffset)
         {
             try
             {
                 int lineNumber = getLineNumber(rowStartOffset);
-                
                 if (bm.isBreakpoint(lineNumber)) {
                     int diameter = fontMetrics.getMaxAscent();
                     g.setColor(getBreakpointColor());
@@ -203,15 +213,26 @@ public class TextNumberingPanel extends JPanel
                     g.setColor(getForeground());
                 }
 
-
                 String lineNumberText = String.valueOf(lineNumber);
                 int stringWidth = fontMetrics.stringWidth(lineNumberText);
                 int x = getOffsetX(availableWidth, stringWidth) + insets.left;
                 int y = getOffsetY(rowStartOffset, fontMetrics);
                 g.drawString(lineNumberText, x, y);
-
                 
-
+                if (drawStoppedOnLine) {
+                    // test if current line is in the address table and if the corresponding address is the one currently stopped at
+                    Integer addr = BreakpointManager.getInstance().getLineToAddressTable().get(lineNumber);
+                    if (addr != null && addrStoppedOn.getValue() == addr) {
+                        g.setColor(Color.red);
+                        g.setFont(g.getFont().deriveFont(Font.BOLD));
+                        g.drawString("WB", insets.left, y);
+                        int height = (int)(fontMetrics.getAscent() * 0.8);
+                        int rightCoord = getSize().width - insets.right;
+                        int leftCoord = Math.max(rightCoord - 2*height, 2*insets.left + fontMetrics.stringWidth("WB"));
+                        g.fillPolygon(new int[] {leftCoord, rightCoord, leftCoord}, new int[]{y,y - height/2, y - height}, 3);
+                        g.setFont(g.getFont().deriveFont(Font.PLAIN));
+                    }
+                }
                 
                 rowStartOffset = Utilities.getRowEnd(component, rowStartOffset) + 1;
             }
@@ -433,6 +454,11 @@ public class TextNumberingPanel extends JPanel
 
     @Override
     public void itemStateChanged(ItemEvent arg0) {
+        this.repaint();
+    }
+
+    @Override
+    public void update() {
         this.repaint();
     }
 

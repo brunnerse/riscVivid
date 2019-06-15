@@ -270,6 +270,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     @Override
     public void update()
     {
+        tln.update();
     }
 
     public int getTabSize() {
@@ -376,8 +377,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
                     reduce, enlarge, find, reformat})
                 j.setEnabled(true);
         }
-        // Repaint the TextNumberingPanel if the Simulator State changes
-        tln.repaint();
+        // update the TextNumberingPanel if the Simulator State changes
+        tln.update();
     }
     
     public void setSavedState()

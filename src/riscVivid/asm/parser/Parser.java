@@ -69,7 +69,6 @@ public class Parser {
 	//however, there is no linker and hence no distinction between local and global labels
 	private Hashtable<String, Integer> globalLabels_;
 	private Hashtable<Integer, Integer> mnemonicLineAddress;
-	private int currentLine;
 	private Tokenizer tokenizer_;
 	private SegmentPointer dataPointer_; //data segment pointer
 	private SegmentPointer textPointer_; //text segment pointer
@@ -138,12 +137,19 @@ public class Parser {
 		stopOnUnresolvedLabel = false;
 		globalLabels_ = globalLabels;
 		tokenizer_.setReader(reader);
-		currentLine = 1;
+		int currentLine = 1;
 		mnemonicLineAddress = new Hashtable<Integer, Integer>();
 		memory_ = memory;
 		unresolvedInstructions_ = new ArrayList<UnresolvedInstruction>();
 		Token[] tokens = tokenizer_.readLine();
 		while (tokens != null) {
+		    // if line contains a mnemonic, add the line to the mnemonicLineAddress hashtable
+		    for (Token t : tokens) {
+		        if (t.getTokenType() == TokenType.Mnemonic) {
+		            mnemonicLineAddress.putIfAbsent(currentLine, segmentPointer_.get());
+		            break;
+		        }
+		    }
 			parseLine(tokens);
 			tokens = tokenizer_.readLine();
 			currentLine++;
@@ -287,7 +293,6 @@ public class Parser {
 				throw new ParserException(UNKNOWN_MNEMONIC, tokens[0]);
 			}
 			memory_.writeWord(segmentPointer_.get(), iw);
-			mnemonicLineAddress.put(currentLine, segmentPointer_.get());
 		}
 		segmentPointer_.add(4);
 		memory_.setTextEnd(segmentPointer_.get());

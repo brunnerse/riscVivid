@@ -62,7 +62,7 @@ public class CommandRunToNextBreakpoint implements Command
                 RiscVividSimulator openDLXSim = mf.getOpenDLXSim();
                 Queue<MemoryWritebackData> memory_writeback_latch = openDLXSim.getPipeline().getMemoryWriteBackLatch();
                 
-                while (!bm.isBreakpoint(memory_writeback_latch.element().getPc()) &&  !openDLXSim.isFinished())
+                while (!openDLXSim.isFinished())
                 {
                     try
                     {
@@ -72,6 +72,8 @@ public class CommandRunToNextBreakpoint implements Command
                     {
                         mf.getPipelineExceptionHandler().handlePipelineExceptions(e);
                     }
+                    if (bm.isBreakpoint(memory_writeback_latch.element().getPc()))
+                        break;
                 }
 
                 new CommandUpdateFrames(mf).execute();
