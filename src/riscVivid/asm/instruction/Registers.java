@@ -29,14 +29,15 @@ public class Registers {
 //		"s6", "s7", "s8", "s9", "s10", "s11", "sp", "tp",
 //		"v0", "v1", "a0", "a1", "a2", "a3", "a4", "a5",
 //		"a6", "a7", "t0", "t1", "t2", "t3", "t4", "gp"
-		"zero", "ra", "sp", "fp", "gp", "tp", "t0", "t1",
-		"t2", "t3", "t4", "t5", "t6", "a0", "a1", "a2",
-		"a3", "a4", "a5", "a6", "a7", "s1", "s2", "s3",
-		"s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"
+		"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
+		"fp",  "s1", "a0", "a1", "a2", "a3", "a4", "a5",
+		"a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", 
+		"s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 	};
-	
+
+
 		
-		private Hashtable<String, Integer> str2int_;
+	private Hashtable<String, Integer> str2int_;
 	private Hashtable<Integer, String> int2str_;
 
 	private static Registers instance_;
@@ -48,11 +49,7 @@ public class Registers {
 	}
 
 	public Integer getInteger(String str) {
-		Integer i = str2int_.get(str.toLowerCase());
-		if (i == null)
-			return null;
-		else
-			return new Integer(i);
+		return str2int_.get(str.toLowerCase());
 	}
 
 	public String getString(Integer i) {
@@ -61,17 +58,18 @@ public class Registers {
 
 	private Registers() {
 		str2int_ = new Hashtable<String, Integer>();
-		int2str_ = new Hashtable<Integer, String>();
+		int2str_ = new Hashtable<Integer, String>(); 
 
 		for (int i = 0; i < 32; i++) {
 			add("x" + i, i);
 			add(RegNames[i], i);
+			if (RegNames[i].equals("fp"))
+			    add("s0", i);
 		}
-		add("s0", 2);
 	}
 
 	private void add(String str, Integer i) {
-		Integer integer = new Integer(i);
+		Integer integer = i;
 		String string = new String(str);
 		str2int_.put(string, integer);
 		int2str_.put(integer, string);

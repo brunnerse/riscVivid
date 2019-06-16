@@ -97,8 +97,8 @@ public class ALU
 				throw new ExecuteStageException("Division by zero.");
 			}
 			// takes usually multiple cycles (3 according to the isa)
-			long q = ((long)A.getValue()&0xffffffff) / ((long)B.getValue()&0xffffffff);
-			long r = ((long)A.getValue()&0xffffffff) % ((long)B.getValue()&0xffffffff);
+			long q = ((long)A.getValue()&0xffffffffL) / ((long)B.getValue()&0xffffffffL);
+			long r = ((long)A.getValue()&0xffffffffL) % ((long)B.getValue()&0xffffffffL);
 			resultLO.setValue((int)q);
 			resultHI.setValue((int)r);
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " / " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " =  LO (q): " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")" + " HI (r): " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")");
@@ -122,7 +122,7 @@ public class ALU
 			{
 				throw new ExecuteStageException("Division by zero.");
 			}
-			long r = ((long)A.getValue()&0xffffffff) % ((long)B.getValue()&0xffffffff);
+			long r = ((long)A.getValue()&0xffffffffL) % ((long)B.getValue()&0xffffffffL);
 			resultLO.setValue((int)r);
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " / " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " =  LO (q): " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")" + " HI (r): " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")");
 			break;
@@ -146,7 +146,7 @@ public class ALU
 		{
 			// takes usually multiple cycles (3 according to the isa)
 			// chop of sign bit
-			long mult = (long)(A.getValue()&0x7FFFFFFF) * ((long)B.getValue()&0x7FFFFFFF);
+			long mult = ((long)A.getValue()&0xFFFFFFFFL) * ((long)B.getValue()&0xFFFFFFFFL);
 			resultLO.setValue((int)(mult & 0xFFFFFFFF));
 			resultHI.setValue((int)((mult >>> 32) & 0xFFFFFFFF));
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " * " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " = " + mult + " HI: " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")" + " LO: " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")");

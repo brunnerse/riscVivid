@@ -138,7 +138,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         //input.setSize(size_x, size_y);
         //JScrollPane scroll = new JScrollPane(input);
 
-       new JTextPane();
+//       new JTextPane();
 //       JTextPane jtp = new JTextPane();
         /*
          *  
@@ -243,7 +243,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         enlarge.addActionListener(this);
         reduce.addActionListener(this);
 
-        // TODO deactivate toolbar when simulator is in run mode
         JToolBar toolBar = new JToolBar("Editor toolbar");
         toolBar.add(clear);
         toolBar.add(load);
@@ -372,18 +371,33 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     {
         if (currentState == OpenDLXSimState.RUNNING)
         {
-            assem.setEnabled(false);
             clear.setEnabled(false);
-			save.setEnabled(false);
+            load.setEnabled(false);
+            addcode.setEnabled(false);
+            save.setEnabled(false);
             saveAs.setEnabled(false);
-
+            assem.setEnabled(false);
+            loadandassem.setEnabled(false);
+            undo.setEnabled(false);
+            redo.setEnabled(false);
+            reduce.setEnabled(false);
+            enlarge.setEnabled(false);
+            find.setEnabled(false);
         }
         else
         {
-            assem.setEnabled(true);
             clear.setEnabled(true);
-			save.setEnabled(true);
+            load.setEnabled(true);
+            addcode.setEnabled(true);
+            save.setEnabled(true);
             saveAs.setEnabled(true);
+            assem.setEnabled(true);
+            loadandassem.setEnabled(true);
+            undo.setEnabled(true);
+            redo.setEnabled(true);
+            reduce.setEnabled(true);
+            enlarge.setEnabled(true);
+            find.setEnabled(true);
         }
     }
     
