@@ -49,6 +49,12 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     private RegisterSet rs;
     private JTable registerTable;
     private JCheckBox checkBoxHex;
+    
+    static int registerOrder[] = {0, 1, 2, 3, 4, 8,  // zero - fp
+                                5, 6, 7, 28, 29, 30, 31, // t0 - t6
+                                10, 11, 12, 13, 14, 15, 16, 17, // a0 - a7
+                                9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 // s1 - s11
+                                };
 
     public RegisterFrame(String title)
     {
@@ -62,8 +68,9 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     {
         for (int i = 0; i < ArchCfg.getRegisterCount(); ++i)
         {
+            int registerNum = registerOrder[i];
             final String value;
-            final uint32 register_value = rs.read(new uint8(i));
+            final uint32 register_value = rs.read(new uint8(registerNum));
             if (Preference.displayRegistersAsHex())
                 value = register_value.getValueAsHexString();
             else
@@ -78,7 +85,7 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     {
         super.initialize();
         //make the scrollpane
-        registerTable = new RegisterTableFactory(rs).createTable();
+        registerTable = new RegisterTableFactory(rs, registerOrder).createTable();
         JScrollPane scrollpane = new JScrollPane(registerTable);
         scrollpane.setFocusable(false);
         registerTable.setFillsViewportHeight(true);
@@ -113,7 +120,7 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
 	    	registerTable.getTableHeader().setFont(f);
 	    	registerTable.setRowHeight(f.getSize() + 4);
 	    	TableColumn registerColumn = registerTable.getColumn("Register");
-	    	int registerColWidth = registerTable.getFontMetrics(f).stringWidth("00: zero__");
+	    	int registerColWidth = registerTable.getFontMetrics(f).stringWidth("0x0: zero__");
 	    	// if width is shortened, first set min width, then max width
 	    	if (registerColWidth < registerColumn.getMaxWidth()) {
 	    		registerColumn.setMinWidth(registerColWidth);

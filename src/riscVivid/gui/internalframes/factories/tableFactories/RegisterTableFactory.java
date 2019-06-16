@@ -39,10 +39,12 @@ public class RegisterTableFactory extends TableFactory
 {
 
     private RegisterSet rs;
-
-    public RegisterTableFactory(RegisterSet rs)
+    private int[] registerOrder;
+    
+    public RegisterTableFactory(RegisterSet rs, int[] registerOrder)
     {
         this.rs = rs;
+        this.registerOrder = registerOrder;
     }
 
     @Override
@@ -63,7 +65,7 @@ public class RegisterTableFactory extends TableFactory
                 secondItem = rs.read(new uint8(i)).getValue();
 
             model.addRow(new Object[] {
-                    (i < 10 ? " " : "") + ArchCfg.getRegisterDescription(i), secondItem
+                    (registerOrder[i] < 10 ? " x" : "x") + ArchCfg.getRegisterDescription(registerOrder[i]), secondItem
             });
         }
 
