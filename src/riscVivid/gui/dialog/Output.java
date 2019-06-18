@@ -40,7 +40,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.WindowConstants;
 
-import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.util.TrapObserver;
 

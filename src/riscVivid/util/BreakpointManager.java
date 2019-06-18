@@ -7,7 +7,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import riscVivid.asm.tokenizer.TokenType;
 import riscVivid.asm.tokenizer.Token;
@@ -19,8 +23,8 @@ public class BreakpointManager implements ItemSelectable {
     
     private static BreakpointManager instance = null;
     
-    private ArrayList<Breakpoint> breakpoints = new ArrayList<Breakpoint>();
-    private Hashtable<Integer, Integer> lineToAddressTable = new Hashtable<Integer, Integer>();
+    private TreeSet<Integer> breakpointLines = new TreeSet<Integer>();
+    private Hashtable<uint32, Integer> addressToLineTable = new Hashtable<uint32, Integer>();
     
     private ArrayList<ItemListener> listeners = new ArrayList<ItemListener>();
     
@@ -34,13 +38,11 @@ public class BreakpointManager implements ItemSelectable {
     }
     
     public boolean isBreakpoint(uint32 address) {
-        // simple linear search
-        return getBreakpointIndex(address) >= 0;
+        return isBreakpoint(addressToLineTable.getOrDefault(address, -1));
     }
     
-
     public boolean isBreakpoint(int lineInEditor) {
-        return getBreakpointIndex(lineInEditor) >= 0;
+        return breakpointLines.contains(lineInEditor);
     }
     /**
      * checks if line starts with a mnemonic (ignoring labels)
@@ -61,7 +63,7 @@ public class BreakpointManager implements ItemSelectable {
                 else
                     return false;
             }
-            // End of tokens reached and no menmonic
+            // End of tokens reached and no mnemonic
             return false;
         } catch (IOException e) {
             return true;
@@ -70,25 +72,35 @@ public class BreakpointManager implements ItemSelectable {
         }
     }
     
-    public void setLineToAddressTable(Hashtable<Integer, Integer> lineToAddressTable) {
-        this.lineToAddressTable = lineToAddressTable;
-        ArrayList<Breakpoint> nonResolvedBreakpoints = new ArrayList<Breakpoint>();
-        System.out.print("resolving breakpoints: ");
-        for (Breakpoint p : breakpoints) {
-            if (!p.resolveAddress()) {
-                nonResolvedBreakpoints.add(p);
-                continue;
+    /**
+     *  Sets the new table and resolves all breakpoints according to it
+     */
+    public void setAddressToLineTable(Hashtable<uint32, Integer> addressToLineTable) {
+        this.addressToLineTable = addressToLineTable;
+        if (breakpointLines.isEmpty())
+            return;
+        TreeSet<Integer> unresolvedLines = new TreeSet<Integer>(breakpointLines);
+        System.out.print("breakpoint addresses: ");
+        // check if breakpoints are contained; otherwise remove them
+        for(Enumeration<uint32> enumKeys = addressToLineTable.keys();
+                enumKeys.hasMoreElements();) {
+            uint32 addr = enumKeys.nextElement();
+            for (Integer line : unresolvedLines) {
+                if (addressToLineTable.get(addr).equals(line)) {
+                    System.out.print("line " + line + " at " + addr.getValueAsHexString() + ", ");
+                    unresolvedLines.remove(line);
+                    break;
+                }
             }
-            System.out.print("line " + p.lineInEditor + " to " + p.address.getValueAsHexString());
-            if (p != breakpoints.get(breakpoints.size() - 1))
-                    System.out.print(", ");
         }
-        System.out.println();
-        breakpoints.removeAll(nonResolvedBreakpoints);
+        // remove last comma with carriage return
+        System.out.println("\r\r");
+        breakpointLines.removeAll(unresolvedLines);
+        notifyListeners(-1, true);
     }
     
-    public Hashtable<Integer, Integer> getLineToAddressTable() {
-        return lineToAddressTable;
+    public int getCorrespondingLine(uint32 address) {
+        return addressToLineTable.getOrDefault(address, -1);
     }
 
     /*
@@ -96,109 +108,86 @@ public class BreakpointManager implements ItemSelectable {
      * true if successfully added or is already a breakpoint
      */
     public boolean addBreakpoint(int lineInEditor, String lineText) {
-        if (!isValidBreakpoint(lineText))
-            return false;
-        Breakpoint breakToInsert = new Breakpoint(lineInEditor);
-        if (breakpoints.size() == 0) {
-            breakpoints.add(breakToInsert);
-        }
-        else 
-        {
-            int idx = 0;
-            for (; idx < breakpoints.size(); ++idx) {
-                if (breakpoints.get(idx).lineInEditor >= lineInEditor) {
-                    if (breakpoints.get(idx).lineInEditor != lineInEditor) {
-                        breakpoints.add(idx, breakToInsert);
-                    }
-                    break;
-                }
-            }
-            if (idx == breakpoints.size())// if new breakpoint wasnt added to the list yet -> add to the end
-                breakpoints.add(breakToInsert);
-        }
-        notifyListeners(lineInEditor, true);
-        return true;
-    }
-    
-    /**
-     * @return false if line isnt a breakpoint, true if successfully removed
-     */
-    public boolean removeBreakpoint(int lineInEditor) {
-        int idx = getBreakpointIndex(lineInEditor);
-        if (idx >= 0) {
-            breakpoints.remove(idx);
-            notifyListeners(lineInEditor, false);
+        if (isValidBreakpoint(lineText)) {
+            if (breakpointLines.add(lineInEditor)) // notify listeners if line wasnt already contained
+                notifyListeners(lineInEditor, true);
             return true;
         } else {
             return false;
         }
     }
     
-    public void clear() {
-        breakpoints.clear();
-        lineToAddressTable.clear();
+    /**
+     * @return false if line isnt a breakpoint, true if successfully removed
+     */
+    public boolean removeBreakpoint(int lineInEditor) {
+        if (!breakpointLines.remove((Integer)lineInEditor))
+            return false;
+        notifyListeners(lineInEditor, false);
+        return true;
     }
     
-    public void shiftBreakpointsBelowLine(int lineInEditor, int linesToShift) {
-        for (Breakpoint bp : breakpoints) {
-            if (bp.lineInEditor >= lineInEditor) {
-                bp.lineInEditor += linesToShift;
+    public void clearBreakpoints() {
+        breakpointLines.clear();
+    }
+    
+    /**
+     * to call when some lines were either removed or added
+     * synchronized to avoid possible concurrency issues, as function might not be reentrant
+     * @param lineInEditor
+     * @param linesToShift
+     * @param inserted:   false if lines were removed
+     */
+    public synchronized void linesChanged(int firstLine, int lastLine, boolean inserted) {
+        //TODO: not entirely bugfree!
+        int numLines = lastLine - firstLine + 1;
+        if (inserted) {
+            for(Enumeration<uint32> enumKeys = addressToLineTable.keys();
+                    enumKeys.hasMoreElements();) {
+                uint32 addr = enumKeys.nextElement();
+                int line = addressToLineTable.get(addr);
+                if (line >= firstLine)
+                    addressToLineTable.replace(addr,  line + numLines);
+            }
+            SortedSet<Integer> tailSet = breakpointLines.tailSet(firstLine);
+            // needs to copy it because tailSet points on the same storage as breakpointLines
+            Integer[] linesBelow = new Integer[tailSet.size()];
+            tailSet.toArray(linesBelow);
+            System.out.println("shifting following breakpoints: " + tailSet);
+            // remove all Lines in tailSet from breakpointLines; works because tailSet points to same storage as breakpointLines!
+            tailSet.clear();
+            for (Integer line : linesBelow) {
+                breakpointLines.add(line + numLines);
+            }
+        } else { // lines were deleted
+            for(Enumeration<uint32> enumKeys = addressToLineTable.keys();
+                    enumKeys.hasMoreElements();) {
+                uint32 addr = enumKeys.nextElement();
+                int line = addressToLineTable.get(addr);
+                if (line >= firstLine) {
+                    if (line <= lastLine) {
+                        addressToLineTable.remove(addr);
+                    } else {
+                        addressToLineTable.replace(addr,  line - numLines);
+                    }
+                }
+            }
+            SortedSet<Integer> tailSet = breakpointLines.tailSet(firstLine);
+            // needs to copy it because tailSet points on the same storage as breakpointLines
+            Integer[] linesBelow = new Integer[tailSet.size()];
+            tailSet.toArray(linesBelow);
+            System.out.println("shifting following breakpoints: " + tailSet);
+            // remove all Lines in tailSet from breakpointLines; works because tailSet points to same storage as breakpointLines!
+            tailSet.clear();
+            for (Integer line : linesBelow) {
+                if (line > lastLine)
+                    breakpointLines.add(line - numLines);
+                // do not insert again if line <= lastLine (as it is in the deleted part then)
             }
         }
+        System.out.println("new breakpoints: " + breakpointLines);
+        notifyListeners(-1, false);
     }
-    
-    
-    private int getBreakpointIndex(int line) {
-        for(int idx = 0; idx < breakpoints.size(); ++idx) {
-            if (breakpoints.get(idx).lineInEditor == line)
-                return idx;
-            //else if (breakpoints.get(idx).lineInEditor > line) // breakpoints are sorted by line
-            //    break;
-        }
-        return -1;
-    }
-    
-    private int getBreakpointIndex(uint32 address) {
-        for(int idx = 0; idx < breakpoints.size(); ++idx) {
-            if (breakpoints.get(idx).address.equals(address))
-                return idx;
-        }
-        return -1;
-    }
-
-    
-    private class Breakpoint {
-        private uint32 address;
-        private int lineInEditor;
-        
-        public Breakpoint(int lineInEditor) {
-            this.lineInEditor = lineInEditor;
-            this.address = new uint32(0);
-            resolveAddress();
-        }
-        
-        /**
-         * @return true if successful, false if address not found and default value assigned
-         */
-        public boolean resolveAddress() {
-            Integer addr = BreakpointManager.getInstance().lineToAddressTable.get(lineInEditor);
-            if (addr != null) {
-                address.setValue(addr);
-                return true;
-            } else { // line not found in table
-                address.setValue(0);
-                return false;
-            }
-        }
-        
-        @Override
-        public boolean equals(Object p) {
-            if (p.getClass() != this.getClass())
-                return false;
-            return ((Breakpoint)p).lineInEditor == this.lineInEditor && this.address.equals(((Breakpoint)p).address);
-        }
-    }
-
 
     @Override
     public void addItemListener(ItemListener il) {
@@ -208,10 +197,7 @@ public class BreakpointManager implements ItemSelectable {
 
     @Override
     public Object[] getSelectedObjects() {
-        Integer[] lines = new Integer[breakpoints.size()];
-        for (int i = 0; i < lines.length; ++i)
-            lines[i] = breakpoints.get(i).lineInEditor;
-        return lines;
+        return breakpointLines.toArray();
     }
 
     @Override

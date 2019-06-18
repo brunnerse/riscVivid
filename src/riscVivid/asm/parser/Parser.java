@@ -36,6 +36,7 @@ import riscVivid.asm.tokenizer.Token;
 import riscVivid.asm.tokenizer.TokenType;
 import riscVivid.asm.tokenizer.Tokenizer;
 import riscVivid.asm.tokenizer.TokenizerException;
+import riscVivid.datatypes.uint32;
 import riscVivid.gui.internalframes.util.ValueInput;
 
 public class Parser {
@@ -68,7 +69,7 @@ public class Parser {
 	private MemoryBuffer memory_; //where binary output is saved
 	//however, there is no linker and hence no distinction between local and global labels
 	private Hashtable<String, Integer> globalLabels_;
-	private Hashtable<Integer, Integer> mnemonicLineAddress;
+	private Hashtable<uint32, Integer> mnemonicAddressToLine;
 	private Tokenizer tokenizer_;
 	private SegmentPointer dataPointer_; //data segment pointer
 	private SegmentPointer textPointer_; //text segment pointer
@@ -81,8 +82,8 @@ public class Parser {
 		return hasGlobalMain;
 	}
 	
-	public final Hashtable<Integer, Integer> getLineToAddressTable() {
-	    return mnemonicLineAddress;
+	public final Hashtable<uint32, Integer> getAddressToLineTable() {
+	    return mnemonicAddressToLine;
 	}
 
 	public Parser(int dataSegment, int textSegment) {
@@ -138,7 +139,7 @@ public class Parser {
 		globalLabels_ = globalLabels;
 		tokenizer_.setReader(reader);
 		int currentLine = 1;
-		mnemonicLineAddress = new Hashtable<Integer, Integer>();
+		mnemonicAddressToLine = new Hashtable<uint32, Integer>();
 		memory_ = memory;
 		unresolvedInstructions_ = new ArrayList<UnresolvedInstruction>();
 		Token[] tokens = tokenizer_.readLine();
@@ -146,7 +147,7 @@ public class Parser {
 		    // if line contains a mnemonic, add the line to the mnemonicLineAddress hashtable
 		    for (Token t : tokens) {
 		        if (t.getTokenType() == TokenType.Mnemonic) {
-		            mnemonicLineAddress.putIfAbsent(currentLine, segmentPointer_.get());
+		            mnemonicAddressToLine.putIfAbsent(new uint32(segmentPointer_.get()), currentLine);
 		            break;
 		        }
 		    }

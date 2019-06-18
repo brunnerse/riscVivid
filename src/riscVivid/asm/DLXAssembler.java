@@ -67,8 +67,8 @@ public class DLXAssembler implements AssemblerInterface {
 		else
 			throw new AssemblerException("no entry point 'main' found!\nPlease specify 'main:'.");
 
-		BreakpointManager.getInstance().setLineToAddressTable(parser.getLineToAddressTable());
-		
+		BreakpointManager.getInstance().setAddressToLineTable(parser.getAddressToLineTable());
+
 		return memory;
 	}
 
