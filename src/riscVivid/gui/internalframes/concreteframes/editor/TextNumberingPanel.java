@@ -103,8 +103,6 @@ public class TextNumberingPanel extends JPanel
                 repaint();
             }
         });
-        
-        // TODO
     }
 
     public boolean getUpdateFont()
@@ -212,7 +210,7 @@ public class TextNumberingPanel extends JPanel
             if (addrStoppedOn.getValue() == 0)
                 drawStoppedOnLine = false;
             else
-                lineStoppedOn = BreakpointManager.getInstance().getCorrespondingLine(addrStoppedOn);
+                lineStoppedOn = bm.getCorrespondingLine(addrStoppedOn);
         }
         while (rowStartOffset <= endOffset)
         {
@@ -250,8 +248,6 @@ public class TextNumberingPanel extends JPanel
                     int leftCoord = Math.max(rightCoord - 2*height, 2*insets.left + fontMetrics.stringWidth("WB"));
                     g.fillPolygon(new int[] {leftCoord, rightCoord, leftCoord}, new int[]{y,y - height/2, y - height}, 3);
                     g.setFont(g.getFont().deriveFont(Font.PLAIN));
-                    component.scrollRectToVisible(new Rectangle(0, rowStartOffset, 0, Utilities.getRowEnd(component, rowStartOffset)));
-					//TODO: scroll Editor to that line
                 }
                 
                 rowStartOffset = Utilities.getRowEnd(component, rowStartOffset) + 1;
@@ -276,7 +272,7 @@ public class TextNumberingPanel extends JPanel
         }
     }
 
-    protected String getTextLineNumber(int textIndex)
+    protected String getLineNumberAsString(int textIndex)
     {
         int lineNumber = getLineNumber(textIndex);
         return lineNumber >= 0 ? String.valueOf(lineNumber) : "";

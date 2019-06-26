@@ -36,7 +36,9 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Element;
 import javax.swing.text.Highlighter;
+import javax.swing.text.Utilities;
 import javax.swing.undo.*;
 
 import riscVivid.gui.MainFrame;
@@ -530,5 +532,13 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     public void setFrameTitle(String title) {
     	this.editor_frame_title = title;
     	updateTitle();
+    }
+    
+    public void scrollLineToVisible(int line) {
+        try {
+            int startOffset = jta.getDocument().getDefaultRootElement().getElement(line - 1).getStartOffset();
+            jta.scrollRectToVisible(jta.modelToView(startOffset));
+        } catch (BadLocationException e) {
+        }
     }
 }

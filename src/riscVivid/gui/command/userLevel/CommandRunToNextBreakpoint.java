@@ -22,10 +22,7 @@ package riscVivid.gui.command.userLevel;
 
 import java.util.Queue;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.RiscVividSimulator;
-import riscVivid.datatypes.FetchDecodeData;
 import riscVivid.datatypes.MemoryWritebackData;
 import riscVivid.datatypes.uint32;
 import riscVivid.exception.PipelineException;
@@ -34,7 +31,7 @@ import riscVivid.gui.Preference;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandSimulatorFinishedInfo;
 import riscVivid.gui.command.systemLevel.CommandUpdateFrames;
-import riscVivid.gui.internalframes.util.ValueInput;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
 import riscVivid.gui.util.DialogWrapper;
 import riscVivid.util.BreakpointManager;
 
@@ -43,8 +40,6 @@ public class CommandRunToNextBreakpoint implements Command
 
     private MainFrame mf;
     private BreakpointManager bm;
-    //default address
-    private String address = "0x0";
 
     public CommandRunToNextBreakpoint(MainFrame mf)
     {
@@ -62,18 +57,22 @@ public class CommandRunToNextBreakpoint implements Command
                 RiscVividSimulator openDLXSim = mf.getOpenDLXSim();
                 Queue<MemoryWritebackData> memory_writeback_latch = openDLXSim.getPipeline().getMemoryWriteBackLatch();
                 
-                while (!openDLXSim.isFinished())
+                try
                 {
-                    try
+                    while (!openDLXSim.isFinished())
                     {
                         openDLXSim.step();
+                        
+                        if (bm.isBreakpoint(memory_writeback_latch.element().getPc())) {
+                            EditorFrame.getInstance(mf).scrollLineToVisible(
+                                    bm.getCorrespondingLine(memory_writeback_latch.element().getPc()) );
+                            break;
+                        }
                     }
-                    catch (PipelineException e)
-                    {
-                        mf.getPipelineExceptionHandler().handlePipelineExceptions(e);
-                    }
-                    if (bm.isBreakpoint(memory_writeback_latch.element().getPc()))
-                        break;
+                }
+                catch (PipelineException e)
+                {
+                    mf.getPipelineExceptionHandler().handlePipelineExceptions(e);
                 }
 
                 new CommandUpdateFrames(mf).execute();
@@ -83,6 +82,7 @@ public class CommandRunToNextBreakpoint implements Command
                     mf.setUpdateAllowed(false);
                     new CommandSimulatorFinishedInfo().execute();
                 }
+                
             }
             catch (Exception e)
             {
