@@ -67,7 +67,10 @@ public class CommandLoadAndRunFile implements Command
                 new CommandResetSimulator(mf).execute();
 
                 //put code into editorFrame
-                new CommandLoadCodeFileToEditor(mf, f, true).execute();
+                CommandLoadCodeFileToEditor c9 = new CommandLoadCodeFileToEditor(mf, f, true);
+                c9.execute();
+                if (c9.hasFailed())
+                    return;
                 mf.setLoadedCodeFilePath(f.getAbsolutePath());
 
                 //compile/assemble code with asm package

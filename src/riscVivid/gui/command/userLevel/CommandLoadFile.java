@@ -52,20 +52,14 @@ public class CommandLoadFile implements Command
             c10.execute();
             File f = c10.getCodeFile();
 
-            try
+            if (f != null)
             {
-                if (f != null)
-                {
-                    new CommandLoadCodeFileToEditor(mf, f, true).execute();
-                    mf.setLoadedCodeFilePath(f.getAbsolutePath());
-                    mf.setEditorFrameVisible();
-                }
-            }
-            catch (Exception e)
-            {
-                System.err.println(e.toString());
-                e.printStackTrace();
-                DialogWrapper.showErrorDialog(mf, "Loading file into editor failed");
+               CommandLoadCodeFileToEditor c8 =  new CommandLoadCodeFileToEditor(mf, f, true);
+               c8.execute();
+               if (c8.hasFailed())
+                   return;
+               mf.setLoadedCodeFilePath(f.getAbsolutePath());
+               mf.setEditorFrameVisible();
             }
         }
     }

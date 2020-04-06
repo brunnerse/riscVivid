@@ -328,7 +328,7 @@ public class Tokenizer {
 		}
 		//TODO: problems with exceptions?
 		if (token_ != null && currentState != null && !currentState.isAccepting()) {
-			throw new TokenizerException("unexpected end of token'", reader_.position());
+			throw new TokenizerException("unexpected end of token", reader_.position());
 		}
 		if (char_ != -1 && !lastState.isAccepting())
 			throw new TokenizerException("not expected character: '" + (char) char_ + "'",

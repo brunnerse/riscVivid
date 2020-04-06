@@ -29,12 +29,18 @@ import riscVivid.gui.command.Command;
 import riscVivid.gui.util.DialogWrapper;
 import riscVivid.util.CodeLoader;
 
+/**
+ * if the command fails to load the file to the editor,
+ * the command does the error handling (including an error message to the user) itself.
+ * For the caller to check whether it has failed, use function hasFailed() after call
+ */
 public class CommandLoadCodeFileToEditor implements Command
 {
 
     private MainFrame mf;
     private File codeFile;
     private boolean clean;
+    private boolean hasFailed = false;
 
     public CommandLoadCodeFileToEditor(MainFrame mf, File f, boolean clean)
     {
@@ -46,6 +52,7 @@ public class CommandLoadCodeFileToEditor implements Command
     @Override
     public void execute()
     {
+        hasFailed = false;
         try
         {
             mf.getContentPane().setCursor(
@@ -65,18 +72,29 @@ public class CommandLoadCodeFileToEditor implements Command
         catch (FileNotFoundException e) {
             System.err.println(e.toString());
             e.printStackTrace();
-            DialogWrapper.showErrorDialog(mf, "File " + codeFile.getAbsolutePath() + " doesn't exist");
+            DialogWrapper.showErrorDialog(mf, "File " + codeFile.getAbsolutePath() + " doesn't exist",
+                    "Loading file failed");
+            this.hasFailed = true;
         }
         catch (Exception e)
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            DialogWrapper.showErrorDialog(mf, "Loading File into editor failed");
+            DialogWrapper.showErrorDialog(mf, e.getMessage(),
+                    "Loading file failed");
+            this.hasFailed = true;
         }
         finally
         {
             mf.getContentPane().setCursor(
                     Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         }
+    }
+
+    /**
+      * @return whether the last execute() call has failed to load the file into the editor
+     */
+    public boolean hasFailed() {
+       return this.hasFailed;
     }
 }
