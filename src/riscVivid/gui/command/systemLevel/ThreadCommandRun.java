@@ -79,7 +79,6 @@ public class ThreadCommandRun implements Runnable
 
         if (sim.isFinished())
         { // if the current riscVivid has finished, dont allow any gui updates any more                
-            mf.setUpdateAllowed(false);
             new CommandSimulatorFinishedInfo().execute();
         }
     }

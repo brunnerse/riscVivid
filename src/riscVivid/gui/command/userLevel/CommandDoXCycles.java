@@ -47,8 +47,11 @@ public class CommandDoXCycles implements Command
     @Override
     public void execute()
     {
-        if (mf.isExecuting() && mf.isUpdateAllowed())
+        if (mf.isExecuting())
         {
+            if (mf.getOpenDLXSim().isFinished())
+                new CommandResetCurrentProgram(mf).execute();
+
             try
             {
                 RiscVividSimulator openDLXSim = mf.getOpenDLXSim();
@@ -84,7 +87,6 @@ public class CommandDoXCycles implements Command
 
                     if (openDLXSim.isFinished())
                     { // if the current riscVivid has finished, dont allow any gui updates any more                
-                        mf.setUpdateAllowed(false);
                         new CommandSimulatorFinishedInfo().execute();
                     }
                 }

@@ -93,7 +93,6 @@ public class ThreadCommandRunSlowly implements Runnable
         // if the current riscVivid has finished, dont allow any gui updates any more
         if (sim.isFinished())
         {
-            mf.setUpdateAllowed(false);
             new CommandSimulatorFinishedInfo().execute();
         }
     }

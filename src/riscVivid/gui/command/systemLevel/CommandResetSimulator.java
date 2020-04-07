@@ -44,7 +44,6 @@ public class CommandResetSimulator implements Command
         try
         {
             mf.setOpenDLXSim(null);
-            mf.setUpdateAllowed(true);
             mf.setConfigFile(null);
             mf.setPause(false);
             mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT);

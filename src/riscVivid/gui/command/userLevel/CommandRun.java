@@ -38,8 +38,10 @@ public class CommandRun implements Command
     public void execute()
     {
         //check if the main frame is executing/riscVivid is loaded
-        if (mf.isExecuting() && mf.isUpdateAllowed())
+        if (mf.isExecuting())
         {
+            if (mf.getOpenDLXSim().isFinished())
+                new CommandResetCurrentProgram(mf).execute();
             new Thread(new ThreadCommandRun(mf)).start();
         }
     }

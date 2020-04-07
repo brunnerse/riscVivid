@@ -72,7 +72,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private UndoManager undoMgr;
     private EditorFrame editor;
     private JDesktopPane desktop;
-    private boolean updateAllowed = true;
     private int runSpeed = RUN_SPEED_DEFAULT;
     private boolean pause = false;
     private OpenDLXSimState state = OpenDLXSimState.IDLE;
@@ -218,16 +217,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     public boolean isLazy()
     {
         return (state == OpenDLXSimState.IDLE);
-    }
-
-    public boolean isUpdateAllowed()
-    {
-        return updateAllowed;
-    }
-
-    public void setUpdateAllowed(boolean updateAllowed)
-    {
-        this.updateAllowed = updateAllowed;
     }
 
     public void addInternalFrame(OpenDLXSimInternalFrame mif)
