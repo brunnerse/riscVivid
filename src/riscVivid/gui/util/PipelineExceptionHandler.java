@@ -42,10 +42,11 @@ public class PipelineExceptionHandler {
 	 
 	public void handlePipelineExceptions(PipelineException e) 
 	{
+
 		Class<? extends PipelineException> type = e.getClass();
 		if (type == UnknownInstructionException.class) {
 			e.printStackTrace();
-			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Unspported Instruction Error");
+			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Unsupported Instruction Error");
 		} else if (type == DecodeStageException.class) {
 			e.printStackTrace();
 			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Decode Stage Error");
@@ -54,8 +55,10 @@ public class PipelineExceptionHandler {
 			DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
 		}
 		sim.stopSimulation(true);
+		// set mf state to executing (if a file has been assembled before, so the state was anything but IDLE)
 		// TODO: better set to an error state?
-		mf.setOpenDLXSimState(OpenDLXSimState.IDLE);
+		if (mf.getOpenDLXSimState() != OpenDLXSimState.IDLE)
+			mf.setOpenDLXSimState(OpenDLXSimState.EXECUTING);
 	}
 
 
