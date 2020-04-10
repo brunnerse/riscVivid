@@ -932,7 +932,7 @@ public class Parser {
 						char x1 = str.charAt(i);
 						++i;
 						char x2 = str.charAt(i);
-						byte hex = Byte.decode("0x" + x1 + x2);
+						int hex = Integer.decode("0x" + x1 + x2);
 						buffer.append((char) hex);
 						break;
 					default:

@@ -21,6 +21,7 @@
 package riscVivid.gui.menubar;
 
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemListener;
 import java.util.Map;
 
@@ -37,35 +38,7 @@ import riscVivid.gui.Preference;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.EventCommandLookUp;
-import riscVivid.gui.command.userLevel.CommandChangeFontSize;
-import riscVivid.gui.command.userLevel.CommandChangeWindowVisibility;
-import riscVivid.gui.command.userLevel.CommandClearAllPreferences;
-import riscVivid.gui.command.userLevel.CommandDisplayTooltips;
-import riscVivid.gui.command.userLevel.CommandDoCycle;
-import riscVivid.gui.command.userLevel.CommandDoXCycles;
-import riscVivid.gui.command.userLevel.CommandExitProgram;
-import riscVivid.gui.command.userLevel.CommandFindReplace;
-import riscVivid.gui.command.userLevel.CommandForwarding;
-import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
-import riscVivid.gui.command.userLevel.CommandLoadFile;
-import riscVivid.gui.command.userLevel.CommandLoadFileBelow;
-import riscVivid.gui.command.userLevel.CommandLoadFrameConfigurationUsrLevel;
-import riscVivid.gui.command.userLevel.CommandNewFile;
-import riscVivid.gui.command.userLevel.CommandPerformEditorRedo;
-import riscVivid.gui.command.userLevel.CommandPerformEditorUndo;
-import riscVivid.gui.command.userLevel.CommandResetCurrentProgram;
-import riscVivid.gui.command.userLevel.CommandRun;
-import riscVivid.gui.command.userLevel.CommandRunFromConfigurationFile;
-import riscVivid.gui.command.userLevel.CommandRunFromEditor;
-import riscVivid.gui.command.userLevel.CommandRunSlowly;
-import riscVivid.gui.command.userLevel.CommandRunToAddressX;
-import riscVivid.gui.command.userLevel.CommandSave;
-import riscVivid.gui.command.userLevel.CommandSaveAs;
-import riscVivid.gui.command.userLevel.CommandSaveFrameConfigurationUsrLevel;
-import riscVivid.gui.command.userLevel.CommandSetLaF;
-import riscVivid.gui.command.userLevel.CommandShowAbout;
-import riscVivid.gui.command.userLevel.CommandShowOptionDialog;
-import riscVivid.gui.command.userLevel.CommandStopRunning;
+import riscVivid.gui.command.userLevel.*;
 import riscVivid.gui.internalframes.concreteframes.ClockCycleFrame;
 import riscVivid.gui.internalframes.concreteframes.CodeFrame;
 import riscVivid.gui.internalframes.concreteframes.LogFrame;
@@ -129,12 +102,14 @@ public class MainFrameMenuBarFactory
     private static final String STRING_MENU_EDIT_FIND = "Find/Replace";
     private static final String STRING_MENU_EDIT_ENLARGE = "Enlarge font size";
     private static final String STRING_MENU_EDIT_REDUCE = "Reduce font size";
+    private static final String STRING_MENU_EDIT_REFORMAT = "Reformat code";
     
     private static final KeyStroke KEY_MENU_EDIT_UNDO = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_EDIT_REDO = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.Event.CTRL_MASK | java.awt.Event.SHIFT_MASK);
     private static final KeyStroke KEY_MENU_EDIT_FIND = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_EDIT_ENLARGE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP, java.awt.Event.CTRL_MASK);
     private static final KeyStroke KEY_MENU_EDIT_REDUCE = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN, java.awt.Event.CTRL_MASK);
+    private static final KeyStroke KEY_MENU_EDIT_REFORMAT = KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.Event.ALT_MASK | InputEvent.CTRL_MASK);
 
     private static final String STRING_MENU_WINDOW_SAVE = "Save Current Window Configuration";
     private static final String STRING_MENU_WINDOW_LOAD = "Load Saved Window Configuration";
@@ -238,6 +213,7 @@ public class MainFrameMenuBarFactory
         addMenuItem(editMenu, STRING_MENU_EDIT_FIND, KEY_MENU_EDIT_FIND, StateValidator.executingOrLazyStates, new CommandFindReplace(mf, EditorFrame.getInstance(mf)));
         addMenuItem(editMenu, STRING_MENU_EDIT_ENLARGE, KEY_MENU_EDIT_ENLARGE, StateValidator.executingOrLazyStates, new CommandChangeFontSize(+1));
         addMenuItem(editMenu, STRING_MENU_EDIT_REDUCE, KEY_MENU_EDIT_REDUCE, StateValidator.executingOrLazyStates, new CommandChangeFontSize(-1));
+        addMenuItem(editMenu, STRING_MENU_EDIT_REFORMAT, KEY_MENU_EDIT_REFORMAT, StateValidator.executingOrLazyStates, new CommandReformatCode());
 
         addMenuItem(windowMenu, STRING_MENU_WINDOW_SAVE, KEY_MENU_WINDOW_SAVE, StateValidator.executingOrLazyStates, new CommandSaveFrameConfigurationUsrLevel(mf));
         addMenuItem(windowMenu, STRING_MENU_WINDOW_LOAD, KEY_MENU_WINDOW_LOAD, StateValidator.executingOrLazyStates, new CommandLoadFrameConfigurationUsrLevel(mf));

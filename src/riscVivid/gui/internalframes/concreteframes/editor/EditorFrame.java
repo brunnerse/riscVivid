@@ -299,6 +299,13 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     {
     }
 
+    public int getTabSize() {
+        return this.jta.getTabSize();
+    }
+    public void setTabSize(int size) {
+        this.jta.setTabSize(size);
+    }
+
     public String getText()
     {
         return jta.getText();
