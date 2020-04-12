@@ -22,16 +22,6 @@ public class CommandReformatCode implements Command {
     @Override
     public void execute() {
        MainFrame mf = MainFrame.getInstance();
-        /*
-        if (mf.getOpenDLXSimState() == OpenDLXSimState.IDLE) {
-            DialogWrapper.showErrorDialog(mf, "File must be assembled before it can be reformatted.",
-                    "Reformatting failed");
-
-        }
-        CommandWriteToTmpFile c10 = new CommandWriteToTmpFile(mf.getEditorText());
-        c10.execute();
-        File tmpFile = c10.getTmpFile();
-        */
         try {
             LineNumberReader reader = new LineNumberReader(new StringReader(mf.getEditorText()));
             Tokenizer tokenizer = new Tokenizer(reader);
@@ -106,6 +96,10 @@ public class CommandReformatCode implements Command {
                     line.deleteCharAt(--commentStartIdx);
                 // if line contains a comment and something before the comment, set tabs correctly
                 if (commentStartIdx > 0) {
+                    // between the # and the comma, there must be one space (0x20)
+                    while (commentStartIdx+1 < line.length() && line.codePointAt(commentStartIdx+1) <= 0x20)
+                        line.deleteCharAt(commentStartIdx+1);
+                    line.insert(commentStartIdx+1, " ");
                     int tabSize = EditorFrame.getInstance(mf).getTabSize();
                     final int TARGET_CHARS = 5*8;
                     // count how many spaces to insert; tabs count more
