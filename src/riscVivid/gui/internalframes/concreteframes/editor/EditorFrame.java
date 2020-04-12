@@ -20,23 +20,18 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes.editor;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.JToolBar;
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
@@ -48,17 +43,7 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.command.EventCommandLookUp;
-import riscVivid.gui.command.userLevel.CommandChangeFontSize;
-import riscVivid.gui.command.userLevel.CommandFindReplace;
-import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
-import riscVivid.gui.command.userLevel.CommandLoadFile;
-import riscVivid.gui.command.userLevel.CommandLoadFileBelow;
-import riscVivid.gui.command.userLevel.CommandNewFile;
-import riscVivid.gui.command.userLevel.CommandPerformEditorRedo;
-import riscVivid.gui.command.userLevel.CommandPerformEditorUndo;
-import riscVivid.gui.command.userLevel.CommandRunFromEditor;
-import riscVivid.gui.command.userLevel.CommandSave;
-import riscVivid.gui.command.userLevel.CommandSaveAs;
+import riscVivid.gui.command.userLevel.*;
 import riscVivid.gui.internalframes.FrameConfiguration;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
 import riscVivid.gui.internalframes.factories.InternalFrameFactory;
@@ -88,6 +73,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private JButton find;
     private JButton enlarge;
     private JButton reduce;
+    private JButton reformat;
     
     /* TODO
      * For now the undo/redo functionality is limited to 
@@ -106,6 +92,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private CommandPerformEditorUndo undoCommand;
     private CommandPerformEditorRedo redoCommand;
 
+    private int selectionStartBeforeTab = -1;
+    private String selectedTextBeforeTab = null;
     
     private int saved_state_hash;
     private String editor_frame_title;
@@ -130,8 +118,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     }
 
     @Override
-    protected void initialize()
-    {
+    protected void initialize() {
         super.initialize();
         setLayout(new BorderLayout());
         // input = new JTextArea();
@@ -195,7 +182,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         tln = new TextNumberingPanel(jta);
         jta.addKeyListener(this);
         jta.getDocument().addUndoableEditListener(this);
-        
+
         MWheelFontSizeChanger.getInstance().add(jta, scrollPane);
 
         scrollPane.setRowHeaderView(tln);
@@ -208,12 +195,13 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         saveAs = createButton("Save As...", "Save Program As... [CTRL+D]", KeyEvent.VK_D, "/img/icons/tango/saveas.png");
         assem = createButton("Assemble", "Assemble [ALT+A]", KeyEvent.VK_A, "/img/icons/tango/run.png");
         loadandassem = createButton("Open & Assemble...", "Open Program and Assemble [CTRL+R]", KeyEvent.VK_O, "/img/icons/tango/loadandrun.png");
-        undo = createButton("Undo", "Undo [CTRL+Z]", KeyEvent.VK_U, "/img/icons/tango/undo.png");
-        redo = createButton("Redo", "Redo [CTRL+SHIFT+Z]", KeyEvent.VK_R, "/img/icons/tango/redo.png"); 
+        undo = createButton("Undo", "Undo [CTRL+Z]", KeyEvent.VK_Z, "/img/icons/tango/undo.png");
+        redo = createButton("Redo", "Redo [CTRL+SHIFT+Z]", KeyEvent.VK_Y, "/img/icons/tango/redo.png");
         reduce = createButton("Reduce", "Reduce [CTRL+DOWN]", KeyEvent.VK_DOWN, "/img/icons/tango/reduce.png");
         enlarge = createButton("Enlarge", "Enlarge [CTRL+UP]", KeyEvent.VK_UP, "/img/icons/tango/enlarge.png");
         find = createButton("Find", "Find/Replace [CTRL+F]", KeyEvent.VK_F, "/img/icons/tango/find.png");
-        
+        reformat = createButton("Format", "Reformat code [CTRL+ALT+F]", KeyEvent.VK_R, "/img/icons/tango/reformat.png");
+
         // if  parameter command = null, command is not yet implemented and should be implemented soon   
 
         EventCommandLookUp.put(assem, new CommandRunFromEditor(mf));
@@ -225,37 +213,20 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         EventCommandLookUp.put(clear, new CommandNewFile(mf));
 //        EventCommandLookUp.put(undo, undoCommand); 
 //        EventCommandLookUp.put(redo, redoCommand);
-        EventCommandLookUp.put(enlarge,  new CommandChangeFontSize(+1));
-        EventCommandLookUp.put(reduce,  new CommandChangeFontSize(-1));
-        EventCommandLookUp.put(find,  new CommandFindReplace(mf, this));
-
-        
-        assem.addActionListener(this);
-        load.addActionListener(this);
-        loadandassem.addActionListener(this);
-        addcode.addActionListener(this);
-        save.addActionListener(this);
-        saveAs.addActionListener(this);
-        clear.addActionListener(this);
-        find.addActionListener(this);
-        undo.addActionListener(this);
-        redo.addActionListener(this);
-        enlarge.addActionListener(this);
-        reduce.addActionListener(this);
+        EventCommandLookUp.put(enlarge, new CommandChangeFontSize(+1));
+        EventCommandLookUp.put(reduce, new CommandChangeFontSize(-1));
+        EventCommandLookUp.put(find, new CommandFindReplace(mf, this));
+        EventCommandLookUp.put(reformat, new CommandReformatCode());
 
         JToolBar toolBar = new JToolBar("Editor toolbar");
-        toolBar.add(clear);
-        toolBar.add(load);
-        toolBar.add(addcode);
-        toolBar.add(save);
-        toolBar.add(saveAs);
-        toolBar.add(assem);
-        toolBar.add(loadandassem);
-        toolBar.add(undo);
-        toolBar.add(redo);
-        toolBar.add(reduce);
-        toolBar.add(enlarge);
-        toolBar.add(find);
+
+        for (JButton j : new JButton[]{clear, load, addcode, save, saveAs, assem, loadandassem, undo, redo,
+                reduce, enlarge, find, reformat})
+        {
+            j.addActionListener(this);
+            toolBar.add(j);
+        }
+
         toolBar.setFloatable(false);
         toolBar.setRollover(false);
         toolBar.setFocusable(false);
@@ -313,15 +284,29 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
     public void setText(String text)
     {
+        final Point p = scrollPane.getViewport().getViewPosition();
         jta.setText(text);
+        // TODO: better solution to keep the ViewPosition than to fix it for a fixed time
+        // don't allow the scrollPane to change the ViewPosition for DELAY ms
+        scrollPane.getViewport().addChangeListener(new ChangeListener() {
+            final int DELAY=100;
+            private Date removeTime =  new Date(new Date().getTime() + DELAY);
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JViewport viewport = (JViewport)e.getSource();
+                if (new Date().after(removeTime))
+                    viewport.removeChangeListener(this);
+                else if (!viewport.getViewPosition().equals(p)) {
+                    viewport.setViewPosition(p);
+                }
+            }
+        });
         updateTitle();
     }
 
     public void insertText(String text)
     {
-        String tmp = jta.getText();
-        tmp += text;
-        jta.setText(tmp);
+        jta.append(text);
     }
 
     public void colorLine(int l)
@@ -378,33 +363,15 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     {
         if (currentState == OpenDLXSimState.RUNNING)
         {
-            clear.setEnabled(false);
-            load.setEnabled(false);
-            addcode.setEnabled(false);
-            save.setEnabled(false);
-            saveAs.setEnabled(false);
-            assem.setEnabled(false);
-            loadandassem.setEnabled(false);
-            undo.setEnabled(false);
-            redo.setEnabled(false);
-            reduce.setEnabled(false);
-            enlarge.setEnabled(false);
-            find.setEnabled(false);
+            for (JButton j : new JButton[] {clear, load, addcode, save, saveAs, assem, loadandassem, undo, redo,
+                    reduce, enlarge, find, reformat})
+                j.setEnabled(false);
         }
         else
         {
-            clear.setEnabled(true);
-            load.setEnabled(true);
-            addcode.setEnabled(true);
-            save.setEnabled(true);
-            saveAs.setEnabled(true);
-            assem.setEnabled(true);
-            loadandassem.setEnabled(true);
-            undo.setEnabled(true);
-            redo.setEnabled(true);
-            reduce.setEnabled(true);
-            enlarge.setEnabled(true);
-            find.setEnabled(true);
+            for (JButton j : new JButton[] {clear, load, addcode, save, saveAs, assem, loadandassem, undo, redo,
+                    reduce, enlarge, find, reformat})
+                j.setEnabled(true);
         }
     }
     
@@ -433,17 +400,80 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     }
 
     @Override
-    public void keyTyped(KeyEvent arg0)
+    public void keyTyped(KeyEvent e)
     {
         // Unused
+       if (e.getKeyChar() == '\n') {
+           int caretPos = jta.getCaretPosition();
+           try {
+               int lineNum = jta.getLineOfOffset(caretPos) - 1;
+               if (jta.getText(jta.getLineStartOffset(lineNum), 1).equals("\t")){
+                   String tabsToInsert = "\t";
+                   for (int pos = jta.getLineStartOffset(lineNum)+1; jta.getText(pos, 1).equals("\t"); ++pos)
+                       tabsToInsert += "\t";
+                   jta.insert(tabsToInsert, jta.getCaretPosition());
+               }
+           } catch (BadLocationException ex) {}
+       } else if (e.getKeyChar() == '\t') {
+           if (this.selectedTextBeforeTab != null) {
+               try {
+                   if (!e.isShiftDown())
+                        jta.replaceRange(selectedTextBeforeTab, selectionStartBeforeTab, selectionStartBeforeTab+1);
+                   int selectionStart = selectionStartBeforeTab;
+                   int selectionEnd = selectionStart + selectedTextBeforeTab.length(); // end is exclusive
+                   jta.setSelectionStart(selectionStartBeforeTab);
+                   int firstLine = jta.getLineOfOffset(selectionStartBeforeTab);
+                   int lastLine = firstLine;
+                   int idx = -1;
+                   while ((idx = selectedTextBeforeTab.indexOf("\n", idx+1)) >= 0)
+                       lastLine++;
+                   for (int line = firstLine; line <= lastLine; line++){
+                       int lineOffset = jta.getLineStartOffset(line);
+                       if (e.isShiftDown()) {
+                           if (jta.getText(lineOffset, 1).equals("\t")) {
+                               jta.replaceRange("", lineOffset, lineOffset + 1);
+                               if (lineOffset < selectionStart)
+                                   selectionStart--;
+                               selectionEnd--;
+                           }
+                       } else {
+                           jta.insert("\t", lineOffset);
+                           if (lineOffset < selectionStart)
+                               selectionStart++;
+                           selectionEnd++;
+                       }
+                   }
+                   jta.setSelectionStart(selectionStart);
+                   jta.setSelectionEnd(selectionEnd);
+               } catch (Exception ex) {
+
+               } finally {
+                   this.selectionStartBeforeTab = -1;
+                   this.selectedTextBeforeTab = null;
+               }
+           } else if (e.isShiftDown()) {
+               try {
+                   int pos = jta.getCaretPosition();
+                   int lineStartOff = jta.getLineStartOffset(jta.getLineOfOffset(pos));
+                   if (jta.getText(lineStartOff, 1).equals("\t")) // decrease indent if possible
+                       jta.replaceRange("", lineStartOff, lineStartOff+1);
+               } catch (BadLocationException ex) {
+               }
+           }
+       }
     }
     
     @Override
-    public void keyPressed(KeyEvent arg0)
+    public void keyPressed(KeyEvent e)
     {
-        // Unused
+        if (e.getKeyChar() == '\t') {
+            this.selectedTextBeforeTab = jta.getSelectedText();
+            if (selectedTextBeforeTab != null) {
+                this.selectionStartBeforeTab = jta.getSelectionStart();
+            }
+        }
     }
-    
+
     private void updateTitle()
     {
         if(!isTextSaved())
