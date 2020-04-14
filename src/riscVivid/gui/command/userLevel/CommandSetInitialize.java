@@ -35,16 +35,36 @@ public class CommandSetInitialize implements Command {
     public static int getChoiceInt(Choice c) {
         return c.number;
     }
+    public static int getChoiceInt(String c_str) {
+    	Choice c =  getChoiceFromString(c_str);
+    	if (c == null)
+    		throw new IllegalArgumentException("c_str isn't a valid choice");
+    	return getChoiceInt(c);
+	}
 
     public static String getChoiceString(Choice c) {
         return c.numberStr;
     }
+    public static Choice getChoiceFromString(String c_str) {
+    	for (Choice c : Choice.values()) {
+			if (getChoiceString(c).equals(c_str)) {
+				return c;
+			}
+		}
+    	return null;
+	}
 	
 	public CommandSetInitialize(Choice c, Component comp) {
 		this.c = c;
 		this.comp = comp;
 	}
-	
+	public CommandSetInitialize(String c_str, Component comp) {
+		this.comp = comp;
+		c = getChoiceFromString(c_str);
+		if (c == null)
+    		throw new IllegalArgumentException("c_str doesn't match any Choice");
+	}
+
 	@Override
 	public void execute() {
     	MainFrame mf = MainFrame.getInstance();
@@ -71,8 +91,7 @@ public class CommandSetInitialize implements Command {
 				final String message = "In order to apply the new settings, the program must be recompiled.";
 				final JCheckBox checkbox = new JCheckBox("Do not show this message again.");
 				final Object content[] = {message, checkbox};
-				if (mf.getOpenDLXSimState() != GUI_CONST.OpenDLXSimState.IDLE)
-					DialogWrapper.showWarningDialog(mf, content, "");
+				DialogWrapper.showWarningDialog(mf, content, "");
 
 				Preference.pref.putBoolean(Preference.showInitializeOptionMessage, !checkbox.isSelected());
 			}

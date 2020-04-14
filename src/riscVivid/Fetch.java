@@ -20,6 +20,7 @@
  ******************************************************************************/
 package riscVivid;
 
+import java.util.Arrays;
 import java.util.Queue;
 
 import org.apache.log4j.Logger;
@@ -89,10 +90,7 @@ public class Fetch {
 		BranchPredictionModuleFetchData bpmfd = branchprediction_fetch_latch.element();
 		
 		boolean[] flush = new boolean[PipelineConstants.STAGES];
-		for(byte i = 0; i < PipelineConstants.STAGES; i++)
-		{
-			flush[i] = false;
-		}
+		Arrays.fill(flush, false);
 
 		if(bpmfd.getDoSpeculativeJump())
 		{

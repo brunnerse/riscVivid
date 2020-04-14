@@ -20,31 +20,26 @@
  ******************************************************************************/
 package riscVivid.gui.dialog;
 
-import java.awt.BorderLayout;
-import java.awt.Frame;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 import riscVivid.BranchPredictionModule;
 import riscVivid.datatypes.ArchCfg;
 import riscVivid.datatypes.BranchPredictorState;
 import riscVivid.datatypes.BranchPredictorType;
+import riscVivid.gui.GUI_CONST;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
+import riscVivid.gui.command.userLevel.CommandSetInitialize;
 import riscVivid.gui.util.DialogWrapper;
 
 @SuppressWarnings("serial")
-public class OptionDialog extends JDialog implements ActionListener
+public class OptionDialog extends JDialog implements ActionListener, ItemListener
 {
     // two control buttons, press confirm to save selected options
     private JButton confirm;
@@ -54,6 +49,7 @@ public class OptionDialog extends JDialog implements ActionListener
     private JCheckBox forwardingCheckBox;
     private JCheckBox mipsCompatibilityCheckBox;
     private JCheckBox noBranchDelaySlotCheckBox;
+    private JCheckBox memoryWarningCheckBox;
     /*
      * JComboBox may be represented by Vectors or Arrays of Objects (Object [])
      * we have chosen "String[]" to be the representation (in fact - String) for
@@ -63,6 +59,9 @@ public class OptionDialog extends JDialog implements ActionListener
     private JComboBox<String> bpInitialStateComboBox;
     private JTextField btbSizeTextField;
 
+    private JComboBox<String> initRegisterComboBox;
+    private JComboBox<String> initMemoryComboBox;
+
     //input text fields
     private JTextField maxCyclesTextField;
 
@@ -71,7 +70,7 @@ public class OptionDialog extends JDialog implements ActionListener
         //calls modal constructor, set to "false" to make dialog non-modal
         super(owner, true);
         setLayout(new BorderLayout());
-        setTitle("options");
+        setTitle("Options");
         //control buttons
         confirm = new JButton("OK");
         confirm.addActionListener(this);
@@ -99,12 +98,19 @@ public class OptionDialog extends JDialog implements ActionListener
         mipsCompatibilityCheckBox = new JCheckBox("MIPS compatibility mode (requires forwarding)");
         mipsCompatibilityCheckBox.setSelected(Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true)); // load current value
 
-        // disable MIPS compatibility if no forwading is active
+        mipsCompatibilityCheckBox = new JCheckBox("MIPS compatibility mode (requires forwarding)");
+        mipsCompatibilityCheckBox.setSelected(Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true)); // load current value
+
+        // disable MIPS compatibility if no forwarding is active
         if (!forwardingCheckBox.isSelected())
         {
             mipsCompatibilityCheckBox.setSelected(false);
         }
+        forwardingCheckBox.addItemListener(this);
+        mipsCompatibilityCheckBox.addItemListener(this);
 
+        memoryWarningCheckBox = new JCheckBox("Enable unreserved memory warnings");
+        memoryWarningCheckBox.setSelected(Preference.isMemoryWarningsEnabled());
         /*create a JComboBoxes
          *
          * JComboBox need a Object[] or Vector as data representation
@@ -117,7 +123,7 @@ public class OptionDialog extends JDialog implements ActionListener
         bpTypeComboBox.setSelectedItem(BranchPredictionModule.getBranchPredictorTypeFromString(
                 Preference.pref.get(Preference.bpTypePreferenceKey, BranchPredictorType.UNKNOWN.toString())).toGuiString()); // load current value
         //surrounding panel
-        JPanel bpTypeListPanel = new JPanel();
+        JPanel bpTypeListPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         //add the label
         bpTypeListPanel.add(bpTypeComboBoxDescriptionLabel);
         //add the box itself
@@ -129,7 +135,7 @@ public class OptionDialog extends JDialog implements ActionListener
         bpInitialStateComboBox.setSelectedItem(BranchPredictionModule.getBranchPredictorInitialStateFromString(
                 Preference.pref.get(Preference.bpInitialStatePreferenceKey, BranchPredictorState.UNKNOWN.toString())).toGuiString()); // load current value
         //surrounding panel
-        JPanel bpInitialStateListPanel = new JPanel();
+        JPanel bpInitialStateListPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         //add the label
         bpInitialStateListPanel.add(bpInitialStateComboBoxDescriptionLabel);
         //add the box itself
@@ -165,19 +171,54 @@ public class OptionDialog extends JDialog implements ActionListener
         //add the field itself
         btbSizeTextFieldPanel.add(btbSizeTextField);
 
+        // Initial values:
+        JLabel initRegisterComboBoxDescriptionLabel = new JLabel("Initial Value of Register Bytes: ");
+        initRegisterComboBox = new JComboBox<String>();
+        //surrounding panel
+        JPanel initRegisterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        //add the label
+        initRegisterPanel.add(initRegisterComboBoxDescriptionLabel);
+        //add the box itself
+        initRegisterPanel.add(initRegisterComboBox);
+
+        JLabel initMemoryComboBoxDescriptionLabel = new JLabel("Initial Value of Memory Bytes: ");
+        initMemoryComboBox = new JComboBox<String>();
+        //surrounding panel
+        JPanel initMemoryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        //add the label
+        initMemoryPanel.add(initMemoryComboBoxDescriptionLabel);
+        //add the box itself
+        initMemoryPanel.add(initMemoryComboBox);
+
+        for (CommandSetInitialize.Choice c : CommandSetInitialize.Choice.values())
+        {
+            initRegisterComboBox.addItem(CommandSetInitialize.getChoiceString(c));
+            if (CommandSetInitialize.getChoiceInt(c) == Preference.pref.getInt(Preference.initializeRegistersPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(CommandSetInitialize.Choice.ZERO)))
+                initRegisterComboBox.setSelectedIndex(initRegisterComboBox.getItemCount()-1);
+
+            initMemoryComboBox.addItem(CommandSetInitialize.getChoiceString(c));
+            if (CommandSetInitialize.getChoiceInt(c) == Preference.pref.getInt(Preference.initializeMemoryPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(CommandSetInitialize.Choice.ZERO)))
+                initMemoryComboBox.setSelectedIndex(initMemoryComboBox.getItemCount()-1);
+        }
+
         //this panel contains all input components = top level panel
         JPanel optionPanel = new JPanel();
         optionPanel.setLayout(new GridLayout(0, 1));
 
         //dont forget adding the components to the panel !!!
-
-        optionPanel.add(forwardingCheckBox);
-        optionPanel.add(noBranchDelaySlotCheckBox);
-        optionPanel.add(mipsCompatibilityCheckBox);
-        optionPanel.add(bpTypeListPanel);
-        optionPanel.add(bpInitialStateListPanel);
-        optionPanel.add(btbSizeTextFieldPanel);
-        optionPanel.add(maxCyclesTextFieldPanel);
+        for (JComponent c : new JComponent[]{forwardingCheckBox, noBranchDelaySlotCheckBox, mipsCompatibilityCheckBox,
+                memoryWarningCheckBox, bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel,
+                maxCyclesTextFieldPanel, initRegisterPanel, initMemoryPanel})
+        {
+            optionPanel.add(c);
+            c.setFont(c.getFont().deriveFont((float)Preference.getFontSize()));
+            for (Component child : c.getComponents())
+               child.setFont(child.getFont().deriveFont((float)Preference.getFontSize()));
+        }
+        for (JComponent c : new JComponent[]{confirm, cancel})
+            c.setFont(c.getFont().deriveFont((float)Preference.getFontSize()));
 
         //adds the top-level-panel to the Dialog frame
         add(optionPanel, BorderLayout.CENTER);
@@ -210,6 +251,8 @@ public class OptionDialog extends JDialog implements ActionListener
             		noBranchDelaySlotCheckBox.isSelected());
             Preference.pref.putBoolean(Preference.mipsCompatibilityPreferenceKey,
                     mipsCompatibilityCheckBox.isSelected());
+            Preference.pref.putBoolean(Preference.enableMemoryWarningsPreferenceKey,
+                    memoryWarningCheckBox.isSelected());
 
             if(noBranchDelaySlotCheckBox.isSelected())
                 ArchCfg.no_branch_delay_slot = true;
@@ -244,9 +287,6 @@ public class OptionDialog extends JDialog implements ActionListener
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             }
-
-            // propagate forwarding to menu
-            propagateFWToMenu(forwardingCheckBox.isSelected());
 
             // TODO also add a field for disabling the branch prediction
             // TODO do some checks for the setting of the BP initial state and sizes
@@ -344,14 +384,43 @@ public class OptionDialog extends JDialog implements ActionListener
             ArchCfg.max_cycles = Integer.parseInt(maxCyclesTextField.getText());
             Preference.pref.put(Preference.maxCyclesPreferenceKey, maxCyclesTextField.getText());
 
+            Preference.pref.putInt(Preference.initializeRegistersPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(initRegisterComboBox.getSelectedItem().toString()));
+            Preference.pref.putInt(Preference.initializeMemoryPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(initMemoryComboBox.getSelectedItem().toString()));
+
+            // if simulator was started, display message that simulator needs to be restarted in order to apply the new settings
+            if (MainFrame.getInstance().getOpenDLXSimState() != GUI_CONST.OpenDLXSimState.IDLE &&
+                    Preference.pref.getBoolean(Preference.showInitializeOptionMessage, true))
+            {
+                final String message = "In order to apply the new settings, the program must be reassembled.";
+                final JCheckBox checkbox = new JCheckBox("Do not show this message again.");
+                final Object content[] = {message, checkbox};
+                DialogWrapper.showWarningDialog(MainFrame.getInstance(), content, "Reassemble to apply settings");
+
+                Preference.pref.putBoolean(Preference.showInitializeOptionMessage, !checkbox.isSelected());
+            }
+
             setVisible(false);
             dispose();
         }
     }
 
-    private void propagateFWToMenu(boolean forwarding_enabled)
-    {
-        MainFrame.getInstance().getForwardingMenuItem().setSelected(forwarding_enabled);
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        if (e.getSource() == forwardingCheckBox) {
+           if (!forwardingCheckBox.isSelected()) {
+               if (mipsCompatibilityCheckBox.isSelected())
+                   mipsCompatibilityCheckBox.setSelected(false);
+           } else {
+               // for easier use, every time forwarding is enabled, mipsCompatibility is enabled aswell
+               mipsCompatibilityCheckBox.setSelected(true);
+           }
+        } else if (e.getSource() == mipsCompatibilityCheckBox) {
+           if (mipsCompatibilityCheckBox.isSelected()) {
+               if (!forwardingCheckBox.isSelected())
+                   forwardingCheckBox.setSelected(true);
+           }
+        }
     }
-
 }

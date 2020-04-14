@@ -69,7 +69,7 @@ public class Preference
     }
 
     public static boolean isMemoryWarningsEnabled() {
-        return Preference.pref.getBoolean(enableMemoryWarningsPreferenceKey, false);
+        return Preference.pref.getBoolean(enableMemoryWarningsPreferenceKey, true);
     }
     // TODO: Also move all configuration stuff into this file.
 }

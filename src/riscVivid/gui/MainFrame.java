@@ -78,7 +78,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private OpenDLXSimState state = OpenDLXSimState.IDLE;
     private File configFile;
     private JMenuBar menuBar;
-    private JMenuItem forwardingMenuItem;
     private PipelineExceptionHandler pexHandler = null;
     private String loadedCodeFilePath="";
     
@@ -128,9 +127,8 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         //uses a factory to outsource creation of the menuBar
         MainFrameMenuBarFactory menuBarFactory = new MainFrameMenuBarFactory(this, this, this);
         Hashtable<String, JMenuItem> importantItems = new Hashtable<>();
-        menuBar = menuBarFactory.createJMenuBar(importantItems);
+        menuBar = menuBarFactory.createJMenuBar();
         setJMenuBar(menuBar);
-        forwardingMenuItem = importantItems.get(MainFrameMenuBarFactory.STRING_MENU_SIMULATOR_FORWARDING);
 
         setMinimumSize(new Dimension(200, 200));
         desktop = new JDesktopPane();
@@ -319,11 +317,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         if (editorTitle.length() == 0)
         	editorTitle = InternalFrameFactory.getFrameName(EditorFrame.class);
         this.editor.setFrameTitle(editorTitle);
-    }
-
-    public JMenuItem getForwardingMenuItem()
-    {
-        return forwardingMenuItem;
     }
 
     public UndoManager getEditorUndoManager() {

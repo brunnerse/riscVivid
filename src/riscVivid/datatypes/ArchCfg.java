@@ -35,7 +35,8 @@ public class ArchCfg
     public static boolean use_forwarding = Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true);
 
     // TODO: rename variable
-    public static boolean  use_load_stall_bubble = Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true);
+    public static boolean  use_load_stall_bubble = use_forwarding ?
+            Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true) : false;
 
     public static boolean  no_branch_delay_slot = Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true);
     
@@ -88,6 +89,8 @@ public class ArchCfg
     public static void registerArchitectureConfig(Properties config)
     {
         ArchCfg.isa_type = stringToISAType(config.getProperty("isa_type"));
+        if (getUseForwardingCfg(config) == false && getUseLoadStallBubble(config) == true)
+            throw new IllegalArgumentException("Error in config: forwarding must be enabled if use_load_stall_bubble is enabled");
         ArchCfg.use_forwarding = getUseForwardingCfg(config);
         ArchCfg.use_load_stall_bubble = getUseLoadStallBubble(config);
         ArchCfg.no_branch_delay_slot = getNoBranchDelaySlot(config);

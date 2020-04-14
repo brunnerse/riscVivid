@@ -20,22 +20,9 @@
  ******************************************************************************/
 package riscVivid.gui.menubar;
 
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.ItemListener;
-import java.util.Map;
-
-import javax.swing.ButtonGroup;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
-
+import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
-import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.EventCommandLookUp;
 import riscVivid.gui.command.userLevel.CommandChangeFontSize;
@@ -46,7 +33,6 @@ import riscVivid.gui.command.userLevel.CommandDoCycle;
 import riscVivid.gui.command.userLevel.CommandDoXCycles;
 import riscVivid.gui.command.userLevel.CommandExitProgram;
 import riscVivid.gui.command.userLevel.CommandFindReplace;
-import riscVivid.gui.command.userLevel.CommandForwarding;
 import riscVivid.gui.command.userLevel.CommandLoadAndRunFile;
 import riscVivid.gui.command.userLevel.CommandLoadFile;
 import riscVivid.gui.command.userLevel.CommandLoadFileBelow;
@@ -78,6 +64,13 @@ import riscVivid.gui.internalframes.concreteframes.RegisterFrame;
 import riscVivid.gui.internalframes.concreteframes.StatisticsFrame;
 import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
 import riscVivid.gui.internalframes.factories.InternalFrameFactory;
+
+import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemListener;
+import java.util.Map;
 
 public class MainFrameMenuBarFactory
 {
@@ -119,7 +112,6 @@ public class MainFrameMenuBarFactory
     private static final String STRING_MENU_SIMULATOR_RUN_TO = "Run to Address X";
     private static final String STRING_MENU_SIMULATOR_RESTART = "Restart Program";
     private static final String STRING_MENU_SIMULATOR_OPTIONS = "Options";
-    public static final String STRING_MENU_SIMULATOR_FORWARDING = "Forwarding";
     private static final String STRING_MENU_SIMULATOR_ENABLE_MEM_WARNINGS = "Enable memory warnings";
 
     private static final KeyStroke KEY_MENU_SIMULATOR_RUN_PROGRAM = KeyStroke.getKeyStroke("F5");
@@ -130,7 +122,6 @@ public class MainFrameMenuBarFactory
     private static final KeyStroke KEY_MENU_SIMULATOR_RUN_TO = KeyStroke.getKeyStroke("F9");
     private static final KeyStroke KEY_MENU_SIMULATOR_RESTART = KeyStroke.getKeyStroke("F4");
     private static final KeyStroke KEY_MENU_SIMULATOR_OPTIONS = null;
-    private static final KeyStroke KEY_MENU_SIMULATOR_FORWARDING = null;
     private static final KeyStroke KEY_MENU_SIMULATOR_ENABLE_MEM_WARNINGS = null;
     
     private static final String STRING_MENU_EDIT_UNDO = "Undo";
@@ -194,7 +185,7 @@ public class MainFrameMenuBarFactory
         this.mf = mf;
     }
 
-    public JMenuBar createJMenuBar(Map<String, JMenuItem> importantItems)
+    public JMenuBar createJMenuBar()
     {
         JMenu fileMenu = new JMenu(STRING_MENU_FILE);
         JMenu simulatorMenu = new JMenu(STRING_MENU_SIMULATOR);
@@ -202,9 +193,6 @@ public class MainFrameMenuBarFactory
         JMenu windowMenu = new JMenu(STRING_MENU_WINDOW);
         JMenu lookAndFeelMenu = new JMenu(STRING_MENU_LAF);
         JMenu helpMenu = new JMenu(STRING_MENU_HELP);
-        JMenu initializeMenu = new JMenu(STRING_MENU_INITIALIZE);
-        JMenu initializeRegistersMenu = new JMenu(STRING_MENU_INITIALIZE_REGISTERS);
-        JMenu initializeMemoryMenu = new JMenu(STRING_MENU_INITIALIZE_MEMORY);
 
         jmb.add(fileMenu);
         jmb.add(simulatorMenu);
@@ -233,10 +221,14 @@ public class MainFrameMenuBarFactory
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RUN_TO, KEY_MENU_SIMULATOR_RUN_TO, StateValidator.executingStates, new CommandRunToAddressX(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RESTART, KEY_MENU_SIMULATOR_RESTART, StateValidator.executingStates, new CommandResetCurrentProgram(mf));
 
+        /*
+        JMenu initializeMenu = new JMenu(STRING_MENU_INITIALIZE);
+        JMenu initializeRegistersMenu = new JMenu(STRING_MENU_INITIALIZE_REGISTERS);
+        JMenu initializeMemoryMenu = new JMenu(STRING_MENU_INITIALIZE_MEMORY);
         simulatorMenu.add(initializeMenu);
         initializeMenu.add(initializeRegistersMenu);
         initializeMenu.add(initializeMemoryMenu);
-        
+        simulatorMenu.addSeparator();
         ButtonGroup initializeMemoryGroup = new ButtonGroup();
         ButtonGroup initializeRegistersGroup = new ButtonGroup();
 
@@ -266,21 +258,11 @@ public class MainFrameMenuBarFactory
         EventCommandLookUp.put(checkWarnItem, new CommandSetMemoryWarningsEnabled(checkWarnItem));
         // get preference and set selected if stop on memory warning is enabled
         checkWarnItem.setSelected(Preference.isMemoryWarningsEnabled());
-        
-/* Disable Options and Forwarding, as it is not working with the RISC_V ISA
+       */
         simulatorMenu.addSeparator();
 
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_OPTIONS, KEY_MENU_SIMULATOR_OPTIONS, StateValidator.executingOrLazyStates, new CommandShowOptionDialog());
 
-        {
-            // update the menu entry for forwarding after changing it in the options dialog
-            final OpenDLXSimCheckBoxMenuItem fw_checkitem = addCheckBoxMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_FORWARDING, KEY_MENU_SIMULATOR_FORWARDING, StateValidator.executingOrLazyStates);
-            EventCommandLookUp.put(fw_checkitem, new CommandForwarding(fw_checkitem));
-            fw_checkitem.setSelected(Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true));
-            importantItems.put(STRING_MENU_SIMULATOR_FORWARDING, fw_checkitem);
-        }
-*/
-        
         addMenuItem(editMenu, STRING_MENU_EDIT_UNDO, KEY_MENU_EDIT_UNDO, StateValidator.executingOrLazyStates, new CommandPerformEditorUndo(mf.getEditorUndoManager()));
         addMenuItem(editMenu, STRING_MENU_EDIT_REDO, KEY_MENU_EDIT_REDO, StateValidator.executingOrLazyStates, new CommandPerformEditorRedo(mf.getEditorUndoManager()));
         addMenuItem(editMenu, STRING_MENU_EDIT_FIND, KEY_MENU_EDIT_FIND, StateValidator.executingOrLazyStates, new CommandFindReplace(mf, EditorFrame.getInstance(mf)));
