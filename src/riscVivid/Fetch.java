@@ -50,7 +50,7 @@ public class Fetch {
 		this.imem = imem;
 	}
 	
-	private void setPc(uint32 pc)
+	public void setPc(uint32 pc)
 	{
 		program_counter.setValue(pc.getValue());
 		logger.debug("Set Pc to: " + program_counter.getValueAsHexString());
