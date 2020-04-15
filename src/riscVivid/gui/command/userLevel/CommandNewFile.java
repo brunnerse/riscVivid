@@ -50,9 +50,6 @@ public class CommandNewFile implements Command
         mf.setEditorSavedState();
         mf.setLoadedCodeFilePath("");
         mf.setEditorFrameVisible();
-        
-        // TODO Actually no file is assigned to the empty editor. 
-        // (However, as long as the file is not saved, the simulator uses temporary files.)
     }
 
 }

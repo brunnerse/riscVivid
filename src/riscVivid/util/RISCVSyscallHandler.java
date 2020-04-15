@@ -24,6 +24,8 @@ package riscVivid.util;
 
 import org.apache.log4j.Logger;
 
+import riscVivid.RegisterSet;
+import riscVivid.asm.instruction.Registers;
 import riscVivid.datatypes.*;
 import riscVivid.exception.MemoryException;
 import riscVivid.gui.dialog.Input;
@@ -36,6 +38,11 @@ import riscVivid.memory.MainMemory;
 
 public class RISCVSyscallHandler {
 	
+    private final uint8 A0 = new uint8(Registers.instance().getInteger("a0"));
+    private final uint8 A1 = new uint8(Registers.instance().getInteger("a1"));
+    private final uint8 A2 = new uint8(Registers.instance().getInteger("a2"));
+    private final uint8 A7 = new uint8(Registers.instance().getInteger("a7"));
+    
 	private static Logger logger = Logger.getLogger("SCALL");
 	private static final RISCVSyscallHandler instance = new RISCVSyscallHandler();
 	private TrapObservable oOutput = null;
@@ -86,23 +93,29 @@ public class RISCVSyscallHandler {
 		}
 		return new String(s);
 	}
-
-	public boolean checkExit(int a7)
-	{
-		return (a7==93);
-	}
 	
-	public int doSyscall(int a7, int a0, int a1, int a2, int a3)
+	/**
+	 * @param reg_set fromwhere the Syscall reads and writes needed registers
+	 * @return true if exit syscall was done, otherwise false
+	 */
+	public boolean doSyscall(RegisterSet reg_set)
 	{
 		int addr;
 		int len;
 		int i;
 		
+		int a0, a1, a2, a3;
+		int a7 = reg_set.read(A7).getValue();
+		
 		try {
 		switch(a7)
 		{
 		case 63: // read (fd, buf, len)
-			if (a0!=0) {
+		    a0 = reg_set.read(A0).getValue();
+		    a1 = reg_set.read(A1).getValue();
+		    a2 = reg_set.read(A2).getValue();
+		    
+			if (a0 != 0) {
 				logger.warn("Syscall 63: Reading only supported from stdin (a0==0)");
 				break;
 			}
@@ -123,12 +136,16 @@ public class RISCVSyscallHandler {
 				if (i<len) len=i;
 				for(i=0; i<len; i++)
 					mem.write_u8(new uint32(addr+i), new uint8(raw[i]));
-				return len;
+				reg_set.write(A0, new uint32(len));
 			}
 			break;
 		
 		case 64: // write(fd, buf, len)
-			if (a0!=1) {
+		    a0 = reg_set.read(A0).getValue();
+            a1 = reg_set.read(A1).getValue();
+            a2 = reg_set.read(A2).getValue();
+	            
+			if (a0 != 1) {
 				logger.warn("Syscall 64: Writing only supported to stdout (a0==1)");
 				break;
 			}
@@ -142,15 +159,15 @@ public class RISCVSyscallHandler {
 			break;
 			
 		case 93: // exit
+		    a0 = reg_set.read(A0).getValue();
 			logger.info("Exit programm with exit code " + a0);
-			break;
-
+			return true;
 		default:
 			logger.warn("Unknown Syscall: " + a7);
 		}
 		} catch (MemoryException e) {
 		}
-		return 0;
+		return false;
 	}
 
 	

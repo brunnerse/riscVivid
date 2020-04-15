@@ -30,7 +30,7 @@ public class Preference
             GlobalConfig.PREFERENCES_DIR);
 
     // global definitions of the different preference keys
-    public static final String forwardingPreferenceKey = "forwadingenabled";
+    public static final String forwardingPreferenceKey = "forwardingenabled";
     public static final String mipsCompatibilityPreferenceKey = "mipscompatibilityenabled";
     public static final String noBranchDelaySlotPreferenceKey = "nobranchdelayslot";
     public static final String isaTypePreferenceKey = "isatype";
@@ -43,8 +43,11 @@ public class Preference
     public static final String lookAndFeel = "lookandfeel";
     public static final String fontSize = "fontsize";
     public static final String saveChooserPathPreferenceKey = "savefilechooserpath";
-
+    public static final String initializeRegistersPreferenceKey = "initializeregisters";
+    public static final String initializeMemoryPreferenceKey = "initializememory";
+    public static final String showInitializeOptionMessage = "showinitoptionmessage";
     public static final String displayRegistersAsHex = "displayRegistersAsHex";
+    public static final String enableMemoryWarningsPreferenceKey = "enableMemoryWarnings";
 
 
     public static String getSaveFileChooserPath() {
@@ -63,6 +66,10 @@ public class Preference
 
     public static int getFontSize() {
     	return pref.getInt(Preference.fontSize, 12);
+    }
+
+    public static boolean isMemoryWarningsEnabled() {
+        return Preference.pref.getBoolean(enableMemoryWarningsPreferenceKey, false);
     }
     // TODO: Also move all configuration stuff into this file.
 }

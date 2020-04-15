@@ -28,6 +28,9 @@ import org.apache.log4j.Logger;
 import riscVivid.datatypes.*;
 import riscVivid.exception.MemoryException;
 import riscVivid.exception.MemoryStageException;
+import riscVivid.exception.PipelineException;
+import riscVivid.exception.UnreservedMemoryAccessException;
+import riscVivid.gui.Preference;
 import riscVivid.memory.DataMemory;
 import riscVivid.util.Statistics;
 
@@ -37,6 +40,7 @@ public class Memory
 	private Statistics stat = Statistics.getInstance(); 
 	private DataMemory dmem;
 	private Queue<ExecuteMemoryData> execute_memory_latch;
+
 
 	public Memory(DataMemory dmem)
 	{
@@ -219,7 +223,7 @@ public class Memory
 					break;
 */
 					default:
-					logger.error("Wrong memory width: " + inst.getMemoryWidth()); 
+					logger.error("Wrong memory width: " + inst.getMemoryWidth());
 					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth());
 				}
 				stat.countMemWrite();
@@ -233,9 +237,17 @@ public class Memory
 		{
 			logger.debug("PC: " + pc.getValueAsHexString() + " nothing to do");
 		}
+		
+		PipelineException memEx = null;
+		if ((inst.getStore() || inst.getLoad()) && Preference.isMemoryWarningsEnabled()) {
+			uint32 addr = alu_outLO;
+			int byteLen = inst.getMemoryWidth().getByteWidth();
+			if (!dmem.isReserved(addr,  byteLen))
+				 memEx = new UnreservedMemoryAccessException(addr, byteLen, UnreservedMemoryAccessException.Stage.MEMORY);
+		}
 
 		MemoryWritebackData mwd = new MemoryWritebackData(inst, pc, alu_out, new uint32((int)lv), jump);
 
-		return new MemoryOutputData(mwd);
+		return new MemoryOutputData(mwd, memEx);
 	}
 }

@@ -20,18 +20,18 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.util;
 
-import riscVivid.gui.util.DialogWrapper;
+import javax.swing.JOptionPane;
 
 public class ValueInput
 {
 
     public static Integer getValue(String message, Object defaultValue) throws NumberFormatException
     {
-        String valueString = DialogWrapper.showInputDialog(message, defaultValue);
-        return getValueSilent(valueString);
+        String valueString = JOptionPane.showInputDialog(message, defaultValue);
+        return strToInt(valueString);
     }
 
-    public static Integer getValueSilent(String valueString)
+    public static Integer strToInt(String valueString)
     {
         if (valueString == null)
             return null;

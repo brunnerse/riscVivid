@@ -33,6 +33,8 @@ import java.util.Queue;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+// import jdk.vm.ci.code.Register;
+import riscVivid.asm.instruction.Registers;
 import riscVivid.datatypes.ArchCfg;
 import riscVivid.datatypes.BranchPredictionModuleExecuteData;
 import riscVivid.datatypes.BranchPredictionModuleFetchData;
@@ -57,7 +59,10 @@ import riscVivid.datatypes.uint8;
 import riscVivid.exception.DecodeStageException;
 import riscVivid.exception.MemoryException;
 import riscVivid.exception.PipelineException;
+import riscVivid.exception.UnreservedMemoryAccessException;
+import riscVivid.exception.UnreservedMemoryAccessException.Area;
 import riscVivid.gui.GUI_CONST;
+import riscVivid.gui.Preference;
 import riscVivid.memory.DataMemory;
 import riscVivid.memory.InstructionMemory;
 import riscVivid.memory.MainMemory;
@@ -78,9 +83,6 @@ public class RiscVividSimulator
     private int sim_cycles;
     private boolean finished;
 
-    /**
-     * @param args
-     */
     public void riscVividCmdl_main()
     {
 
@@ -131,10 +133,11 @@ public class RiscVividSimulator
         logger.info("loading:" + config.getProperty("file"));
 
 
-        sim_cycles = new Integer(config.getProperty("cycles"));
+        sim_cycles = Integer.parseInt(config.getProperty("cycles"));
 
         pipeline = new PipelineContainer();
-        pipeline.setMainMemory(new MainMemory(config.getProperty("file"), stringToUint32(config.getProperty("code_start_addr")).getValue(), (short) stringToUint32(config.getProperty("memory_latency")).getValue()));
+        pipeline.setMainMemory(new MainMemory(config.getProperty("file"), stringToUint32(config.getProperty("code_start_addr")).getValue(),
+        		(short) stringToUint32(config.getProperty("memory_latency")).getValue()));
         pipeline.setInstructionMemory(new InstructionMemory(pipeline.getMainMemory(), config));
         pipeline.setDataMemory(new DataMemory(pipeline.getMainMemory(), config));
         pipeline.setFetchStage(new Fetch(new uint32(stringToUint32(config.getProperty("entry_point"))), pipeline.getInstructionMemory()));
@@ -228,6 +231,7 @@ public class RiscVividSimulator
             h.put(getPipeline().getWriteBackLatch().element().getPc(), GUI_CONST.WRITEBACK);
             ClockCycleLog.log.add(h);
             ClockCycleLog.code.add(getPipeline().getFetchDecodeLatch().element().getPc());
+            
         }
         else if (caught_break)
         {
@@ -253,6 +257,16 @@ public class RiscVividSimulator
         }
 
         clock_cycle++;
+        
+        // check pipeline if any exceptions occured; throwing at the end so the simulator is able to continue normally!
+        if (pipeline.getLastException() != null) {
+            if (pipeline.getLastException() instanceof UnreservedMemoryAccessException &&
+                    !Preference.isMemoryWarningsEnabled()) {
+                // don't throw
+            } else {
+                throw pipeline.popLastException();
+            }
+        }
     }
 
     /**
@@ -492,6 +506,21 @@ public class RiscVividSimulator
 
                 // increase PC synchronously and if only if the FETCH is not stalled
                 pipeline.getFetchStage().increasePC();
+            }
+        }
+        
+        // check for nonfatal exceptions in the pipeline; if multiple exceptions occured, prioritize the one from the later stage
+        if (mod.hasExceptionOccured()) {
+            UnreservedMemoryAccessException ex = (UnreservedMemoryAccessException)mod.getException();
+            ex.setArea(pipeline.getInstructionMemory().isReserved(ex.getAddress(), ex.getNBytes()) ?
+                    Area.INSTRUCTION : Area.NONE);
+            pipeline.setLastException(ex);
+        } else if (fod.hasExceptionOccured()) {
+            UnreservedMemoryAccessException ex = (UnreservedMemoryAccessException)fod.getException();
+            // only set exception if fetch reads from data memory, as fetch could read memory behind the last instruction
+            if (pipeline.getDataMemory().isReserved(ex.getAddress(), ex.getNBytes())) {
+                ex.setArea(Area.DATA);
+                pipeline.setLastException(ex);
             }
         }
 

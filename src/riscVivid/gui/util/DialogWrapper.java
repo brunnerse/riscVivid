@@ -99,9 +99,13 @@ public final class DialogWrapper {
     public static void showWarningDialog(Component parent, String message, String title) {
         showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
     }
-	
+
+	public static void showWarningDialog(Component parent, Object[] content, String title) {
+		showMessageDialog(parent, content, title, JOptionPane.WARNING_MESSAGE);
+	}
+
 	public static void showErrorDialog(String message) {
-	    showErrorDialog(message, null);
+		showErrorDialog(message, null);
 	}
 	public static void showErrorDialog(Component parent, String message) {
 	    showErrorDialog(parent, message, null);
@@ -119,6 +123,19 @@ public final class DialogWrapper {
 	public static void showMessageDialog(Component parent, String message, String title, int JOptionPaneType) {
         JOptionPane.showMessageDialog(parent, generateLabel(message),
                 title, JOptionPaneType);
+	}
+	public static void showMessageDialog(Component parent, Object[] content, String title, int JOptionPaneType) {
+		Object[] content_cpy = content.clone();
+		for (int i = 0; i < content_cpy.length; ++i) {
+			if (content_cpy[i] instanceof String)
+				content_cpy[i] = generateLabel((String) content_cpy[i]);
+			else if (content_cpy[i] instanceof Component) {
+				Component c = (Component) content_cpy[i];
+				c.setFont(c.getFont().deriveFont((float) Preference.getFontSize()));
+			}
+		}
+		JOptionPane.showMessageDialog(parent, content_cpy,
+				title, JOptionPaneType);
 	}
 
 	/*

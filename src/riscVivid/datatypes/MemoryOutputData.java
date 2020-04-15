@@ -20,19 +20,36 @@
  ******************************************************************************/
 package riscVivid.datatypes;
 
+import riscVivid.exception.PipelineException;
+
 public class MemoryOutputData
 {
 
 	private MemoryWritebackData mwd;
-
+	private PipelineException pe = null;
+	
 	public MemoryOutputData(MemoryWritebackData mwd)
 	{
 		this.mwd = mwd;
+	}
+	
+	public MemoryOutputData(MemoryWritebackData mwd, PipelineException memException) {
+	    this.mwd = mwd;
+	    this.pe = memException;
 	}
 
 	public MemoryWritebackData getMwd()
 	{
 		return mwd;
+	}
+	
+	public boolean hasExceptionOccured()
+	{
+	    return pe != null;
+	}
+	
+	public PipelineException getException() {
+	    return pe;
 	}
 
 }

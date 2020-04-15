@@ -20,9 +20,15 @@
  ******************************************************************************/
 package riscVivid;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
+
 import org.apache.log4j.Logger;
 
+import riscVivid.asm.instruction.Registers;
 import riscVivid.datatypes.*;
+import riscVivid.gui.Preference;
 
 public class RegisterSet
 {
@@ -31,20 +37,20 @@ public class RegisterSet
 	private uint32[] gp_registers;
 	private uint32 HI;
 	private uint32 LO;
-	
+
 	public RegisterSet()
 	{
 		gp_registers = new uint32[register_count];
 		HI = new uint32();
 		LO = new uint32();
-		clearRegisters();
+		initRegisters();
 	}
 	
 	public uint32 read(uint8 reg)
 	{
 		return new uint32(gp_registers[reg.getValue()].getValue());
 	}
-	
+
 	public void write(uint8 reg, uint32 value)
 	{
 		if(reg.getValue() == 0)
@@ -85,15 +91,27 @@ public class RegisterSet
 		}
 	}
 	
-	private void clearRegisters()
+	private void initRegisters()
 	{
-		for(byte i = 0; i < register_count; i++)
-		{
-			uint32 val = new uint32(0);
-			gp_registers[i] = val;
-		}
-		HI = new uint32(0);
-		LO = new uint32(0);
+        int init = Preference.pref.getInt(Preference.initializeRegistersPreferenceKey, 0);
+        boolean random = init > 0xff || init < 0;
+        
+        Random rand = new Random();
+        if (!random) { // 0 <= init <= 0xff
+        // Set all bytes of init to (byte)init (conversion not needed, as init <= 0xff)
+            init = init << 24 | init << 16 | init << 8 | init;
+        }
+        for(byte i = 0; i < register_count; i++)
+        {
+        	uint32 val = new uint32(random ? rand.nextInt() : init);
+        	gp_registers[i] = val;
+        }
+        HI = new uint32(random ? rand.nextInt() : init);
+        LO = new uint32(random ? rand.nextInt() : init);
+        
+        // Initialize zero register with 0
+        int zeroIndex = Registers.instance().getInteger("zero"); 
+        gp_registers[zeroIndex] = new uint32(0);
 	}
 
 	public void printContent()
@@ -115,7 +133,7 @@ public class RegisterSet
 
 	public void setStackPointer(uint32 sp)
 	{
-		gp_registers[29] = sp;
+		int spIndex = Registers.instance().getInteger("sp");
+		gp_registers[spIndex] = sp;
 	}
-        
 }

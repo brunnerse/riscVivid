@@ -71,6 +71,7 @@ public class CommandDoXCycles implements Command
                             catch (PipelineException e)
                             {
                                 mf.getPipelineExceptionHandler().handlePipelineExceptions(e);
+                                break;
                             }
                         }
                         else

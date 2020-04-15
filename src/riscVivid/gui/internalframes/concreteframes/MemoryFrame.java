@@ -78,6 +78,12 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
     {
         super(name, false);
         this.mf = mf;
+	// find start address of first data segment in config
+	if (mf.getOpenDLXSim().getConfig().contains("data_begin_0")) 
+		startAddr = ValueInput.strToInt(mf.getOpenDLXSim().getConfig().getProperty("data_begin_0"));
+	else if (mf.getOpenDLXSim().getConfig().contains("data_begin")) 
+		startAddr = ValueInput.strToInt(mf.getOpenDLXSim().getConfig().getProperty("data_begin"));
+
         initialize();
     }
 
@@ -171,7 +177,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
         try {
         	Integer newStartAddr;
         	try {
-                newStartAddr = ValueInput.getValueSilent(addrInput.getText());
+                newStartAddr = ValueInput.strToInt(addrInput.getText());
         	} catch(NumberFormatException ex) { // addrInput is possibly a label
         		if (Labels.labels != null && Labels.labels.containsKey(addrInput.getText()))
         			   newStartAddr = (Integer) Labels.labels.get(addrInput.getText());
@@ -192,7 +198,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
 		    	}
         	}
         	
-            Integer newRows = ValueInput.getValueSilent(rowInput.getText());
+            Integer newRows = ValueInput.strToInt(rowInput.getText());
             if (newRows == null)
             	newRows = rows;
         	// if number of rows stays the same, only update the table

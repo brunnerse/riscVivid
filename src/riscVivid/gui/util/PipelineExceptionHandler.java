@@ -51,14 +51,20 @@ public class PipelineExceptionHandler {
 			e.printStackTrace();
 			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Decode Stage Error");
 		} else {
-			e.printStackTrace();
-			DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
+			if (e.isFatal()) {
+			    e.printStackTrace();
+		         DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
+			} else {
+			    DialogWrapper.showWarningDialog(e.getMessage(), "Simulator paused");
+			}
 		}
-		sim.stopSimulation(true);
-		// set mf state to executing (if a file has been assembled before, so the state was anything but IDLE)
-		// TODO: better set to an error state?
-		if (mf.getOpenDLXSimState() != OpenDLXSimState.IDLE)
-			mf.setOpenDLXSimState(OpenDLXSimState.EXECUTING);
+		if (e.isFatal()) {
+		    sim.stopSimulation(true);
+			// set mf state to executing (if a file has been assembled before, so the state was anything but IDLE)
+			// TODO: better set to an error state?
+			if (mf.getOpenDLXSimState() != OpenDLXSimState.IDLE)
+				mf.setOpenDLXSimState(OpenDLXSimState.EXECUTING);
+		}
 	}
 
 
