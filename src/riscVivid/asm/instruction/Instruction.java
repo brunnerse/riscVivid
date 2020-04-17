@@ -354,7 +354,8 @@ public class Instruction {
 				strBuf.append(rsStr());
 				strBuf.append(',');
 				strBuf.append(rtStr());
-				strBuf.append(",pc");
+				strBuf.append(",");
+				// strBuf.append(",pc");
 				strBuf.append(String.format("0x%08x", pc+immB()));
 				break;
 			case OPCODE_LUI:

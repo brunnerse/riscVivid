@@ -33,6 +33,7 @@ public class Preference
     public static final String forwardingPreferenceKey = "forwardingenabled";
     public static final String mipsCompatibilityPreferenceKey = "mipscompatibilityenabled";
     public static final String noBranchDelaySlotPreferenceKey = "nobranchdelayslot";
+    public static final String numBranchDelaySlotsPreferenceKey = "numbranchdelayslots";
     public static final String isaTypePreferenceKey = "isatype";
     public static final String bpTypePreferenceKey = "bptype";
     public static final String bpInitialStatePreferenceKey = "bbinitialstate";

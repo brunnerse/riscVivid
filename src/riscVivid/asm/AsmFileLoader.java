@@ -109,6 +109,7 @@ public class AsmFileLoader
         textOut.println("use_forwarding=" + ArchCfg.use_forwarding);
         textOut.println("use_load_stall_bubble=" + ArchCfg.use_load_stall_bubble);
         textOut.println("no_branch_delay_slot=" + ArchCfg.no_branch_delay_slot);
+        textOut.println("num_branch_delay_slots=" + ArchCfg.num_branch_delay_slots);
         if(ArchCfg.branch_predictor_type != BranchPredictorType.UNKNOWN)
         {
         	textOut.println("btb_predictor=" + ArchCfg.branch_predictor_type);

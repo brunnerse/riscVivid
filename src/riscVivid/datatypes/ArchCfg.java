@@ -34,12 +34,15 @@ public class ArchCfg
     // forwarding implies the two boolean: use_forwarding and use_load_stall_bubble
     public static boolean use_forwarding = Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true);
 
-    // TODO: rename variable
+    // determines whether to stall the following instruction if it depends on a preceding load instruction;
+    // is equivalent to mipsCompatibility
     public static boolean  use_load_stall_bubble = use_forwarding ?
             Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true) : false;
 
     public static boolean  no_branch_delay_slot = Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true);
-    
+
+    // num_branch_delay_slots must bei either 2 or 3
+    public static int num_branch_delay_slots = Preference.pref.getInt(Preference.numBranchDelaySlotsPreferenceKey, 3);
 /*
     public static final String[] GP_NAMES_MIPS =
     {
@@ -94,6 +97,7 @@ public class ArchCfg
         ArchCfg.use_forwarding = getUseForwardingCfg(config);
         ArchCfg.use_load_stall_bubble = getUseLoadStallBubble(config);
         ArchCfg.no_branch_delay_slot = getNoBranchDelaySlot(config);
+        ArchCfg.num_branch_delay_slots = getNumBranchDelaySlots(config);
     }
 
     public static ISAType stringToISAType(String s)
@@ -160,6 +164,15 @@ public class ArchCfg
     		|| ((config.getProperty("no_branch_delay_slot")).compareTo("1") == 0))
     			return true;
         return false;
+    }
+
+    private static int getNumBranchDelaySlots(Properties config)
+    {
+        int n = Integer.decode(config.getProperty("num_branch_delay_slots", "3"));
+        if (n != 2 && n != 3) {
+            throw new IllegalArgumentException("Error in config: num_branch_delay_slots must be either 2 or 3");
+        }
+        return n;
     }
     
     public static String getRegisterDescription(int reg_id)

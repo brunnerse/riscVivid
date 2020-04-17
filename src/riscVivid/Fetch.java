@@ -43,11 +43,13 @@ public class Fetch {
 	private InstructionMemory imem;
 	private Queue<ExecuteFetchData> execute_fetch_latch;
 	private Queue<BranchPredictionModuleFetchData> branchprediction_fetch_latch;
+	private final int numBranchDelaySlots;
 	
-	public Fetch(uint32 init_pc, InstructionMemory imem)
+	public Fetch(uint32 init_pc, InstructionMemory imem, int numBranchDelaySlots)
 	{
 		program_counter = new uint32(init_pc);
 		this.imem = imem;
+		this.numBranchDelaySlots = numBranchDelaySlots;
 	}
 	
 	public void setPc(uint32 pc)
@@ -98,64 +100,45 @@ public class Fetch {
 			// the branch predictor predicted a branch, set the pc to the predicted target
 			setPc(bpmfd.getBranchTgt());
 		}
-		
-		if((ArchCfg.isa_type == ISAType.MIPS) || (ArchCfg.use_load_stall_bubble == true))
-		{
-			if(efd.getMispredictedBranch() == true)
-			{
-				logger.debug("mispredicted branch at pc " 
-					+ efd.getPc().getValueAsHexString() 
-					+ " the branch was actually " + ((efd.getJump())
-						? ("taken to " + efd.getNewPc().getValueAsHexString())
-						: ("not taken next instr is " + new uint32(efd.getPc().getValue()+8).getValueAsHexString())));
-				flush[PipelineConstants.DECODE_STAGE] = true;
-				if(efd.getJump() == true)
-				{
-					setPc(efd.getNewPc());
-				}
-				else
-				{
-					setPc(new uint32(efd.getPc().getValue()+8));
-				}
 
-//				if(efd.getJump() == true)
-//				{
-//					setPc(efd.getNewPc());
-//					// according to the MIPS specification one instruction is executed in the branch delay 
-//					// slot, this instruction will be already in the execute stage (i.e. in the latch before the execute stage). 
-//					// Consequently the instruction in the decode stage has to be kicked out.
-//					flush[CONST.DECODE_STAGE] = true; 
-//				}
-			}
-		}
-		else
-		{
-			if(efd.getMispredictedBranch() == true)
+		if (efd.getMispredictedBranch()) {
+			logger.debug("mispredicted branch at pc "
+					+ efd.getPc().getValueAsHexString()
+					+ " the branch was actually " + ((efd.getJump())
+					? ("taken to " + efd.getNewPc().getValueAsHexString())
+					: ("not taken next instr is " + new uint32(efd.getPc().getValue()+8).getValueAsHexString())));
+			if (ArchCfg.isa_type == ISAType.MIPS)
 			{
-				if(efd.getJump() == true)
-				{
-					setPc(efd.getNewPc());
-				}
-				else
-				{
-					setPc(new uint32(efd.getPc().getValue()+8));
-				}
+				// according to the MIPS specification one instruction is executed in the branch delay
+				// slot, this instruction will be already in the execute stage (i.e. in the latch before the execute stage).
+				// Consequently the instruction in the decode stage has to be kicked out.
+				flush[PipelineConstants.DECODE_STAGE] = true;
+			}
+			if (efd.getJump()) {
+				setPc(efd.getNewPc());
+			} else {
+				setPc(new uint32(efd.getPc().getValue() + 4 * numBranchDelaySlots));
 			}
 		}
-		
+
 		if((efd.getInst().getBranch()) && (efd.getJump() == false) && (efd.getInst().getBranchLikely()))
 		{
 			logger.debug("likely branch was not taken, flushing branch delay slot");
 			// for likely branches if they are not taken the instruction in the branch delay slot hat to be nullified, e.g. by flushing it.
 			// notice: this is independent of the branch prediction
 			flush[PipelineConstants.EXECUTE_STAGE] = true;
+			if (numBranchDelaySlots > 2)
+				flush[PipelineConstants.MEMORY_STAGE] = true;
 		}
 
 		// flush branch delay slot on taken branch
-		if((efd.getInst().getBranch()) && (efd.getJump() == true) && (ArchCfg.no_branch_delay_slot==true))
+		if(efd.getInst().getBranch() && efd.getJump() && ArchCfg.no_branch_delay_slot)
 		{
-			logger.debug("branch was taken, flushing branch delay slot");
+			logger.debug("branch was taken, flushing branch delay slots");
+			flush[PipelineConstants.DECODE_STAGE] = true;
 			flush[PipelineConstants.EXECUTE_STAGE] = true;
+			if (numBranchDelaySlots > 2)
+				flush[PipelineConstants.MEMORY_STAGE] = true;
 		}
 		
 		uint32 instr = doFetch();

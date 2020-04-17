@@ -137,7 +137,8 @@ public class RiscVividSimulator
         		(short) stringToUint32(config.getProperty("memory_latency")).getValue()));
         pipeline.setInstructionMemory(new InstructionMemory(pipeline.getMainMemory(), config));
         pipeline.setDataMemory(new DataMemory(pipeline.getMainMemory(), config));
-        pipeline.setFetchStage(new Fetch(new uint32(stringToUint32(config.getProperty("entry_point"))), pipeline.getInstructionMemory()));
+        pipeline.setFetchStage(new Fetch(new uint32(stringToUint32(config.getProperty("entry_point"))), pipeline.getInstructionMemory(),
+                ArchCfg.num_branch_delay_slots));
         pipeline.setRegisterSet(new RegisterSet());
         pipeline.setDecodeStage(new Decode(pipeline.getRegisterSet()));
         pipeline.setExecuteStage(new Execute());
@@ -317,37 +318,10 @@ public class RiscVividSimulator
             throw new PipelineException("Wrong number of entries in execute/memory latch: " + execute_memory_latch.size());
         }
 
-        if (ArchCfg.isa_type == ISAType.MIPS)
+        if (execute_fetch_latch.size() != ArchCfg.num_branch_delay_slots - 1)
         {
-            if (execute_fetch_latch.size() != 1)
-            {
-                throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
-            }
+            throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
         }
-        else if (ArchCfg.isa_type == ISAType.DLX)
-        {
-            if (ArchCfg.use_forwarding == false)
-            {
-                // THE DLX pipeline has a delay of 2 cycles between execute and fetch.
-                // Such that 3 bubbles are between the branch instruction and its target instruction.
-                if (execute_fetch_latch.size() != 2)
-                {
-                    throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
-                }
-            }
-            else
-            {
-                if (execute_fetch_latch.size() != 1)
-                {
-                    throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
-                }
-            }
-        }
-        else
-        {
-            throw new PipelineException("Unknown ISA: " + ArchCfg.isa_type);
-        }
-
 
         if (execute_branchprediction_latch.size() != 1)
         {
@@ -386,6 +360,8 @@ public class RiscVividSimulator
             // flush stages
             fetch_decode_latch.element().flush();
             fod.getFdd().flush();
+            for (ExecuteFetchData efd : execute_fetch_latch)
+                efd.flush();
             Arrays.fill(fod.getFlush(), true);
             // set Pc to the scall because at the end of the cycle it is incremented and points to the next instruction
             pipeline.getFetchStage().setPc(memory_writeback_latch.element().getPc());
@@ -431,6 +407,8 @@ public class RiscVividSimulator
                     + execute_memory_latch.element().getPc().getValueAsHexString() + " "
                     + execute_memory_latch.element().getInst().getString());
             execute_memory_latch.element().flush();
+            for (ExecuteFetchData efd : execute_fetch_latch)
+                efd.flush();
         }
         // MEMORY STAGE
         mod = pipeline.getMemoryStage().doCycle();
@@ -551,13 +529,8 @@ public class RiscVividSimulator
         // add 1 bubbles into fetch stage (used for jumps)
         ExecuteFetchData efd = new ExecuteFetchData(bubble, zero, zero, false, false);
 
-        efl.add(efd);
-        if ((ArchCfg.isa_type == ISAType.DLX) && (ArchCfg.use_forwarding == false))
-        {
-            // THE DLX pipeline has a delay of 2 cycles between execute and fetch.
-            // Such that 3 bubbles are between the branch instruction and its target instruction.
+        for (int i = 0; i < ArchCfg.num_branch_delay_slots - 1; ++i)
             efl.add(efd);
-        }
 
         // add 1 bubble into decode stage
         FetchDecodeData fdd = new FetchDecodeData();
