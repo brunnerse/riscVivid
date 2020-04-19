@@ -265,7 +265,7 @@ public class MainFrameMenuBarFactory
 
         addMenuItem(editMenu, STRING_MENU_EDIT_UNDO, KEY_MENU_EDIT_UNDO, StateValidator.executingOrLazyStates, new CommandPerformEditorUndo(mf.getEditorUndoManager()));
         addMenuItem(editMenu, STRING_MENU_EDIT_REDO, KEY_MENU_EDIT_REDO, StateValidator.executingOrLazyStates, new CommandPerformEditorRedo(mf.getEditorUndoManager()));
-        addMenuItem(editMenu, STRING_MENU_EDIT_FIND, KEY_MENU_EDIT_FIND, StateValidator.executingOrLazyStates, new CommandFindReplace(mf, EditorFrame.getInstance(mf)));
+        addMenuItem(editMenu, STRING_MENU_EDIT_FIND, KEY_MENU_EDIT_FIND, StateValidator.executingOrLazyStates, new CommandFindReplace(mf));
         addMenuItem(editMenu, STRING_MENU_EDIT_ENLARGE, KEY_MENU_EDIT_ENLARGE, StateValidator.executingOrLazyStates, new CommandChangeFontSize(+1));
         addMenuItem(editMenu, STRING_MENU_EDIT_REDUCE, KEY_MENU_EDIT_REDUCE, StateValidator.executingOrLazyStates, new CommandChangeFontSize(-1));
         addMenuItem(editMenu, STRING_MENU_EDIT_REFORMAT, KEY_MENU_EDIT_REFORMAT, StateValidator.executingOrLazyStates, new CommandReformatCode());

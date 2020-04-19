@@ -22,6 +22,7 @@ package riscVivid.gui.command.systemLevel;
 
 import javax.swing.JInternalFrame;
 
+import riscVivid.gui.GUI_CONST;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
@@ -55,6 +56,7 @@ public class CommandResetSimulator implements Command
                     ((OpenDLXSimInternalFrame) jif).clean();
 
             Statistics.getInstance().reset();
+            mf.setOpenDLXSimState(GUI_CONST.OpenDLXSimState.IDLE);
         }
         catch (Exception e)
         {

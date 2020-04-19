@@ -43,7 +43,7 @@ public class CommandSimulatorFinishedInfo implements Command
         	
         			
         } else {
-        	DialogWrapper.showMessageDialog(mf, "Simulator finished");
+        	DialogWrapper.showMessageDialog(mf, "Simulator finished with code " + sim.getExitCode());
         }
     }
 

@@ -55,8 +55,7 @@ public class CommandChangeWindowVisibility implements Command
                         e.printStackTrace();
                     }
                 }
-                if (internalFrame.isClosed() || !internalFrame.isVisible() ||
-                        !internalFrame.isEnabled())
+                if (internalFrame.isClosed() || !internalFrame.isVisible() || internalFrame.isEnabled())
                 {
                     internalFrame.setVisible(true);
                 }

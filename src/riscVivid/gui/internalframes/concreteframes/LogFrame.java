@@ -47,7 +47,6 @@ public final class LogFrame extends OpenDLXSimInternalFrame
     private NotSelectableTableModel model;
     private JScrollPane scrollpane;
     //data
-    private final MainFrame mf;
     private LogReader logReader;
     private String logFileAddr;
 
@@ -56,8 +55,8 @@ public final class LogFrame extends OpenDLXSimInternalFrame
     public LogFrame(String title)
     {
         super(title, true);
+        MainFrame mf = MainFrame.getInstance();
         initialize();
-        mf = MainFrame.getInstance();
         try
         {
             logFileAddr = mf.getOpenDLXSim().getConfig().getProperty("log_file");
@@ -120,6 +119,7 @@ public final class LogFrame extends OpenDLXSimInternalFrame
     protected void initialize()
     {
         super.initialize();
+        MainFrame mf = MainFrame.getInstance();
         setLayout(new BorderLayout());
         model = new NotSelectableTableModel();
         infoTable = new JTable(model);
@@ -134,7 +134,10 @@ public final class LogFrame extends OpenDLXSimInternalFrame
         MWheelFontSizeChanger.getInstance().add(scrollpane);
 
         setFont(infoTable.getFont().deriveFont((float)(Preference.getFontSize())));
-        setSize(new Dimension(300, 200));
+        Dimension desktopSize = mf.getContentPane().getSize();
+        setPreferredSize(new Dimension(desktopSize.width/2, infoTable.getRowHeight() * 20));
+        pack();
+        this.setLocation(0, 30);
         setVisible(true);
     }
 

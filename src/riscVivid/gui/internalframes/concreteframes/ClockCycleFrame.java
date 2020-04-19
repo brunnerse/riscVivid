@@ -149,11 +149,16 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         for (JScrollPane s : new JScrollPane[] {clockCycleScrollPane,
                 addrScrollPane, codeScrollPane})
             MWheelFontSizeChanger.getInstance().add(s);
-        setFont(addrTable.getFont().deriveFont((float)Preference.getFontSize()));
+
         add(addrScrollPane, BorderLayout.EAST);
         add(codeScrollPane, BorderLayout.WEST);
         add(clockCycleScrollPane, BorderLayout.CENTER);
+
+        Dimension desktopSize = MainFrame.getInstance().getContentPane().getSize();
+        setPreferredSize(new Dimension(desktopSize.width/2, desktopSize.height/3));
         pack();
+        setFont(addrTable.getFont().deriveFont((float)Preference.getFontSize()));
+        this.setLocation(0, desktopSize.height - getPreferredSize().height - 50);
         setVisible(true);
     }
 

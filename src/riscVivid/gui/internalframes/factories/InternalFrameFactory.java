@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import riscVivid.gui.MainFrame;
+import riscVivid.gui.Preference;
 import riscVivid.gui.command.systemLevel.CommandLoadFrameConfigurationSysLevel;
+import riscVivid.gui.command.userLevel.CommandChangeFontSize;
 import riscVivid.gui.internalframes.concreteframes.ClockCycleFrame;
 import riscVivid.gui.internalframes.concreteframes.CodeFrame;
 import riscVivid.gui.internalframes.concreteframes.LogFrame;
@@ -105,6 +107,7 @@ public class InternalFrameFactory
                 createClockCycleFrame();
         }
 
+        new CommandChangeFontSize( 0).setFontSize(Preference.getFontSize());
         new CommandLoadFrameConfigurationSysLevel(mf).execute();
     }
 

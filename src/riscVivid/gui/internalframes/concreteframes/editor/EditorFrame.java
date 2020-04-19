@@ -113,6 +113,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
             instance = new EditorFrame(InternalFrameFactory.getFrameName(EditorFrame.class), mf);
             FrameConfiguration fc = new FrameConfiguration(instance);
             fc.loadFrameConfiguration();
+            instance.setMaximumSize(new Dimension(instance.getMaximumSize().width,
+                    Math.min(instance.getMaximumSize().height, mf.getContentPane().getHeight())));
         }
         return instance;
     }
@@ -215,7 +217,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 //        EventCommandLookUp.put(redo, redoCommand);
         EventCommandLookUp.put(enlarge, new CommandChangeFontSize(+1));
         EventCommandLookUp.put(reduce, new CommandChangeFontSize(-1));
-        EventCommandLookUp.put(find, new CommandFindReplace(mf, this));
+        EventCommandLookUp.put(find, new CommandFindReplace(mf));
         EventCommandLookUp.put(reformat, new CommandReformatCode());
 
         JToolBar toolBar = new JToolBar("Editor toolbar");
@@ -353,10 +355,11 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
     public void resetLocationAndSize()
     {
-        setPreferredSize(new Dimension(size_x, size_y));
+        Dimension desktopSize = mf.getContentPane().getSize();
+        setPreferredSize(new Dimension(desktopSize.width/2, desktopSize.height - 10));
         setFont(jta.getFont().deriveFont((float)Preference.getFontSize()));
         pack();
-        this.setLocation(0, 0);
+        this.setLocation(desktopSize.width/2, 0);
     }
 
     public void validateButtons(OpenDLXSimState currentState)

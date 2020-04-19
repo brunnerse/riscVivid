@@ -6,15 +6,13 @@ import riscVivid.gui.internalframes.concreteframes.editor.FindReplaceDialog;
 
 public class CommandFindReplace implements Command {
     private MainFrame mf;
-    private EditorFrame editor;
-    
-    public CommandFindReplace(MainFrame mf, EditorFrame editor) {
+
+    public CommandFindReplace(MainFrame mf) {
         this.mf = mf;
-        this.editor = editor;
     }
     
     @Override
     public void execute() {
-        new FindReplaceDialog(mf, editor);
+        new FindReplaceDialog(mf, EditorFrame.getInstance(mf));
     }
 }

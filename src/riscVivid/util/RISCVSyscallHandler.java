@@ -49,7 +49,8 @@ public class RISCVSyscallHandler {
 	private TrapObservable oInput = null;
 	private Input input = null;
 	private MainMemory mem=null;
-	
+
+	private int lastExitCode = 0;
 	
 	
 	private RISCVSyscallHandler()
@@ -79,6 +80,10 @@ public class RISCVSyscallHandler {
 	public void setMemory(MainMemory mainMem) 
 	{
 		mem = mainMem;
+	}
+
+	public int getLastExitCode() {
+		return this.lastExitCode;
 	}
 
 	private String stringFromMemory(int addr, int len)
@@ -160,6 +165,7 @@ public class RISCVSyscallHandler {
 			
 		case 93: // exit
 		    a0 = reg_set.read(A0).getValue();
+		    this.lastExitCode = a0;
 			logger.info("Exit programm with exit code " + a0);
 			return true;
 		default:

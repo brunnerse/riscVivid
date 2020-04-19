@@ -772,4 +772,12 @@ public class RiscVividSimulator
         finished = true;
     }
 
+    public Integer getExitCode() {
+        if (caught_break) {
+            return RISCVSyscallHandler.getInstance().getLastExitCode();
+        } else {
+            return null;
+        }
+    }
+
 }

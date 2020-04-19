@@ -83,11 +83,10 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     
     private MainFrame()
     {
+        super("riscVivid " + GlobalConfig.VERSION);
         initialize();
         final ImageIcon icon = new ImageIcon(getClass().getResource("/img/riscVivid-quadrat128x128.png"), "riscVivid icon");
         setIconImage(icon.getImage());
-
-        setTitle("riscVivid " + GlobalConfig.VERSION);
 
         // Register output for pipeline
         TrapObservableDefault observableOutput = new TrapObservableDefault();
@@ -123,21 +122,17 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private void initialize()
     {
         undoMgr = new UndoManager();
-        
-        //uses a factory to outsource creation of the menuBar
-        MainFrameMenuBarFactory menuBarFactory = new MainFrameMenuBarFactory(this, this, this);
-        Hashtable<String, JMenuItem> importantItems = new Hashtable<>();
-        menuBar = menuBarFactory.createJMenuBar();
-        setJMenuBar(menuBar);
 
         setMinimumSize(new Dimension(200, 200));
         desktop = new JDesktopPane();
         desktop.setBackground(Color.WHITE);
         setContentPane(desktop);
 
-        editor = EditorFrame.getInstance(this);
-        editor.setUndoManager(undoMgr);
-        desktop.add(editor);
+        //uses a factory to outsource creation of the menuBar
+        MainFrameMenuBarFactory menuBarFactory = new MainFrameMenuBarFactory(this, this, this);
+        Hashtable<String, JMenuItem> importantItems = new Hashtable<>();
+        menuBar = menuBarFactory.createJMenuBar();
+        setJMenuBar(menuBar);
 
         output = Output.getInstance(mf);
         input = Input.getInstance(mf);
@@ -147,9 +142,12 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         setExtendedState(MAXIMIZED_BOTH);
         setVisible(true);
 
-        /// select editor frame
+        /// create and select editor frame
         try
         {
+            editor = EditorFrame.getInstance(this);
+            editor.setUndoManager(undoMgr);
+            desktop.add(editor);
             editor.setSelected(true);
         } catch (PropertyVetoException e1)
         {

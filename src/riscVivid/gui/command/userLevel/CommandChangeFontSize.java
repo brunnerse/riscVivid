@@ -38,8 +38,11 @@ public class CommandChangeFontSize implements Command {
 	
 	public static void setFontSize(int fontSize) {
         Preference.pref.putInt(Preference.fontSize, fontSize);
-		UIManager.put("OptionPane.messageFont", new Font("System", Font.PLAIN, fontSize));
-		UIManager.put("OptionPane.buttonFont", new Font("System", Font.PLAIN, fontSize));
+        Font font = new Font("System", Font.PLAIN, fontSize);
+		UIManager.put("OptionPane.messageFont", font);
+		UIManager.put("OptionPane.buttonFont", font);
+		UIManager.put("OptionPane.font", font);
+		UIManager.put("TextField.font", font);
 
 		MainFrame mf = MainFrame.getInstance();
 		setMenuBarFontSize(mf, fontSize);
