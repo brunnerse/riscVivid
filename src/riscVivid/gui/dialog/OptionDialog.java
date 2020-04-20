@@ -221,7 +221,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         //dont forget adding the components to the panel !!!
         for (JComponent c : new JComponent[]{forwardingCheckBox, noBranchDelaySlotCheckBox, mipsCompatibilityCheckBox,
-                memoryWarningCheckBox, bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel,
+                memoryWarningCheckBox, //bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again if branch prediction works correctly
                 maxCyclesTextFieldPanel, initRegisterPanel, initMemoryPanel, branchDelaySlotsPanel})
         {
             optionPanel.add(c);
