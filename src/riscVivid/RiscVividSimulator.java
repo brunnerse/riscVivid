@@ -138,7 +138,7 @@ public class RiscVividSimulator
         pipeline.setInstructionMemory(new InstructionMemory(pipeline.getMainMemory(), config));
         pipeline.setDataMemory(new DataMemory(pipeline.getMainMemory(), config));
         pipeline.setFetchStage(new Fetch(new uint32(stringToUint32(config.getProperty("entry_point"))), pipeline.getInstructionMemory(),
-                ArchCfg.num_branch_delay_slots));
+                ArchCfg.getNumBranchDelaySlots()));
         pipeline.setRegisterSet(new RegisterSet());
         pipeline.setDecodeStage(new Decode(pipeline.getRegisterSet()));
         pipeline.setExecuteStage(new Execute());
@@ -318,7 +318,7 @@ public class RiscVividSimulator
             throw new PipelineException("Wrong number of entries in execute/memory latch: " + execute_memory_latch.size());
         }
 
-        if (execute_fetch_latch.size() != ArchCfg.num_branch_delay_slots - 1)
+        if (execute_fetch_latch.size() != ArchCfg.getNumBranchDelaySlots() - 1)
         {
             throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
         }
@@ -529,7 +529,7 @@ public class RiscVividSimulator
         // add 1 bubbles into fetch stage (used for jumps)
         ExecuteFetchData efd = new ExecuteFetchData(bubble, zero, zero, false, false);
 
-        for (int i = 0; i < ArchCfg.num_branch_delay_slots - 1; ++i)
+        for (int i = 0; i < ArchCfg.getNumBranchDelaySlots() - 1; ++i)
             efl.add(efd);
 
         // add 1 bubble into decode stage

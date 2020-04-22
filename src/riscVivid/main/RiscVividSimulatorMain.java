@@ -108,8 +108,6 @@ public class RiscVividSimulatorMain
     
     static void main_gui()
     {
-    	// DLX is the default for graphical mode.
-    	ArchCfg.isa_type = ISAType.DLX;
     	RiscVividSimGui.riscVividGui_main();
     }
     

@@ -61,12 +61,12 @@ public class WriteBack
 		boolean interrupt_occured = false;
 
 /*
-		if((ArchCfg.isa_type == ISAType.MIPS) && (inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.BREAK))
+		if((ArchCfg.getISAType() == ISAType.MIPS) && (inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.BREAK))
 		{
 			logger.info("Caught BREAK instruction - finishing simulation.");
 			caught_break = true;
 		}
-		if((ArchCfg.isa_type == ISAType.DLX) && (inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.TRAP) && (alu_outLO.getValue() == PipelineConstants.DLX_TRAP_STOP))
+		if((ArchCfg.getISAType() == ISAType.DLX) && (inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.TRAP) && (alu_outLO.getValue() == PipelineConstants.DLX_TRAP_STOP))
 		{
 			logger.info("Caught TRAP 0 - finishing simulation.");
 			caught_break = true;

@@ -147,8 +147,8 @@ public class ALU
 			// takes usually multiple cycles (3 according to the isa)
 			// chop of sign bit
 			long mult = ((long)A.getValue()&0xFFFFFFFFL) * ((long)B.getValue()&0xFFFFFFFFL);
-			resultLO.setValue((int)(mult & 0xFFFFFFFF));
-			resultHI.setValue((int)((mult >>> 32) & 0xFFFFFFFF));
+			resultLO.setValue((int)(mult & 0xFFFFFFFFL));
+			resultHI.setValue((int)((mult >>> 32) & 0xFFFFFFFFL));
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() + ")" + " * " + B.getValue() + "(" + B.getValueAsHexString() + ")" + " = " + mult + " HI: " + resultHI.getValue() + "(" + resultHI.getValueAsHexString() + ")" + " LO: " + resultLO.getValue() + "(" + resultLO.getValueAsHexString() + ")");
 			break;
 		}
@@ -174,7 +174,7 @@ public class ALU
 		case MULHSU:
 		{
 			BigInteger biga = BigInteger.valueOf((long)A.getValue());
-			BigInteger bigb = BigInteger.valueOf((long)B.getValue() & 0xffffffff);
+			BigInteger bigb = BigInteger.valueOf((long)B.getValue() & 0xffffffffL);
 			resultLO.setValue((int)biga.multiply(bigb).shiftRight(32).longValue());
 			logger.debug(A.getValue() + "(" + A.getValueAsHexString() 
 				+ ") * " + B.getValue() + "(" + B.getValueAsHexString() 
@@ -373,8 +373,7 @@ public class ALU
 			resultHI = resultLO;
 			break;
 		case SLTU:
-			// chop of sign bit
-			if((A.getValue()&0x7FFFFFFF) < (B.getValue()&0x7FFFFFFF))
+			if( ((long)A.getValue()&0xFFFFFFFFL) < ((long)B.getValue()&0xFFFFFFFFL) )
 			{
 				resultLO.setValue(1);
 			}

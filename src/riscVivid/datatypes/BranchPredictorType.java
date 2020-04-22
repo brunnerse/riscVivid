@@ -57,4 +57,11 @@ public enum BranchPredictorType
 			return "Unknown Predictor";
 		}
 	}
+
+	public static String[] getValuesGuiStrings() {
+		String[] array = new String[values().length];
+		for (int i = 0; i < values().length; ++i)
+			array[i] = values()[i].toGuiString();
+		return array;
+	}
 }
