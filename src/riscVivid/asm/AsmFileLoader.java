@@ -105,18 +105,18 @@ public class AsmFileLoader
         textOut.println("print_file=" + parts + ".out");
         textOut.println("log_file=" + parts + ".log");
         textOut.println("log4j=log4j.properties");
-        textOut.println("isa_type=" + ArchCfg.isa_type);
-        textOut.println("use_forwarding=" + ArchCfg.use_forwarding);
-        textOut.println("use_load_stall_bubble=" + ArchCfg.use_load_stall_bubble);
-        textOut.println("no_branch_delay_slot=" + ArchCfg.no_branch_delay_slot);
-        textOut.println("num_branch_delay_slots=" + ArchCfg.num_branch_delay_slots);
-        if(ArchCfg.branch_predictor_type != BranchPredictorType.UNKNOWN)
+        textOut.println("isa_type=" + ArchCfg.getISAType());
+        textOut.println("use_forwarding=" + ArchCfg.useForwarding());
+        textOut.println("use_load_stall_bubble=" + ArchCfg.useLoadStallBubble());
+        textOut.println("no_branch_delay_slot=" + ArchCfg.ignoreBranchDelaySlots());
+        textOut.println("num_branch_delay_slots=" + ArchCfg.getNumBranchDelaySlots());
+        if(ArchCfg.getBranchPredictorType() != BranchPredictorType.UNKNOWN)
         {
-        	textOut.println("btb_predictor=" + ArchCfg.branch_predictor_type);
-        	textOut.println("btb_predictor_initial_state=" + ArchCfg.branch_predictor_initial_state);
-        	textOut.println("btb_size=" + ArchCfg.branch_predictor_table_size);
+        	textOut.println("btb_predictor=" + ArchCfg.getBranchPredictorType());
+        	textOut.println("btb_predictor_initial_state=" + ArchCfg.getBranchPredictorInitialState());
+        	textOut.println("btb_size=" + ArchCfg.getBranchPredictorTableSize());
         }
-        textOut.println("cycles=" + ArchCfg.max_cycles);
+        textOut.println("cycles=" + ArchCfg.getMaxCycles());
         textOut.close();
         return configFile;
     }

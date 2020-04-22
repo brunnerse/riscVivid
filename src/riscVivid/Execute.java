@@ -99,7 +99,7 @@ public class Execute
 		uint32[] fw_wbd_alu_result = fw_wbd.getAluOut();
 		uint32 fw_wbd_ld_result = fw_wbd.getLdResult();
 
-		if(ArchCfg.use_forwarding == true)
+		if(ArchCfg.useForwarding())
 		{
 			// DATA FORWARDING
 			
@@ -439,7 +439,7 @@ public class Execute
 		// to BRANCH PREDICTION MODULE
 		ExecuteBranchPredictionData ebd = new ExecuteBranchPredictionData(inst, pc, alu_outLO, jump);
 	
-		if (ArchCfg.use_load_stall_bubble == true)
+		if (ArchCfg.useLoadStallBubble())
 		{
 			// check if the instruction before was a load that writes into a src register,
 			// if so the fetch, decode, and execute stages have to be stalled for 1 cycle to let this instruction enter the memory stage 

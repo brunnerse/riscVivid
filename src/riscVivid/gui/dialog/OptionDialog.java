@@ -22,6 +22,7 @@ package riscVivid.gui.dialog;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Properties;
 
 import javax.swing.*;
 
@@ -119,9 +120,10 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         // bpType:
         JLabel bpTypeComboBoxDescriptionLabel = new JLabel("Branch Predictor: ");
-        bpTypeComboBox = new JComboBox<String>(ArchCfg.possibleBpTypeComboBoxValues);
-        bpTypeComboBox.setSelectedItem(BranchPredictionModule.getBranchPredictorTypeFromString(
-                Preference.pref.get(Preference.bpTypePreferenceKey, BranchPredictorType.UNKNOWN.toString())).toGuiString()); // load current value
+        bpTypeComboBox = new JComboBox<String>(BranchPredictorType.getValuesGuiStrings());
+        BranchPredictorType selectedType = ArchCfg.getBranchPredictorTypeFromString(
+                Preference.pref.get(Preference.bpTypePreferenceKey, ""));
+        bpTypeComboBox.setSelectedItem(selectedType.toGuiString()); // load current value
         //surrounding panel
         JPanel bpTypeListPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         //add the label
@@ -131,8 +133,8 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         // bpInitialState:
         JLabel bpInitialStateComboBoxDescriptionLabel = new JLabel("Initial Predictor State: ");
-        bpInitialStateComboBox = new JComboBox<String>(ArchCfg.possibleBpInitialStateComboBoxValues);
-        bpInitialStateComboBox.setSelectedItem(BranchPredictionModule.getBranchPredictorInitialStateFromString(
+        bpInitialStateComboBox = new JComboBox<String>(BranchPredictorState.getValuesGuiStrings());
+        bpInitialStateComboBox.setSelectedItem(ArchCfg.getBranchPredictorInitialStateFromString(
                 Preference.pref.get(Preference.bpInitialStatePreferenceKey, BranchPredictorState.UNKNOWN.toString())).toGuiString()); // load current value
         //surrounding panel
         JPanel bpInitialStateListPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -150,7 +152,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         // the number in constructor means the number of lines in textfield
         maxCyclesTextField = new JTextField(10);
         //load current text from ArchCfg
-        maxCyclesTextField.setText((new Integer(ArchCfg.max_cycles)).toString());
+        maxCyclesTextField.setText((new Integer(ArchCfg.getMaxCycles())).toString());
         //surrounding panel, containing both JLabel and JTextField
         JPanel maxCyclesTextFieldPanel = new JPanel();
         //add the label
@@ -163,7 +165,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         // the number in constructor means the number of lines in textfield
         btbSizeTextField = new JTextField(5);
         //load current text from ArchCfg
-        btbSizeTextField.setText((new Integer(ArchCfg.branch_predictor_table_size)).toString());
+        btbSizeTextField.setText((new Integer(ArchCfg.getBranchPredictorTableSize())).toString());
         //surrounding panel, containing both JLabel and JTextField
         JPanel btbSizeTextFieldPanel = new JPanel();
         //add the label
@@ -221,7 +223,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         //dont forget adding the components to the panel !!!
         for (JComponent c : new JComponent[]{forwardingCheckBox, noBranchDelaySlotCheckBox, mipsCompatibilityCheckBox,
-                memoryWarningCheckBox, //bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again if branch prediction works correctly
+                memoryWarningCheckBox, // bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again if branch prediction works correctly
                 maxCyclesTextFieldPanel, initRegisterPanel, initMemoryPanel, branchDelaySlotsPanel})
         {
             optionPanel.add(c);
@@ -277,28 +279,18 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
             Preference.pref.putBoolean(Preference.enableMemoryWarningsPreferenceKey,
                     memoryWarningCheckBox.isSelected());
 
-            if(noBranchDelaySlotCheckBox.isSelected())
-                ArchCfg.no_branch_delay_slot = true;
-            else
-                ArchCfg.no_branch_delay_slot = false;
-            
-            if (forwardingCheckBox.isSelected())
-            {
-                ArchCfg.use_forwarding = true;
-                if(mipsCompatibilityCheckBox.isSelected())
-                {
-                    ArchCfg.use_load_stall_bubble = true;
-                }
-                else
-                {
-                    ArchCfg.use_load_stall_bubble = false;
-                }
+            boolean no_branch_delay_slot, use_load_stall_bubble, use_forwarding;
 
+            no_branch_delay_slot = noBranchDelaySlotCheckBox.isSelected();
+            use_forwarding = forwardingCheckBox.isSelected();
+
+            if (use_forwarding)
+            {
+                use_load_stall_bubble = mipsCompatibilityCheckBox.isSelected();
             }
             else
             {
-                ArchCfg.use_forwarding = false;
-                ArchCfg.use_load_stall_bubble = false;
+                use_load_stall_bubble = false;
 
                 if(mipsCompatibilityCheckBox.isSelected())
                 {
@@ -314,56 +306,57 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
             // TODO also add a field for disabling the branch prediction
             // TODO do some checks for the setting of the BP initial state and sizes
 
-            ArchCfg.branch_predictor_type = BranchPredictionModule.getBranchPredictorTypeFromGuiString(bpTypeComboBox.getSelectedItem().toString());
-            Preference.pref.put(Preference.bpTypePreferenceKey, ArchCfg.branch_predictor_type.toString());
+            BranchPredictorType branch_predictor_type = ArchCfg.getBranchPredictorTypeFromGuiString(bpTypeComboBox.getSelectedItem().toString());
+            Preference.pref.put(Preference.bpTypePreferenceKey, branch_predictor_type.toString());
 
-            ArchCfg.branch_predictor_initial_state = BranchPredictionModule.
+            BranchPredictorState branch_predictor_initial_state = ArchCfg.
                     getBranchPredictorInitialStateFromGuiString(
                             bpInitialStateComboBox.getSelectedItem().toString());
             Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                    ArchCfg.branch_predictor_initial_state.toString());
+                    branch_predictor_initial_state.toString());
 
-            ArchCfg.branch_predictor_table_size = Integer.parseInt(btbSizeTextField.getText());
+            int branch_predictor_table_size = Integer.parseInt(btbSizeTextField.getText());
             Preference.pref.put(Preference.btbSizePreferenceKey, btbSizeTextField.getText());
 
             // correct user input
-            switch(ArchCfg.branch_predictor_type)
+
+            switch(branch_predictor_type)
             {
             case UNKNOWN:
             case S_ALWAYS_TAKEN:
             case S_ALWAYS_NOT_TAKEN:
             case S_BACKWARD_TAKEN:
                 // unknown and static predictors have no initial state and no branch predictor table size
-                ArchCfg.branch_predictor_initial_state = BranchPredictorState.UNKNOWN;
+                branch_predictor_initial_state = BranchPredictorState.UNKNOWN;
                 Preference.pref.put(Preference.bpInitialStatePreferenceKey,
                         BranchPredictorState.UNKNOWN.toString());
 
-                ArchCfg.branch_predictor_table_size = 1;
+                branch_predictor_table_size = 1;
                 Preference.pref.put(Preference.btbSizePreferenceKey,
-                        new Integer(ArchCfg.branch_predictor_table_size).toString());
+                        new Integer(branch_predictor_table_size).toString());
                 break;
             case D_1BIT:
-                switch(ArchCfg.branch_predictor_initial_state)
+                switch(branch_predictor_initial_state)
                 {
                 case PREDICT_STRONGLY_NOT_TAKEN:
                 case PREDICT_WEAKLY_NOT_TAKEN:
                     // correct 2bit states to 1 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     break;
                 case PREDICT_STRONGLY_TAKEN:
                 case PREDICT_WEAKLY_TAKEN:
                     // correct 2bit states to 1 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     break;
                 case UNKNOWN:
                 default:
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     // TODO Throw exception
                     break;
                 }
@@ -371,25 +364,25 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
             case D_2BIT_SATURATION:
             case D_2BIT_HYSTERESIS:
-                switch(ArchCfg.branch_predictor_initial_state)
+                switch(branch_predictor_initial_state)
                 {
                 case PREDICT_NOT_TAKEN:
                     // correct 1bit states to 2 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     break;
                 case PREDICT_TAKEN:
                     // correct 1bit states to 2 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                        branch_predictor_initial_state.toString());
                     break;
                 case UNKNOWN:
                 default:
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     // TODO Throw exception
                     break;
                 }
@@ -397,14 +390,14 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
             }
 
             // the btb has to be a power of two
-            if (ArchCfg.branch_predictor_table_size == 0)
+            if (branch_predictor_table_size == 0)
             {
-                ArchCfg.branch_predictor_table_size = 1;
-                Preference.pref.put(Preference.btbSizePreferenceKey, (new Integer(ArchCfg.branch_predictor_table_size)).toString());
+                branch_predictor_table_size = 1;
+                Preference.pref.put(Preference.btbSizePreferenceKey, (new Integer(branch_predictor_table_size)).toString());
                 // TODO Throw exception
             }
 
-            ArchCfg.max_cycles = Integer.parseInt(maxCyclesTextField.getText());
+            int max_cycles = Integer.parseInt(maxCyclesTextField.getText());
             Preference.pref.put(Preference.maxCyclesPreferenceKey, maxCyclesTextField.getText());
 
             Preference.pref.putInt(Preference.initializeRegistersPreferenceKey,
@@ -413,7 +406,20 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
                     CommandSetInitialize.getChoiceInt(initMemoryComboBox.getSelectedItem().toString()));
             Preference.pref.put(Preference.numBranchDelaySlotsPreferenceKey,
                     numBranchDelaySlotsComboBox.getSelectedItem().toString());
-            ArchCfg.num_branch_delay_slots = Integer.decode(numBranchDelaySlotsComboBox.getSelectedItem().toString());
+            int num_branch_delay_slots = Integer.decode(numBranchDelaySlotsComboBox.getSelectedItem().toString());
+
+
+            Properties config = new Properties();
+            config.setProperty("isa_type", ArchCfg.getISAType().toString());
+            config.setProperty("no_branch_delay_slot", String.valueOf(no_branch_delay_slot));
+            config.setProperty("use_forwarding", String.valueOf(use_forwarding));
+            config.setProperty("use_load_stall_bubble", String.valueOf(use_load_stall_bubble));
+            config.setProperty("num_branch_delay_slots", String.valueOf(num_branch_delay_slots));
+            config.setProperty("btb_predictor", branch_predictor_type.toString());
+            config.setProperty("btb_predictor_initial_state", branch_predictor_initial_state.toString());
+            config.setProperty("btb_size", String.valueOf(branch_predictor_table_size));
+            config.setProperty("max_cycles", String.valueOf(max_cycles));
+            ArchCfg.registerArchitectureConfig(config);
 
             // if simulator was started, display message that simulator needs to be restarted in order to apply the new settings
             if (MainFrame.getInstance().getOpenDLXSimState() != GUI_CONST.OpenDLXSimState.IDLE &&

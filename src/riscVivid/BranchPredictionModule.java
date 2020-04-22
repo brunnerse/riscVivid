@@ -41,6 +41,8 @@ import riscVivid.exception.BranchPredictionException;
 import riscVivid.exception.PipelineException;
 import riscVivid.util.Statistics;
 
+import static riscVivid.datatypes.BranchPredictorType.UNKNOWN;
+
 /**
  * @brief Module to encapsulate the branch predictor in the pipeline
  */
@@ -72,29 +74,19 @@ public class BranchPredictionModule
 	public BranchPredictionModule(Properties config) throws PipelineException
 	{
 		// obtain settings for the BTB
-		int btb_size = 1;
-		if(config.getProperty("btb_size")!=null)
-		{
-			btb_size = Integer.decode(config.getProperty("btb_size"));
-		}
-		
+		int btb_size = ArchCfg.getBranchPredictorTableSize();
+
 		// get the predictor type, default value is S_ALWAYS_NOT_TAKEN
 		BranchPredictorType btb_predictor = BranchPredictorType.S_ALWAYS_NOT_TAKEN;
-		if(config.getProperty("btb_predictor")!=null)
-		{
-			btb_predictor = getBranchPredictorTypeFromString(config.getProperty("btb_predictor"));
-		}
-		// also set the architecture variable (just for completeness) 
-		ArchCfg.branch_predictor_type = btb_predictor;
-		
+		if (ArchCfg.getBranchPredictorType() != UNKNOWN)
+			btb_predictor = ArchCfg.getBranchPredictorType();
+
 		// get the predictor initial state, default value is PREDICT_NOT_TAKEN
 		// Notice each predictor may have a different set of supported predictor states. 
 		BranchPredictorState btb_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
-		if(config.getProperty("btb_predictor_initial_state")!=null)
-		{
-			btb_predictor_initial_state = getBranchPredictorInitialStateFromString(config.getProperty("btb_predictor_initial_state"));
-		}
-		
+		if (ArchCfg.getBranchPredictorInitialState() != BranchPredictorState.UNKNOWN)
+			btb_predictor_initial_state = ArchCfg.getBranchPredictorInitialState();
+
 		// get the behavior if a btb entry is overwritten, the recommended default is false 
 		boolean btb_predictor_reset_on_overwrite = false;
 		if(config.getProperty("btb_predictor_reset_on_overwrite")!=null)
@@ -114,150 +106,8 @@ public class BranchPredictionModule
 		// get statistics object and set btb config
 		stat = Statistics.getInstance();
 		stat.setBTBConfig(btb_size, btb_predictor);
-		
 	}
 
-	/**
-	 * Parses the branch predictor selection string of the configuration file and returns the result as BranchPredictorType
-	 * @param bp_type The string selecting the used branch predictor
-	 * @return The selected branch predictor as BranchPredictorType
-	 */
-	public static BranchPredictorType getBranchPredictorTypeFromString(String bp_type)
-	{
-		if(bp_type.compareTo(BranchPredictorType.S_ALWAYS_NOT_TAKEN.toString()) == 0)
-		{
-			return BranchPredictorType.S_ALWAYS_NOT_TAKEN;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.S_ALWAYS_TAKEN.toString()) == 0)
-		{
-			return BranchPredictorType.S_ALWAYS_TAKEN;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.S_BACKWARD_TAKEN.toString()) == 0)
-		{
-			return BranchPredictorType.S_BACKWARD_TAKEN;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.D_1BIT.toString()) == 0)
-		{
-			return BranchPredictorType.D_1BIT;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.D_2BIT_SATURATION.toString()) == 0)
-		{
-			return BranchPredictorType.D_2BIT_SATURATION;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.D_2BIT_HYSTERESIS.toString()) == 0)
-		{
-			return BranchPredictorType.D_2BIT_HYSTERESIS;
-		}
-		
-		return BranchPredictorType.UNKNOWN;
-	}
-	
-	
-	/**
-	 * Parses the branch predictor selection string of the gui options window and returns the result as BranchPredictorType
-	 * @param bp_type The string selecting the used branch predictor
-	 * @return The selected branch predictor as BranchPredictorType
-	 */
-	public static BranchPredictorType getBranchPredictorTypeFromGuiString(String bp_type)
-	{
-		if(bp_type.compareTo(BranchPredictorType.S_ALWAYS_NOT_TAKEN.toGuiString()) == 0)
-		{
-			return BranchPredictorType.S_ALWAYS_NOT_TAKEN;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.S_ALWAYS_TAKEN.toGuiString()) == 0)
-		{
-			return BranchPredictorType.S_ALWAYS_TAKEN;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.S_BACKWARD_TAKEN.toGuiString()) == 0)
-		{
-			return BranchPredictorType.S_BACKWARD_TAKEN;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.D_1BIT.toGuiString()) == 0)
-		{
-			return BranchPredictorType.D_1BIT;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.D_2BIT_SATURATION.toGuiString()) == 0)
-		{
-			return BranchPredictorType.D_2BIT_SATURATION;
-		}
-		else if(bp_type.compareTo(BranchPredictorType.D_2BIT_HYSTERESIS.toGuiString()) == 0)
-		{
-			return BranchPredictorType.D_2BIT_HYSTERESIS;
-		}
-		
-		return BranchPredictorType.UNKNOWN;
-	}
-	
-	/**
-	 * Parses the branch predictor initial state setting string of the configuration file and returns the result as BranchPredictorState
-	 * @param bp_initial_state The string selecting the initial branch predictor state
-	 * @return The initial branch predictor state as BranchPredictorState
-	 */
-	public static BranchPredictorState getBranchPredictorInitialStateFromString(String bp_initial_state)
-	{
-		if(bp_initial_state.compareTo(BranchPredictorState.PREDICT_NOT_TAKEN.toString())==0)
-		{
-			return BranchPredictorState.PREDICT_NOT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_TAKEN.toString())==0)
-		{
-			return BranchPredictorState.PREDICT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN.toString())==0)
-		{
-			return BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_STRONGLY_NOT_TAKEN.toString())==0)
-		{
-			return BranchPredictorState.PREDICT_STRONGLY_NOT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_WEAKLY_TAKEN.toString())==0)
-		{
-			return BranchPredictorState.PREDICT_WEAKLY_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_STRONGLY_TAKEN.toString())==0)
-		{
-			return BranchPredictorState.PREDICT_STRONGLY_TAKEN;
-		}
-		
-		return BranchPredictorState.UNKNOWN;
-	}
-	
-	/**
-	 * Parses the branch predictor initial state setting string of gui options window and returns the result as BranchPredictorState
-	 * @param bp_initial_state The string selecting the initial branch predictor state
-	 * @return The initial branch predictor state as BranchPredictorState
-	 */
-	public static BranchPredictorState getBranchPredictorInitialStateFromGuiString(String bp_initial_state)
-	{
-		if(bp_initial_state.compareTo(BranchPredictorState.PREDICT_NOT_TAKEN.toGuiString())==0)
-		{
-			return BranchPredictorState.PREDICT_NOT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_TAKEN.toGuiString())==0)
-		{
-			return BranchPredictorState.PREDICT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN.toGuiString())==0)
-		{
-			return BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_STRONGLY_NOT_TAKEN.toGuiString())==0)
-		{
-			return BranchPredictorState.PREDICT_STRONGLY_NOT_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_WEAKLY_TAKEN.toGuiString())==0)
-		{
-			return BranchPredictorState.PREDICT_WEAKLY_TAKEN;
-		}
-		else if (bp_initial_state.compareTo(BranchPredictorState.PREDICT_STRONGLY_TAKEN.toGuiString())==0)
-		{
-			return BranchPredictorState.PREDICT_STRONGLY_TAKEN;
-		}
-		
-		return BranchPredictorState.UNKNOWN;
-	}
-	
 	/**
 	 * Sets the input latch for the synchronous operation of the branch prediction module
 	 * @param executeBranchpredictionLatch The input latch containing all necessary information for the update part of the branch prediction (altering the predictors) 

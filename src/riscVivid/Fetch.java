@@ -107,7 +107,7 @@ public class Fetch {
 					+ " the branch was actually " + ((efd.getJump())
 					? ("taken to " + efd.getNewPc().getValueAsHexString())
 					: ("not taken next instr is " + new uint32(efd.getPc().getValue()+8).getValueAsHexString())));
-			if (ArchCfg.isa_type == ISAType.MIPS)
+			if (ArchCfg.getISAType() == ISAType.MIPS)
 			{
 				// according to the MIPS specification one instruction is executed in the branch delay
 				// slot, this instruction will be already in the execute stage (i.e. in the latch before the execute stage).
@@ -132,7 +132,7 @@ public class Fetch {
 		}
 
 		// flush branch delay slot on taken branch
-		if(efd.getInst().getBranch() && efd.getJump() && ArchCfg.no_branch_delay_slot)
+		if(efd.getInst().getBranch() && efd.getJump() && ArchCfg.ignoreBranchDelaySlots())
 		{
 			logger.debug("branch was taken, flushing branch delay slots");
 			flush[PipelineConstants.DECODE_STAGE] = true;
