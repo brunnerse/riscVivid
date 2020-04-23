@@ -38,6 +38,9 @@ public class RegisterSet
 	private uint32 HI;
 	private uint32 LO;
 
+	private boolean isRegisterInitialized[] = new boolean[register_count];
+	private uint8 lastRegisterReadUninitialized = null;
+
 	public RegisterSet()
 	{
 		gp_registers = new uint32[register_count];
@@ -50,6 +53,18 @@ public class RegisterSet
 	{
 		return new uint32(gp_registers[reg.getValue()].getValue());
 	}
+	public uint32 read(uint8 reg, boolean checkInit) {
+		if (checkInit && !isRegisterInitialized[reg.getValue()])
+			lastRegisterReadUninitialized = reg;
+		return read(reg);
+	}
+
+	public void write(uint8 reg, uint32 value, boolean setInitialized) {
+		boolean previous = isRegisterInitialized[reg.getValue()];
+		write(reg, value);
+		if (!setInitialized)
+			isRegisterInitialized[reg.getValue()] = previous;
+	}
 
 	public void write(uint8 reg, uint32 value)
 	{
@@ -60,6 +75,7 @@ public class RegisterSet
 		else
 		{
 			gp_registers[reg.getValue()].setValue(value);
+			isRegisterInitialized[reg.getValue()] = true;
 		}
 	}
 	
@@ -112,6 +128,7 @@ public class RegisterSet
         // Initialize zero register with 0
         int zeroIndex = Registers.instance().getInteger("zero"); 
         gp_registers[zeroIndex] = new uint32(0);
+        isRegisterInitialized[zeroIndex] = true;
 	}
 
 	public void printContent()
@@ -131,9 +148,22 @@ public class RegisterSet
 		return ArchCfg.getRegisterDescription(reg.getValue());
 	}
 
+	public int getRegisterCount() {
+		return this.register_count;
+	}
+
 	public void setStackPointer(uint32 sp)
 	{
 		int spIndex = Registers.instance().getInteger("sp");
 		gp_registers[spIndex] = sp;
+	}
+
+	public boolean isRegisterInitialized(uint8 reg) {
+		return isRegisterInitialized[reg.getValue()];
+	}
+	public uint8 popLastRegisterReadUninitialized() {
+		uint8 reg = this.lastRegisterReadUninitialized;
+		this.lastRegisterReadUninitialized = null;
+		return reg;
 	}
 }

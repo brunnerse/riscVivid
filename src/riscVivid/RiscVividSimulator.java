@@ -53,10 +53,7 @@ import riscVivid.datatypes.WriteBackData;
 import riscVivid.datatypes.WritebackOutputData;
 import riscVivid.datatypes.uint32;
 import riscVivid.datatypes.uint8;
-import riscVivid.exception.DecodeStageException;
-import riscVivid.exception.MemoryException;
-import riscVivid.exception.PipelineException;
-import riscVivid.exception.UnreservedMemoryAccessException;
+import riscVivid.exception.*;
 import riscVivid.exception.UnreservedMemoryAccessException.Area;
 import riscVivid.gui.GUI_CONST;
 import riscVivid.gui.Preference;
@@ -260,6 +257,9 @@ public class RiscVividSimulator
         if (pipeline.getLastException() != null) {
             if (pipeline.getLastException() instanceof UnreservedMemoryAccessException &&
                     !Preference.isMemoryWarningsEnabled()) {
+                // don't throw
+            } else if (pipeline.getLastException() instanceof UninitializedRegisterException &&
+                    !Preference.isInitializationWarningsEnabled()) {
                 // don't throw
             } else {
                 throw pipeline.popLastException();
@@ -470,11 +470,15 @@ public class RiscVividSimulator
         }
         
         // check for nonfatal exceptions in the pipeline; if multiple exceptions occured, prioritize the one from the later stage
-        if (mod.hasExceptionOccured()) {
-            UnreservedMemoryAccessException ex = (UnreservedMemoryAccessException)mod.getException();
+        if (wod.hasExceptionOccured()) {
+            pipeline.setLastException(wod.getException());
+        } else if (mod.hasExceptionOccured()) {
+            UnreservedMemoryAccessException ex = (UnreservedMemoryAccessException) mod.getException();
             ex.setArea(pipeline.getInstructionMemory().isReserved(ex.getAddress(), ex.getNBytes()) ?
                     Area.INSTRUCTION : Area.NONE);
             pipeline.setLastException(ex);
+        } else if (dod.hasExceptionOccured()) {
+            pipeline.setLastException(dod.getException());
         } else if (fod.hasExceptionOccured()) {
             UnreservedMemoryAccessException ex = (UnreservedMemoryAccessException)fod.getException();
             // only set exception if fetch reads from data memory, as fetch could read memory behind the last instruction

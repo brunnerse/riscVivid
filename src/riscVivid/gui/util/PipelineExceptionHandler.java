@@ -21,11 +21,19 @@
 package riscVivid.gui.util;
 
 import riscVivid.RiscVividSimulator;
+import riscVivid.datatypes.uint32;
 import riscVivid.exception.DecodeStageException;
 import riscVivid.exception.PipelineException;
 import riscVivid.exception.UnknownInstructionException;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.MainFrame;
+import riscVivid.gui.command.systemLevel.CommandUpdateFrames;
+import riscVivid.gui.internalframes.concreteframes.ClockCycleFrame;
+import riscVivid.gui.internalframes.concreteframes.CodeFrame;
+
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 
 public class PipelineExceptionHandler {
 	
@@ -64,6 +72,26 @@ public class PipelineExceptionHandler {
 			// TODO: better set to an error state?
 			if (mf.getOpenDLXSimState() != OpenDLXSimState.IDLE)
 				mf.setOpenDLXSimState(OpenDLXSimState.EXECUTING);
+		}
+		if (e.getInstructionAddress() != null) {
+			uint32 addr = e.getInstructionAddress();
+			for (JInternalFrame frame : mf.getinternalFrames()) {
+				if (frame instanceof ClockCycleFrame) {
+				    final ClockCycleFrame ccf = (ClockCycleFrame) frame;
+					try {
+						EventQueue.invokeAndWait(new Runnable() {
+							public void run() {
+								ccf.update();
+							}
+						});
+						ccf.selectLine(addr);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				} else if (frame instanceof CodeFrame) {
+					((CodeFrame)frame).selectLine(addr);
+				}
+			}
 		}
 	}
 

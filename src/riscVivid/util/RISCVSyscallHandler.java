@@ -110,15 +110,15 @@ public class RISCVSyscallHandler {
 		int i;
 		
 		int a0, a1, a2, a3;
-		int a7 = reg_set.read(A7).getValue();
+		int a7 = reg_set.read(A7, true).getValue();
 		
 		try {
 		switch(a7)
 		{
 		case 63: // read (fd, buf, len)
-		    a0 = reg_set.read(A0).getValue();
-		    a1 = reg_set.read(A1).getValue();
-		    a2 = reg_set.read(A2).getValue();
+		    a0 = reg_set.read(A0, true).getValue();
+		    a1 = reg_set.read(A1, true).getValue();
+		    a2 = reg_set.read(A2, true).getValue();
 		    
 			if (a0 != 0) {
 				logger.warn("Syscall 63: Reading only supported from stdin (a0==0)");
@@ -146,10 +146,10 @@ public class RISCVSyscallHandler {
 			break;
 		
 		case 64: // write(fd, buf, len)
-		    a0 = reg_set.read(A0).getValue();
-            a1 = reg_set.read(A1).getValue();
-            a2 = reg_set.read(A2).getValue();
-	            
+			a0 = reg_set.read(A0, true).getValue();
+            a1 = reg_set.read(A1, true).getValue();
+            a2 = reg_set.read(A2, true).getValue();
+
 			if (a0 != 1) {
 				logger.warn("Syscall 64: Writing only supported to stdout (a0==1)");
 				break;
@@ -164,9 +164,9 @@ public class RISCVSyscallHandler {
 			break;
 			
 		case 93: // exit
-		    a0 = reg_set.read(A0).getValue();
+		    a0 = reg_set.read(A0, true).getValue();
 		    this.lastExitCode = a0;
-			logger.info("Exit programm with exit code " + a0);
+			logger.info("Exit program with exit code " + a0);
 			return true;
 		default:
 			logger.warn("Unknown Syscall: " + a7);

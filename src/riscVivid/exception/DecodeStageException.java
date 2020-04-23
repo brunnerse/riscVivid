@@ -21,9 +21,14 @@
 package riscVivid.exception;
 
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class DecodeStageException extends PipelineException {
 
+	public DecodeStageException(String message, uint32 instrAddress) {
+		super(message, instrAddress);
+	}
 	public DecodeStageException(String message) {
 		super(message);
 	}

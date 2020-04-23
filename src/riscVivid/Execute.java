@@ -372,8 +372,14 @@ public class Execute
 		}
 
 		// ALU OPERATION BEGIN
-		uint32[] alu_out = alu.doOperation(inst.getALUFunction(),
-				alu_in_a, alu_in_b);
+		uint32[] alu_out;
+		try {
+			alu_out = alu.doOperation(inst.getALUFunction(),
+					alu_in_a, alu_in_b);
+		} catch (PipelineException e) {
+			e.setInstructionAddress(pc);
+			throw e;
+		}
 		uint32 alu_outLO = alu_out[0];
 		// uint32 alu_outHI = alu_out[1];
 

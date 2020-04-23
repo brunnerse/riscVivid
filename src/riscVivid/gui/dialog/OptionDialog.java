@@ -48,6 +48,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
     private JCheckBox mipsCompatibilityCheckBox;
     private JCheckBox noBranchDelaySlotCheckBox;
     private JCheckBox memoryWarningCheckBox;
+    private JCheckBox initializationWarningCheckBox;
     /*
      * JComboBox may be represented by Vectors or Arrays of Objects (Object [])
      * we have chosen "String[]" to be the representation (in fact - String) for
@@ -112,6 +113,9 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         memoryWarningCheckBox = new JCheckBox("Enable unreserved memory warnings");
         memoryWarningCheckBox.setSelected(Preference.isMemoryWarningsEnabled());
+
+        initializationWarningCheckBox = new JCheckBox("Enable warnings for reading uninitialized registers");
+        initializationWarningCheckBox.setSelected(Preference.isInitializationWarningsEnabled());
         /*create a JComboBoxes
          *
          * JComboBox need a Object[] or Vector as data representation
@@ -223,7 +227,8 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         //dont forget adding the components to the panel !!!
         for (JComponent c : new JComponent[]{forwardingCheckBox, noBranchDelaySlotCheckBox, mipsCompatibilityCheckBox,
-                memoryWarningCheckBox, // bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again if branch prediction works correctly
+                memoryWarningCheckBox, initializationWarningCheckBox,
+                // bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again when branch prediction works correctly
                 maxCyclesTextFieldPanel, initRegisterPanel, initMemoryPanel, branchDelaySlotsPanel})
         {
             optionPanel.add(c);
@@ -257,6 +262,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
         //just close the dialog
         if (e.getSource().equals(cancel))
         {
@@ -278,6 +284,8 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
                     mipsCompatibilityCheckBox.isSelected() && forwardingCheckBox.isSelected());
             Preference.pref.putBoolean(Preference.enableMemoryWarningsPreferenceKey,
                     memoryWarningCheckBox.isSelected());
+            Preference.pref.putBoolean(Preference.enableInitializationWarningsPreferenceKey,
+                    initializationWarningCheckBox.isSelected());
 
             boolean no_branch_delay_slot, use_load_stall_bubble, use_forwarding;
 
