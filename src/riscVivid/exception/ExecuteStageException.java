@@ -21,10 +21,15 @@
 package riscVivid.exception;
 
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class ExecuteStageException extends PipelineException {
 
 	public ExecuteStageException(String message) {
-		super(message);
+			super(message);
+	}
+	public ExecuteStageException(String message, uint32 instrAddress) {
+		super(message, instrAddress);
 	}
 }

@@ -21,10 +21,12 @@
 package riscVivid.exception;
 
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class ALUException extends PipelineException {
 
-	public ALUException(String message) {
-		super(message);
+	public ALUException(String message, uint32 instrAddress) {
+		super(message, instrAddress);
 	}
 }

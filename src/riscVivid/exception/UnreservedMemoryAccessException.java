@@ -18,8 +18,8 @@ public class UnreservedMemoryAccessException extends MemoryException {
    private Area area = Area.NONE;
    private Stage stage;
 
-    public UnreservedMemoryAccessException(uint32 address, int nBytes, Stage stage) {
-        super("", false); // nonfatal exception
+    public UnreservedMemoryAccessException(uint32 address, int nBytes, Stage stage, uint32 instrAddress) {
+        super("", instrAddress, false); // nonfatal exception
         this.address = address;
         this.nBytes = nBytes;
         this.stage = stage;

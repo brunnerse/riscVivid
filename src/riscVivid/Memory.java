@@ -96,7 +96,7 @@ public class Memory
 					break;
 				default:
 					logger.error("wrong memory width: " + inst.getMemoryWidth()); 
-					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth());
+					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth(), pc);
 				}
 				logger.debug("PC: " + pc.getValueAsHexString() 
 						+ " load from addr: " + alu_outLO.getValueAsHexString() 
@@ -141,7 +141,7 @@ public class Memory
 						logger.warn("Verify operation of SWR (0)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (0)!");
+							throw new MemoryStageException("Verify operation of SWR (0)!", pc);
 						}
 						break;
 					case 1:
@@ -152,7 +152,7 @@ public class Memory
 						logger.warn("Verify operation of SWR (1)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (1)!");
+							throw new MemoryStageException("Verify operation of SWR (1)!", pc);
 						}
 						break;
 					case 2:
@@ -162,7 +162,7 @@ public class Memory
 						logger.warn("Verify operation of SWR (3)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (2)!");
+							throw new MemoryStageException("Verify operation of SWR (2)!", pc);
 						}
 						break;
 					case 3:
@@ -171,7 +171,7 @@ public class Memory
 						logger.warn("Verify operation of SWR (3)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (3)!");
+							throw new MemoryStageException("Verify operation of SWR (3)!", pc);
 						}
 						break;
 					}
@@ -186,7 +186,7 @@ public class Memory
 						logger.warn("Verify operation of SWL (0)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (0)!");
+							throw new MemoryStageException("Verify operation of SWR (0)!", pc);
 						}
 						break;
 					case 1:
@@ -196,7 +196,7 @@ public class Memory
 						logger.warn("Verify operation of SWL (1)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (1)!");
+							throw new MemoryStageException("Verify operation of SWR (1)!", pc);
 						}
 						break;
 					case 2:
@@ -207,7 +207,7 @@ public class Memory
 						logger.warn("Verify operation of SWL (2)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (2)!");
+							throw new MemoryStageException("Verify operation of SWR (2)!", pc);
 						}
 						break;
 					case 3:
@@ -216,7 +216,7 @@ public class Memory
 						logger.warn("Verify operation of SWL (3)!");
 						if(throwExceptionForUntestedAccesses)
 						{
-							throw new MemoryStageException("Verify operation of SWR (2)!");
+							throw new MemoryStageException("Verify operation of SWR (2)!", pc);
 						}
 						break;
 					}
@@ -224,7 +224,7 @@ public class Memory
 */
 					default:
 					logger.error("Wrong memory width: " + inst.getMemoryWidth());
-					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth());
+					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth(), pc);
 				}
 				stat.countMemWrite();
 			}
@@ -243,7 +243,7 @@ public class Memory
 			uint32 addr = alu_outLO;
 			int byteLen = inst.getMemoryWidth().getByteWidth();
 			if (!dmem.isReserved(addr,  byteLen))
-				 memEx = new UnreservedMemoryAccessException(addr, byteLen, UnreservedMemoryAccessException.Stage.MEMORY);
+				 memEx = new UnreservedMemoryAccessException(addr, byteLen, UnreservedMemoryAccessException.Stage.MEMORY, pc);
 		}
 
 		MemoryWritebackData mwd = new MemoryWritebackData(inst, pc, alu_out, new uint32((int)lv), jump);

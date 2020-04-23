@@ -43,7 +43,11 @@ public class CommandSimulatorFinishedInfo implements Command
         	
         			
         } else {
-        	DialogWrapper.showMessageDialog(mf, "Simulator finished with code " + sim.getExitCode());
+            if (sim.getExitCode() == null) { // simulator stopped because of an error
+               DialogWrapper.showErrorDialog(mf, "Simulator finished because a runtime error occured");
+            } else {
+                DialogWrapper.showMessageDialog(mf, "Simulator finished with code " + sim.getExitCode());
+            }
         }
     }
 

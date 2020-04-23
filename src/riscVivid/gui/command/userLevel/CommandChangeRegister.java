@@ -53,7 +53,7 @@ public class CommandChangeRegister implements Command
                 Integer value = ValueInput.getValue("change register value: ",0);
                 if (value != null)
                 {
-                    openDLXSim.getPipeline().getRegisterSet().write(new uint8(row), new uint32(value));
+                    openDLXSim.getPipeline().getRegisterSet().write(new uint8(row), new uint32(value), false);
                     new CommandUpdateFrames(mf).execute();
                 }
             }

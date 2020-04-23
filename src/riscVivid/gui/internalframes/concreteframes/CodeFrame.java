@@ -28,6 +28,7 @@ import javax.swing.table.TableModel;
 
 import riscVivid.PipelineContainer;
 import riscVivid.RiscVividSimulator;
+import riscVivid.datatypes.uint32;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
@@ -57,6 +58,8 @@ public final class CodeFrame extends OpenDLXSimInternalFrame
     @Override
     public void update()
     {
+        int[] selectedRows = codeTable.getSelectedRows();
+
         final PipelineContainer pipeline = openDLXSim.getPipeline();
         IFValue = pipeline.getFetchDecodeLatch().element().getPc().getValueAsHexString();
         IDValue = pipeline.getDecodeExecuteLatch().element().getPc().getValueAsHexString();
@@ -88,6 +91,8 @@ public final class CodeFrame extends OpenDLXSimInternalFrame
 
             model.setValueAt(addr, row, 0);
         }
+        for (int row : selectedRows)
+            codeTable.addRowSelectionInterval(row, row);
     }
 
     @Override
@@ -119,6 +124,23 @@ public final class CodeFrame extends OpenDLXSimInternalFrame
     {
         setVisible(false);
         dispose();
+    }
+
+    public void selectLine(uint32 address) {
+        TableModel model = codeTable.getModel();
+
+        // find line with that address; reverse search to find the most recent execution of the command
+        int row = -1;
+        for (int i = model.getRowCount() - 1; i >= 0; --i) {
+           if (((String)model.getValueAt(i, 0)).contains(address.getValueAsHexString())) {
+               row = i;
+               break;
+           }
+        }
+        if (row >= 0) {
+            codeTable.clearSelection();
+            codeTable.setRowSelectionInterval(row, row);
+        }
     }
 
     @Override

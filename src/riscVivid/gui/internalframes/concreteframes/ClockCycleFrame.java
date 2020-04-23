@@ -33,6 +33,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 import riscVivid.PipelineConstants;
 import riscVivid.RiscVividSimulator;
@@ -206,7 +207,7 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     @Override
     public void update()
     {
-
+        int[] addrSelectedRows = codeTable.getSelectedRows();
         //clear table
         addrModel.setRowCount(0);
         codeModel.setRowCount(0);
@@ -270,6 +271,12 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         codeTable.scrollRectToVisible(codeTable.getCellRect(table.getRowCount() - 1, 0, true));
         addrTable.scrollRectToVisible(addrTable.getCellRect(addrTable.getRowCount() - 1, 0, true));
 
+        // restore selected rows
+        for (int row : addrSelectedRows) {
+            codeTable.addRowSelectionInterval(row, row);
+            addrTable.addRowSelectionInterval(row, row);
+            table.addRowSelectionInterval(row, row);
+        }
     }
 
     @Override
@@ -277,6 +284,26 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     {
         setVisible(false);
         dispose();
+    }
+
+    public void selectLine(uint32 address) {
+        TableModel model = addrTable.getModel();
+        // find line with that address; reverse search to find the most recent execution of the command
+        int row = -1;
+        for (int i = model.getRowCount() - 1; i >= 0; --i) {
+            if (model.getValueAt(i, 0).equals(address.getValueAsHexString())) {
+                row = i;
+                break;
+            }
+        }
+        if (row >= 0) {
+            codeTable.clearSelection();
+            addrTable.clearSelection();
+            table.clearSelection();
+            codeTable.setRowSelectionInterval(row, row);
+            addrTable.setRowSelectionInterval(row, row);
+            table.setRowSelectionInterval(row, row);
+        }
     }
 
     @Override

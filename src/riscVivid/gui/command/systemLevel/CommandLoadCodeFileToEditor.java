@@ -29,6 +29,8 @@ import riscVivid.gui.command.Command;
 import riscVivid.gui.util.DialogWrapper;
 import riscVivid.util.CodeLoader;
 
+import static riscVivid.gui.GUI_CONST.OpenDLXSimState.IDLE;
+
 /**
  * if the command fails to load the file to the editor,
  * the command does the error handling (including an error message to the user) itself.
@@ -68,6 +70,8 @@ public class CommandLoadCodeFileToEditor implements Command
             mf.setEditorText(text);
             if (clean)
             	mf.setEditorSavedState();
+            if (mf.getOpenDLXSimState() != IDLE)
+                new CommandResetSimulator(mf).execute();
         }
         catch (FileNotFoundException e) {
             System.err.println(e.toString());

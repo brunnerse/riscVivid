@@ -27,6 +27,8 @@ import org.apache.log4j.Logger;
 
 import riscVivid.asm.instruction.Registers;
 import riscVivid.datatypes.*;
+import riscVivid.exception.PipelineException;
+import riscVivid.exception.UninitializedRegisterException;
 import riscVivid.util.RISCVSyscallHandler;
 import riscVivid.util.Statistics;
 
@@ -145,6 +147,7 @@ public class WriteBack
 			}
 		}
 
+		PipelineException wbException = null;
 		
 		if((inst.getOpNormal() == OpcodeNORMAL.SPECIAL) && (inst.getOpSpecial() == OpcodeSPECIAL.BREAK)) {
 			logger.info("Caught SBREAK instruction - finishing simulation.");
@@ -152,6 +155,9 @@ public class WriteBack
 		} else if(isSyscall(inst)) {
 			interrupt_occured = true;
 			caught_break = RISCVSyscallHandler.getInstance().doSyscall(reg_set);
+			uint8 regNotInitialized = reg_set.popLastRegisterReadUninitialized();
+			if (regNotInitialized != null)
+				wbException = new UninitializedRegisterException(regNotInitialized, pc);
 		}
 		
 		if (regWrite)
@@ -168,7 +174,7 @@ public class WriteBack
 		
 		WriteBackData wbd = new WriteBackData(inst, pc, alu_out, ld_result);
 		
-		return new WritebackOutputData(wbd, caught_break, interrupt_occured);
+		return new WritebackOutputData(wbd, caught_break, interrupt_occured, wbException);
 
 	}
 	

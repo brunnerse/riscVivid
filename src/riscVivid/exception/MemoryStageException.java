@@ -21,10 +21,12 @@
 package riscVivid.exception;
 
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class MemoryStageException extends PipelineException {
 
-	public MemoryStageException(String message) {
-		super(message);
+	public MemoryStageException(String message, uint32 instrAddress) {
+		super(message, instrAddress);
 	}
 }

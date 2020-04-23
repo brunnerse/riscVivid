@@ -22,7 +22,10 @@ package riscVivid.gui.command.userLevel;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.command.systemLevel.CommandResetSimulator;
 import riscVivid.gui.util.DialogWrapper;
+
+import static riscVivid.gui.GUI_CONST.OpenDLXSimState.IDLE;
 
 public class CommandNewFile implements Command
 {
@@ -44,12 +47,13 @@ public class CommandNewFile implements Command
             		return;
             	}
             }
-
+            if (mf.getOpenDLXSimState() != IDLE)
+                new CommandResetSimulator(mf).execute();
+            mf.setEditorText("");
+            mf.setEditorSavedState();
+            mf.setLoadedCodeFilePath("");
+            mf.setEditorFrameVisible();
         }
-        mf.setEditorText("");
-        mf.setEditorSavedState();
-        mf.setLoadedCodeFilePath("");
-        mf.setEditorFrameVisible();
     }
 
 }

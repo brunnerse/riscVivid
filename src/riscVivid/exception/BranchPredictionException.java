@@ -21,6 +21,8 @@
 package riscVivid.exception;
 
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class BranchPredictionException extends PipelineException {
 

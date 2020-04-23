@@ -62,17 +62,17 @@ public class CodeTableFactory extends TableFactory
         table.setDefaultRenderer(Object.class, new CodeFrameTableCellRenderer());
 
         //insert code
-        int start;
-        if (!openDLXSim.getConfig().containsKey("text_begin"))
+        int start, end;
+        if (openDLXSim.getConfig().containsKey("text_begin_0"))
+            start = stringToInt(openDLXSim.getConfig().getProperty("text_begin_0"));
+        else
             start = openDLXSim.getPipeline().getFetchStage().getPc().getValue();
-        else
-            start = stringToInt(openDLXSim.getConfig().getProperty("text_begin"));
 
-        int end = openDLXSim.getSimCycles();
-        if (!openDLXSim.getConfig().containsKey("text_end"))
-            end = start + 4 * openDLXSim.getSimCycles();
-        else
-            end = stringToInt(openDLXSim.getConfig().getProperty("text_end"));
+        int lastTextIdx = 0;
+        while (openDLXSim.getConfig().containsKey("text_end_"+(lastTextIdx+1)))
+           lastTextIdx++;
+        end = stringToInt(openDLXSim.getConfig().getProperty("text_end_"+lastTextIdx,
+                    String.valueOf(start + 4 * openDLXSim.getSimCycles())));
 
         DLXAssembler asm = new DLXAssembler();
         try
@@ -84,8 +84,8 @@ public class CodeTableFactory extends TableFactory
 
                 model.addRow(new Object[]
                         {
-                            addr,
-                            inst,
+                            addr.getValueAsHexString(),
+                            inst.getValueAsHexString(),
                             asm.Instr2Str(addr.getValue(), inst.getValue())
                         });
             }

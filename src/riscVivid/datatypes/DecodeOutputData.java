@@ -20,20 +20,33 @@
  ******************************************************************************/
 package riscVivid.datatypes;
 
-public class DecodeOutputData
-{
+import riscVivid.exception.PipelineException;
+
+public class DecodeOutputData {
 	// synchronous output
 	private DecodeExecuteData ded; // to execute stage
-	
+	private PipelineException pe = null;
+
 	// asynchronous output
-	
-	public DecodeOutputData(DecodeExecuteData ded)
-	{
+
+	public DecodeOutputData(DecodeExecuteData ded) {
 		this.ded = ded;
 	}
 
-	public DecodeExecuteData getDed()
-	{
+	public DecodeOutputData(DecodeExecuteData ded, PipelineException idEx) {
+		this(ded);
+		this.pe = idEx;
+	}
+
+	public DecodeExecuteData getDed() {
 		return ded;
+	}
+
+	public boolean hasExceptionOccured() {
+		return pe != null;
+	}
+
+	public PipelineException getException() {
+		return pe;
 	}
 }

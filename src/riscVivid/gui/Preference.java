@@ -49,6 +49,7 @@ public class Preference
     public static final String showInitializeOptionMessage = "showinitoptionmessage";
     public static final String displayRegistersAsHex = "displayRegistersAsHex";
     public static final String enableMemoryWarningsPreferenceKey = "enableMemoryWarnings";
+    public static final String enableInitializationWarningsPreferenceKey = "enableInitializationWarnings";
 
 
     public static String getSaveFileChooserPath() {
@@ -71,6 +72,9 @@ public class Preference
 
     public static boolean isMemoryWarningsEnabled() {
         return Preference.pref.getBoolean(enableMemoryWarningsPreferenceKey, true);
+    }
+    public static boolean isInitializationWarningsEnabled() {
+        return Preference.pref.getBoolean(enableInitializationWarningsPreferenceKey, true);
     }
     // TODO: Also move all configuration stuff into this file.
 }

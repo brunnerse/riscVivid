@@ -21,10 +21,16 @@
 package riscVivid.exception;
 
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class UnknownInstructionException extends DecodeStageException {
 
-	public UnknownInstructionException(String message) 
+	public UnknownInstructionException(String message, uint32 instrAddress)
+	{
+		super(message, instrAddress);
+	}
+	public UnknownInstructionException(String message)
 	{
 		super(message);
 	}
