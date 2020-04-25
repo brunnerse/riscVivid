@@ -22,7 +22,7 @@ package riscVivid.gui.command.userLevel;
 
 import java.util.prefs.BackingStoreException;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
@@ -47,6 +47,13 @@ public class CommandClearAllPreferences implements Command
                 Preference.pref.clear();
                 MainFrame mf = MainFrame.getInstance();
                 new CommandResetSimulator(mf).execute();
+                // set metal LookAndFeel if it is installed
+                for (UIManager.LookAndFeelInfo laf: UIManager.getInstalledLookAndFeels()) {
+                    if (laf.getClassName().contains("Metal")) {
+                        new CommandSetLaF(laf.getClassName()).execute();
+                        break;
+                    }
+                }
                 EditorFrame.getInstance(mf).resetLocationAndSize();
                 // reset font size
                 CommandChangeFontSize.setFontSize(Preference.getFontSize());

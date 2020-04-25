@@ -26,6 +26,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import riscVivid.gui.command.userLevel.CommandChangeFontSize;
+import riscVivid.gui.command.userLevel.CommandSetLaF;
 import riscVivid.gui.util.MWheelFontSizeChanger;
 
 public class RiscVividSimGui
@@ -33,11 +34,17 @@ public class RiscVividSimGui
 
     public static void riscVividGui_main()
     {
-        //set default
+        //set the Metal LookAndFeel as default if it exists, otherwise use the system default
         String lafClassName = UIManager.getLookAndFeel().getClass().getCanonicalName();
+        for (UIManager.LookAndFeelInfo lafInfo : UIManager.getInstalledLookAndFeels()) {
+            if (lafInfo.getClassName().contains("Metal")) {
+                lafClassName = lafInfo.getClassName();
+                break;
+            }
+        }
         //get user preference
         lafClassName = Preference.pref.get(Preference.lookAndFeel, lafClassName);
-        
+
         try {
             // check if the lafClassName is valid, 
             // since it could be the case that the preferences file contains an invalid class

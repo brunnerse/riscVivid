@@ -28,6 +28,7 @@ import javax.swing.filechooser.FileFilter;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
+import riscVivid.gui.util.DialogWrapper;
 
 public class FileSaver
 {
@@ -51,7 +52,8 @@ public class FileSaver
                 // Ask for overwrite if file exists and the chosen file isn't the loaded file
                 if (f.exists() && !f.getAbsolutePath().equals(MainFrame.getInstance().getLoadedCodeFilePath()))
                 {
-                    int result = JOptionPane.showConfirmDialog(this, "The file exists, overwrite?", "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+                    int result = DialogWrapper.showConfirmDialog(this, "The file exists, overwrite?",
+                            "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
                     switch (result)
                     {
                         case JOptionPane.YES_OPTION:

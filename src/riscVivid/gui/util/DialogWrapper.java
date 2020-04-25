@@ -70,7 +70,7 @@ public final class DialogWrapper {
 	public static int showConfirmDialog(Component parent, String message, int optionType) {
         return showConfirmDialog(parent, message, null, optionType);
     }
-	
+
 	public static String showInputDialog(String message, String title, Object defaultVal) {
         return JOptionPane.showInputDialog(generateLabel(message), message, defaultVal);
     }

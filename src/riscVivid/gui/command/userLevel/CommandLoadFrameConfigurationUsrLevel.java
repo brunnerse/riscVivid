@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandLoadFrameConfigurationSysLevel;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandLoadFrameConfigurationUsrLevel implements Command
 {
@@ -39,8 +40,8 @@ public class CommandLoadFrameConfigurationUsrLevel implements Command
     @Override
     public void execute()
     {
-        if (!mf.isRunning() && (JOptionPane.showConfirmDialog(mf,
-                "Current window configuration will be lost. Proceed?")) ==
+        if (!mf.isRunning() && DialogWrapper.showConfirmDialog(mf,
+                "Current window configuration will be lost. Proceed?", JOptionPane.YES_NO_OPTION) ==
                 JOptionPane.YES_OPTION)
         {
             try
@@ -51,7 +52,7 @@ public class CommandLoadFrameConfigurationUsrLevel implements Command
             {
                 System.err.println(e.toString());
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(mf, "loading frame preferences failed");
+                DialogWrapper.showMessageDialog(mf, "loading frame preferences failed");
             }
         }
 

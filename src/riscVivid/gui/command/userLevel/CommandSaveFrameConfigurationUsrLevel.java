@@ -40,9 +40,9 @@ public class CommandSaveFrameConfigurationUsrLevel implements Command
     @Override
     public void execute()
     {
-        if (!mf.isRunning() && (JOptionPane.showConfirmDialog(mf,
-                "Saving current window configuration will overwrite old configuration. Proceed ?")) ==
-                JOptionPane.YES_OPTION)
+        if (!mf.isRunning() && DialogWrapper.showConfirmDialog(mf,
+                "Saving current window configuration will overwrite old configuration. Proceed ?",
+                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
         {
             try
             {
