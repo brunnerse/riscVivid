@@ -60,8 +60,6 @@ import riscVivid.util.TrapObservableDefault;
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame implements ActionListener, ItemListener
 {
-    public static final int RUN_SPEED_DEFAULT = 16;
-
     // MainFrame is a Singleton.
     // hence it has a private constructor
     private static final MainFrame mf = new MainFrame();
@@ -74,8 +72,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private EditorFrame editor;
     private JDesktopPane desktop;
     private boolean updateAllowed = true;
-    private int runSpeed = RUN_SPEED_DEFAULT;
-    private boolean pause = false;
     private OpenDLXSimState state = OpenDLXSimState.IDLE;
     private File configFile;
     private JMenuBar menuBar;
@@ -269,16 +265,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     	editor.setVisible(true);
     }
     
-    public void setRunSpeed(int speed)
-    {
-        this.runSpeed = speed;
-    }
-
-    public int getRunSpeed()
-    {
-        return runSpeed;
-    }
-
     public File getConfigFile()
     {
         return configFile;
@@ -287,16 +273,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     public void setConfigFile(File configFile)
     {
         this.configFile = configFile;
-    }
-
-    public boolean isPause()
-    {
-        return pause;
-    }
-
-    public void setPause(boolean pause)
-    {
-        this.pause = pause;
     }
 
     public PipelineExceptionHandler getPipelineExceptionHandler()

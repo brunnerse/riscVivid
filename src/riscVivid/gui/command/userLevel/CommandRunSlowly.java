@@ -40,8 +40,7 @@ public class CommandRunSlowly implements Command
     { //check if state is executing and check if the current riscVivid has finished (when it has finished ->updates are no longer allowed)
         if (mf.isExecuting() && mf.isUpdateAllowed())
         {
-            new Thread(new ThreadCommandRunSlowly(mf)).start();
-            new Player(mf);
+            new Thread(new ThreadCommandRunSlowly(mf, new Player(mf))).start();
         }
     }
 

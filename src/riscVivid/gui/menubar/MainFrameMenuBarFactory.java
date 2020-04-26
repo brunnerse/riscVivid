@@ -111,7 +111,7 @@ public class MainFrameMenuBarFactory
     private static final String STRING_MENU_SIMULATOR_DO_CYCLE = "Do Cycle";
     private static final String STRING_MENU_SIMULATOR_DO_X_CYCLES = "Do X Cycles";
     private static final String STRING_MENU_SIMULATOR_RUN_TO = "Run to Address X";
-    private static final String STRING_MENU_SIMULATOR_RUN_TO_BREAKPOINT = "Run to next Breakpoint";
+    private static final String STRING_MENU_SIMULATOR_RUN_TO_NEXT_BREAKPOINT = "Run to next Breakpoint";
     private static final String STRING_MENU_SIMULATOR_RESTART = "Restart Program";
     private static final String STRING_MENU_SIMULATOR_OPTIONS = "Options";
     private static final String STRING_MENU_SIMULATOR_ENABLE_MEM_WARNINGS = "Enable memory warnings";
@@ -222,7 +222,7 @@ public class MainFrameMenuBarFactory
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_DO_CYCLE, KEY_MENU_SIMULATOR_DO_CYCLE, StateValidator.executingStates, new CommandDoCycle(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_DO_X_CYCLES, KEY_MENU_SIMULATOR_DO_X_CYCLES, StateValidator.executingStates, new CommandDoXCycles(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RUN_TO, KEY_MENU_SIMULATOR_RUN_TO, StateValidator.executingStates, new CommandRunToAddressX(mf));
-        addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RUN_TO_BREAKPOINT, KEY_MENU_SIMULATOR_RUN_TO_BREAKPOINT, StateValidator.executingStates, new CommandRunToNextBreakpoint(mf));
+        addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RUN_TO_NEXT_BREAKPOINT, KEY_MENU_SIMULATOR_RUN_TO_BREAKPOINT, StateValidator.executingStates, new CommandRunToNextBreakpoint(mf));
         addMenuItem(simulatorMenu, STRING_MENU_SIMULATOR_RESTART, KEY_MENU_SIMULATOR_RESTART, StateValidator.executingStates, new CommandResetCurrentProgram(mf));
 
         /*

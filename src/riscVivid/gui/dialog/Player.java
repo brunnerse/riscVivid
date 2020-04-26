@@ -20,20 +20,25 @@
  ******************************************************************************/
 package riscVivid.gui.dialog;
 
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.MainFrame;
+import riscVivid.gui.Preference;
 
 @SuppressWarnings("serial")
-public class Player extends JDialog implements ActionListener
+public class Player extends JDialog implements ActionListener, KeyEventDispatcher
 {
+
+    private static final int RUN_SPEED_DEFAULT = 16;
+    private int runSpeed = RUN_SPEED_DEFAULT;
+    private boolean isPaused = false;
+
     private JButton play, pause, stop, times1, times2, times4, times8, times16;
 
     public Player(JFrame f)
@@ -68,8 +73,16 @@ public class Player extends JDialog implements ActionListener
         times16.addActionListener(this);
         add(times16);
 
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+        this.enableAllTimesButtonsBut(times1);  // times1 is default pressed
+
+        for (JComponent c : new JComponent[] {
+                play, pause, stop, times1, times2, times4, times8, times16
+        })
+           c.setFont(c.getFont().deriveFont((float)Preference.getFontSize()));
+
         setResizable(false);
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLocationRelativeTo(f);
 
         pack();
@@ -77,49 +90,86 @@ public class Player extends JDialog implements ActionListener
     }
 
     @Override
+    public void dispose() {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+        MainFrame.getInstance().setOpenDLXSimState(OpenDLXSimState.EXECUTING);
+        isPaused = false;
+        setVisible(false);
+        this.runSpeed = RUN_SPEED_DEFAULT;
+        super.dispose();
+    }
+
+    public int getRunSpeed() {
+        return this.runSpeed;
+    }
+   public boolean isPaused() {
+        return this.isPaused;
+   }
+
+    @Override
     public void actionPerformed(ActionEvent e)
     {
-        MainFrame mf = MainFrame.getInstance();
         if (e.getSource() == play)
         {
             pause.setEnabled(true);
             play.setEnabled(false);
-            mf.setPause(false);
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT);
+            isPaused = false;
         }
         else if (e.getSource() == pause)
         {
             play.setEnabled(true);
-            mf.setPause(true);
+            pause.setEnabled(true);
+            isPaused = true;
             pause.setEnabled(false);
         }
         else if (e.getSource() == stop)
         {
-            mf.setOpenDLXSimState(OpenDLXSimState.EXECUTING);
-            mf.setPause(false);
-            setVisible(false);
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT);
             dispose();
         }
         else if (e.getSource() == times1)
         {
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT);
+            this.runSpeed = RUN_SPEED_DEFAULT;
+            this.enableAllTimesButtonsBut((JButton)e.getSource());
         }
         else if (e.getSource() == times2)
         {
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT / 2);
+            this.runSpeed = RUN_SPEED_DEFAULT / 2;
+            this.enableAllTimesButtonsBut((JButton)e.getSource());
         }
         else if (e.getSource() == times4)
         {
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT / 4);
+            this.runSpeed = RUN_SPEED_DEFAULT / 4;
+            this.enableAllTimesButtonsBut((JButton)e.getSource());
         }
         else if (e.getSource() == times8)
         {
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT / 8);
+            this.runSpeed = RUN_SPEED_DEFAULT / 8;
+            this.enableAllTimesButtonsBut((JButton)e.getSource());
         }
         else if (e.getSource() == times16)
         {
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT / 16);
+            this.runSpeed = RUN_SPEED_DEFAULT / 16;
+            this.enableAllTimesButtonsBut((JButton)e.getSource());
         }
+    }
+
+    private void enableAllTimesButtonsBut(JButton times) {
+        for (JButton b : new JButton[] {times1, times2, times4, times8, times16}) {
+            if (b != times)
+                b.setEnabled(true);
+            else
+                b.setEnabled(false);
+        }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        if (e.getID() == KeyEvent.KEY_PRESSED) {
+           if (e.getKeyChar() == KeyEvent.VK_ESCAPE) {
+               dispose();
+               return true;
+           }
+        }
+        return false;
     }
 }
