@@ -66,14 +66,17 @@ public class TextNumberingPanel extends JPanel
     private HashMap<String, FontMetrics> fonts;
     private BreakpointManager bm;
 
-    public TextNumberingPanel(JTextComponent component)
+    private MainFrame mf;
+
+    public TextNumberingPanel(JTextComponent component, MainFrame mf)
     {
-        this(component, 3);
+        this(component, mf, 3);
     }
 
-    public TextNumberingPanel(JTextComponent component, int minimumDisplayDigits)
+    public TextNumberingPanel(JTextComponent component, MainFrame mf, int minimumDisplayDigits)
     {
         this.component = component;
+        this.mf = mf;
 
         setFont(component.getFont());
 
@@ -201,12 +204,11 @@ public class TextNumberingPanel extends JPanel
         Rectangle clip = g.getClipBounds();
         int rowStartOffset = component.viewToModel(new Point(0, clip.y));
         int endOffset = component.viewToModel(new Point(0, clip.y + clip.height));
-        
-        MainFrame mf = MainFrame.getInstance();
-        boolean drawStoppedOnLine = (mf.isExecuting() || mf.isRunning()) && mf.getOpenDLXSim() != null && !mf.getOpenDLXSim().isFinished();
+       // determine whether to draw the mark that the execution is stopped on a specific line
+        boolean drawStoppedOnLine = mf.isExecuting() && mf.getOpenDLXSim() != null && !mf.getOpenDLXSim().isFinished();
         int lineStoppedOn = -1;
         if (drawStoppedOnLine) {
-            uint32 addrStoppedOn = MainFrame.getInstance().getOpenDLXSim().getPipeline().getMemoryWriteBackLatch().element().getPc();
+            uint32 addrStoppedOn = mf.getOpenDLXSim().getPipeline().getMemoryWriteBackLatch().element().getPc();
             if (addrStoppedOn.getValue() == 0)
                 drawStoppedOnLine = false;
             else

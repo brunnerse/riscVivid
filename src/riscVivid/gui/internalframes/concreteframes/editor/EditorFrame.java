@@ -183,7 +183,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         jta = new JTextArea();
         setSavedState();
         scrollPane = new JScrollPane(jta);
-        tln = new TextNumberingPanel(jta);
+        tln = new TextNumberingPanel(jta, mf);
         jta.addKeyListener(this);
         jta.getDocument().addUndoableEditListener(this);
 

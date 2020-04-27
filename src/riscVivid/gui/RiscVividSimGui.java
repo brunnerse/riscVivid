@@ -66,9 +66,9 @@ public class RiscVividSimGui
             
         }
        	
-        //set selected L&F
+        // set selected L&F
         setLookAndFeelWithoutTreeUpdate(lafClassName);
-
+        // create MainFrame
         MainFrame.getInstance();
 
         // Font size options: set initial font size
