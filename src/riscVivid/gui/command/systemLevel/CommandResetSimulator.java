@@ -45,7 +45,6 @@ public class CommandResetSimulator implements Command
         try
         {
             mf.setOpenDLXSim(null);
-            mf.setUpdateAllowed(true);
             mf.setConfigFile(null);
             mf.output.clear();
 

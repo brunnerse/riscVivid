@@ -37,9 +37,11 @@ public class CommandRunSlowly implements Command
 
     @Override
     public void execute()
-    { //check if state is executing and check if the current riscVivid has finished (when it has finished ->updates are no longer allowed)
-        if (mf.isExecuting() && mf.isUpdateAllowed())
+    { //check if state is executing and check if the current riscVivid has finished
+        if (mf.isExecuting())
         {
+            if (mf.getOpenDLXSim().isFinished())
+                new CommandResetCurrentProgram(mf).execute();
             new Thread(new ThreadCommandRunSlowly(mf, new Player(mf))).start();
         }
     }

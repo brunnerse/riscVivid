@@ -75,7 +75,7 @@ public class RiscVividSimulator
     private boolean caught_break = false;
     private int clock_cycle;
     private int sim_cycles;
-    private boolean finished;
+    private boolean finished = false;
 
     public void riscVividCmdl_main()
     {

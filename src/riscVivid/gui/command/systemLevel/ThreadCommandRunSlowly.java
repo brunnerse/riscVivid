@@ -93,14 +93,10 @@ public class ThreadCommandRunSlowly implements Runnable
             }
 
         }
-        // when running stops or riscVivid has finished, set state back to executing, as executing means a riscVivid is loaded but not running through
+        // when running stops or riscVivid has finished, set state back to executing, as executing means a program is loaded but not running
         mf.setOpenDLXSimState(GUI_CONST.OpenDLXSimState.EXECUTING);
-        // if the current riscVivid has finished, dont allow any gui updates any more
         if (sim.isFinished())
-        {
-            mf.setUpdateAllowed(false);
             new CommandSimulatorFinishedInfo().execute();
-        }
     }
 
 }
