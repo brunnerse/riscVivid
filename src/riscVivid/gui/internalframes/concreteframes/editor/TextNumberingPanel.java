@@ -105,7 +105,6 @@ public class TextNumberingPanel extends JPanel
             public void mousePressed(MouseEvent e) {
                 if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
                     this.triggerPosition = e.getPoint();
-                    System.out.println("new triggerpos: " + triggerPosition);
                 }
             }
 
@@ -483,11 +482,9 @@ public class TextNumberingPanel extends JPanel
                             int firstLineInserted = rootDoc.getElementIndex(firstLineStartOffset) + 1;
                             // if actual insertion position is closer to the end than to the start, insert in next line, not in the current line
                             int replacedLineLen = rootChange.getChildrenRemoved()[0].getEndOffset() - rootChange.getChildrenRemoved()[0].getStartOffset();
-                            System.out.println("old line length: " + replacedLineLen + "\t offset to change: " + (e.getOffset() - firstLineStartOffset));
                             if (e.getOffset() - firstLineStartOffset >= replacedLineLen / 2) {
                                 firstLineInserted++;
                             }
-                            System.out.println(numLinesInserted + " LINES inserted at " + firstLineInserted);
                             BreakpointManager.getInstance().linesChanged(firstLineInserted, firstLineInserted + numLinesInserted - 1, true);
                         }
                         else if (e.getType().equals(DocumentEvent.EventType.REMOVE)) {
@@ -500,14 +497,12 @@ public class TextNumberingPanel extends JPanel
                             if (e.getOffset() - firstLineStartOffset >= replacedLineLen / 2) {
                                 firstLineRemoved++;
                             }
-                            System.out.println(numLinesRemoved + " LINES removed at " + firstLineRemoved);
 
                             if (bm.isBreakpoint(firstLineRemoved)) {
                                 int startRemovedText = rootChange.getChildrenRemoved()[0].getEndOffset();
                                 int lengthRemovedText = rootChange.getChildrenAdded()[0].getEndOffset() - startRemovedText;
                                 try {
                                     String firstLineRemovedText = e.getDocument().getText(startRemovedText, lengthRemovedText);
-                                    System.out.println("shifted text: " + firstLineRemovedText + "<end>");
                                     bm.addBreakpoint(firstLineRemoved - 1, firstLineRemovedText); // adds the breakpoint if the removed text is a valid breakpoint
                                 } catch (BadLocationException e1) {
                                 }

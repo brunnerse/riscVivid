@@ -76,11 +76,7 @@ public class FrameConfiguration
             {
                 jif.setIcon(pref.getBoolean(frameTitle + iconizedPreferenceKey, false));
             }
-            catch (Exception e)
-            {
-                System.err.println("failed setting JInternalFrame to iconized");
-                e.printStackTrace();
-            }
+            catch (Exception e) { }
         }
     }
     
