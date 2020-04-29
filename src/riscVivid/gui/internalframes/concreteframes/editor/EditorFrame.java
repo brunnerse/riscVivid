@@ -36,9 +36,8 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Element;
 import javax.swing.text.Highlighter;
-import javax.swing.text.Utilities;
+
 import javax.swing.undo.*;
 
 import riscVivid.gui.MainFrame;
@@ -266,8 +265,8 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
     @Override
 	public void undoableEditHappened(UndoableEditEvent e) {
-		undoMgr.addEdit(e.getEdit());
-	}
+        undoMgr.addEdit(e.getEdit());
+    }
 
     @Override
     public void update()
@@ -407,7 +406,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     @Override
     public void keyTyped(KeyEvent e)
     {
-        // Unused
+        // Set indent equal to the indent in the previous line
        if (e.getKeyChar() == '\n') {
            int caretPos = jta.getCaretPosition();
            try {
@@ -419,7 +418,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
                    jta.insert(tabsToInsert, jta.getCaretPosition());
                }
            } catch (BadLocationException ex) {}
-       } else if (e.getKeyChar() == '\t') {
+       } else if (e.getKeyChar() == '\t') { // change indent of selected lines
            if (this.selectedTextBeforeTab != null) {
                try {
                    if (!e.isShiftDown())
@@ -434,14 +433,14 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
                        lastLine++;
                    for (int line = firstLine; line <= lastLine; line++){
                        int lineOffset = jta.getLineStartOffset(line);
-                       if (e.isShiftDown()) {
+                       if (e.isShiftDown()) { // decrease indent of selected lines
                            if (jta.getText(lineOffset, 1).equals("\t")) {
                                jta.replaceRange("", lineOffset, lineOffset + 1);
                                if (lineOffset < selectionStart)
                                    selectionStart--;
                                selectionEnd--;
                            }
-                       } else {
+                       } else { // increase indent of selected lines
                            jta.insert("\t", lineOffset);
                            if (lineOffset < selectionStart)
                                selectionStart++;
@@ -451,7 +450,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
                    jta.setSelectionStart(selectionStart);
                    jta.setSelectionEnd(selectionEnd);
                } catch (Exception ex) {
-
                } finally {
                    this.selectionStartBeforeTab = -1;
                    this.selectedTextBeforeTab = null;
@@ -499,7 +497,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         
         EventCommandLookUp.put(undo, undoCommand); 
         EventCommandLookUp.put(redo, redoCommand);
-
     }
 
     private JButton createButton(String name, String tooltip, int mnemonic, String icon_path) 

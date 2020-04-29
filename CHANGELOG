@@ -13,8 +13,10 @@ riscVivid v1.3
 riscVivid v1.4
 ==============
 - automatic formatting
-- number of branch delay slots is now switchable from 2 to 3
+- number of branch delay slots is switchable from 2 to 3
 - forwarding and ignoring branch delay slots can be deactivated
 - find/replace dialog for the editor 
 - optional warning if unreserved memory is accessed
-- syscalls are now handled by flushing the pipeline and restarting the subsequent instruction
+- optional warning if an uninitialized register is read
+- syscalls are handled by flushing the pipeline and restarting the subsequent instruction
+- breakpoint implementation

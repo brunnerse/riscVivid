@@ -118,6 +118,7 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private void initialize()
     {
         undoMgr = new UndoManager();
+        undoMgr.setLimit(500);
 
         setMinimumSize(new Dimension(200, 200));
         desktop = new JDesktopPane();

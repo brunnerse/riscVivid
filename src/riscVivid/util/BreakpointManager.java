@@ -137,7 +137,6 @@ public class BreakpointManager implements ItemSelectable {
      * @param inserted:   false if lines were removed
      */
     public synchronized void linesChanged(int firstLine, int lastLine, boolean inserted) {
-        //TODO: not entirely bugfree!
         int numLines = lastLine - firstLine + 1;
         if (inserted) {
             for(Enumeration<uint32> enumKeys = addressToLineTable.keys();
