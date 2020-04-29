@@ -83,21 +83,18 @@ public class BreakpointManager implements ItemSelectable {
         if (breakpointLines.isEmpty())
             return;
         TreeSet<Integer> unresolvedLines = new TreeSet<Integer>(breakpointLines);
-        System.out.print("breakpoint addresses: ");
         // check if breakpoints are contained; otherwise remove them
         for(Enumeration<uint32> enumKeys = addressToLineTable.keys();
                 enumKeys.hasMoreElements();) {
             uint32 addr = enumKeys.nextElement();
             for (Integer line : unresolvedLines) {
                 if (addressToLineTable.get(addr).equals(line)) {
-                    System.out.print("line " + line + " at " + addr.getValueAsHexString() + ", ");
                     unresolvedLines.remove(line);
                     break;
                 }
             }
         }
         // remove last comma with carriage return
-        System.out.println("\r\r");
         breakpointLines.removeAll(unresolvedLines);
         notifyListeners(-1, true);
     }
@@ -154,7 +151,6 @@ public class BreakpointManager implements ItemSelectable {
             // needs to copy it because tailSet points on the same storage as breakpointLines
             Integer[] linesBelow = new Integer[tailSet.size()];
             tailSet.toArray(linesBelow);
-            System.out.println("shifting following breakpoints: " + tailSet);
             // remove all Lines in tailSet from breakpointLines; works because tailSet points to same storage as breakpointLines!
             tailSet.clear();
             for (Integer line : linesBelow) {
@@ -177,7 +173,6 @@ public class BreakpointManager implements ItemSelectable {
             // needs to copy it because tailSet points on the same storage as breakpointLines
             Integer[] linesBelow = new Integer[tailSet.size()];
             tailSet.toArray(linesBelow);
-            System.out.println("shifting following breakpoints: " + tailSet);
             // remove all Lines in tailSet from breakpointLines; works because tailSet points to same storage as breakpointLines!
             tailSet.clear();
             for (Integer line : linesBelow) {
@@ -186,7 +181,6 @@ public class BreakpointManager implements ItemSelectable {
                 // do not insert again if line <= lastLine (as it is in the deleted part then)
             }
         }
-        System.out.println("new breakpoints: " + breakpointLines);
         notifyListeners(-1, false);
     }
 

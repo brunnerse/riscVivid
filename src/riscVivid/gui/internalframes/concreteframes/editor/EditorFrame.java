@@ -318,10 +318,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     {
         try {
             colorSection(jta.getLineStartOffset(l), jta.getLineEndOffset(l), Color.red);
-        } catch (BadLocationException ble)
-        {
-            System.err.println("Failed coloring editor line");
-        }
+        } catch (BadLocationException ble) { }
     }
     
     public void colorSection(int startIndex, int endIndex, Color color) throws BadLocationException {
