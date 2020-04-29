@@ -65,71 +65,64 @@ public class Memory
 		boolean jump = emd.getJump();
 
 		long lv=0;
-
-		if (inst.getLoad())
-		{
-			if(dmem.getRequestDelay(RequestType.DATA_RD, alu_outLO)==0)
-			{
-				switch(inst.getMemoryWidth())
-				{
-				case BYTE:
-					lv = dmem.read_u8(alu_outLO, true).getValue();
-					break;
-				case UBYTE:
-					lv = (long)dmem.read_u8(alu_outLO, true).getValue() & 0xff;
-					break;
-				case HWORD:
-					lv = dmem.read_u16(alu_outLO, true).getValue();
-					break;
-				case UHWORD:
-					lv = (long)dmem.read_u8(alu_outLO, true).getValue() & 0xffff;
-					break;
-				case WORD:
-					lv = dmem.read_u32(alu_outLO, true).getValue();
-					break;
-				case UWORD:
-					lv = (long)dmem.read_u32(alu_outLO, true).getValue() & 0xffffffffL;
-					break;
-				case DWORD:
-				case UDWORD:
-					lv = dmem.read_u64(alu_outLO, true).getValue();
-					break;
-				default:
-					logger.error("wrong memory width: " + inst.getMemoryWidth()); 
-					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth(), pc);
+		try {
+			if (inst.getLoad()) {
+				if (dmem.getRequestDelay(RequestType.DATA_RD, alu_outLO) == 0) {
+					switch (inst.getMemoryWidth()) {
+						case BYTE:
+							lv = dmem.read_u8(alu_outLO, true).getValue();
+							break;
+						case UBYTE:
+							lv = (long) dmem.read_u8(alu_outLO, true).getValue() & 0xff;
+							break;
+						case HWORD:
+							lv = dmem.read_u16(alu_outLO, true).getValue();
+							break;
+						case UHWORD:
+							lv = (long) dmem.read_u8(alu_outLO, true).getValue() & 0xffff;
+							break;
+						case WORD:
+							lv = dmem.read_u32(alu_outLO, true).getValue();
+							break;
+						case UWORD:
+							lv = (long) dmem.read_u32(alu_outLO, true).getValue() & 0xffffffffL;
+							break;
+						case DWORD:
+						case UDWORD:
+							lv = dmem.read_u64(alu_outLO, true).getValue();
+							break;
+						default:
+							logger.error("wrong memory width: " + inst.getMemoryWidth());
+							throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth(), pc);
+					}
+					logger.debug("PC: " + pc.getValueAsHexString()
+							+ " load from addr: " + alu_outLO.getValueAsHexString()
+							+ " value: 0x" + Long.toHexString(lv));
+					stat.countMemRead();
 				}
-				logger.debug("PC: " + pc.getValueAsHexString() 
-						+ " load from addr: " + alu_outLO.getValueAsHexString() 
-						+ " value: 0x" + Long.toHexString(lv));
-				stat.countMemRead();
-			}
-			// else stall
-		}
-		else if (inst.getStore())
-		{
-			if(dmem.getRequestDelay(RequestType.DATA_WR, alu_outLO)==0)
-			{
-				logger.debug("PC: " + pc.getValueAsHexString() 
-						+ " store value: " + sv.getValueAsHexString() 
-						+ " to addr: " + alu_outLO.getValueAsHexString());
-				switch(inst.getMemoryWidth())
-				{
-				case BYTE:
-				case UBYTE:
-					dmem.write_u8(alu_outLO, new uint8((byte)sv.getValue()));
-					break;
-				case HWORD:
-				case UHWORD:
-					dmem.write_u16(alu_outLO,new uint16((short)sv.getValue()));
-					break;
-				case WORD:
-				case UWORD:
-					dmem.write_u32(alu_outLO, new uint32((int)sv.getValue()));
-					break;
-				case DWORD:
-				case UDWORD:
-					dmem.write_u64(alu_outLO, sv);
-					break;
+				// else stall
+			} else if (inst.getStore()) {
+				if (dmem.getRequestDelay(RequestType.DATA_WR, alu_outLO) == 0) {
+					logger.debug("PC: " + pc.getValueAsHexString()
+							+ " store value: " + sv.getValueAsHexString()
+							+ " to addr: " + alu_outLO.getValueAsHexString());
+					switch (inst.getMemoryWidth()) {
+						case BYTE:
+						case UBYTE:
+							dmem.write_u8(alu_outLO, new uint8((byte) sv.getValue()));
+							break;
+						case HWORD:
+						case UHWORD:
+							dmem.write_u16(alu_outLO, new uint16((short) sv.getValue()));
+							break;
+						case WORD:
+						case UWORD:
+							dmem.write_u32(alu_outLO, new uint32((int) sv.getValue()));
+							break;
+						case DWORD:
+						case UDWORD:
+							dmem.write_u64(alu_outLO, sv);
+							break;
 /*
 				case WORD_RIGHT_PART:
 					// refer to page A-153 of the MIPS IV Instruction Set Rev. 3.2
@@ -222,20 +215,20 @@ public class Memory
 					}
 					break;
 */
-					default:
-					logger.error("Wrong memory width: " + inst.getMemoryWidth());
-					throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth(), pc);
+						default:
+							logger.error("Wrong memory width: " + inst.getMemoryWidth());
+							throw new MemoryStageException("Wrong memory width: " + inst.getMemoryWidth(), pc);
+					}
+					stat.countMemWrite();
+				} else {
+					// stall
 				}
-				stat.countMemWrite();
+			} else {
+				logger.debug("PC: " + pc.getValueAsHexString() + " nothing to do");
 			}
-			else
-			{
-				// stall
-			}
-		}
-		else
-		{
-			logger.debug("PC: " + pc.getValueAsHexString() + " nothing to do");
+		} catch (MemoryException | MemoryStageException e) {
+			e.setInstructionAddress(pc);
+			throw e;
 		}
 		
 		PipelineException memEx = null;

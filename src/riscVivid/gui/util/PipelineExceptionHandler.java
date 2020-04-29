@@ -30,6 +30,8 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.systemLevel.CommandUpdateFrames;
 import riscVivid.gui.internalframes.concreteframes.ClockCycleFrame;
 import riscVivid.gui.internalframes.concreteframes.CodeFrame;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
+import riscVivid.util.BreakpointManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,12 +61,19 @@ public class PipelineExceptionHandler {
 			e.printStackTrace();
 			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Decode Stage Error");
 		} else {
+			int line = -1;
+			if (e.getInstructionAddress() != null)
+				line = BreakpointManager.getInstance().getCorrespondingLine(e.getInstructionAddress());
+			if (line >= 0)
+				EditorFrame.getInstance(mf).colorLine(line-1);
 			if (e.isFatal()) {
 			    e.printStackTrace();
 		         DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
 			} else {
 			    DialogWrapper.showWarningDialog(e.getMessage(), "Simulator paused");
 			}
+			EditorFrame.getInstance(mf).removeColorHighlights();
+			EditorFrame.getInstance(mf).selectLine(line-1);
 		}
 		if (e.isFatal()) {
 		    sim.stopSimulation(true);
