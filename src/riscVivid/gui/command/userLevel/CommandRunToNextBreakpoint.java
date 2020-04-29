@@ -62,10 +62,12 @@ public class CommandRunToNextBreakpoint implements Command
                     while (!openDLXSim.isFinished())
                     {
                         openDLXSim.step();
-                        
-                        if (bm.isBreakpoint(memory_writeback_latch.element().getPc())) {
-                            EditorFrame.getInstance(mf).scrollLineToVisible(
-                                    bm.getCorrespondingLine(memory_writeback_latch.element().getPc()) );
+
+                        uint32 writebackAddr = memory_writeback_latch.element().getPc();
+                        if (bm.isBreakpoint(writebackAddr)) {
+                            int line = bm.getCorrespondingLine(writebackAddr);
+                            EditorFrame.getInstance(mf).scrollLineToVisible(line);
+                            //EditorFrame.getInstance(mf).selectLine(line);
                             break;
                         }
                     }

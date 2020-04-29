@@ -74,17 +74,17 @@ public class PipelineExceptionHandler {
 				mf.setOpenDLXSimState(OpenDLXSimState.EXECUTING);
 		}
 		if (e.getInstructionAddress() != null) {
-			uint32 addr = e.getInstructionAddress();
+			final uint32 addr = e.getInstructionAddress();
 			for (JInternalFrame frame : mf.getinternalFrames()) {
 				if (frame instanceof ClockCycleFrame) {
 				    final ClockCycleFrame ccf = (ClockCycleFrame) frame;
 					try {
-						EventQueue.invokeAndWait(new Runnable() {
+						EventQueue.invokeLater(new Runnable() {
 							public void run() {
 								ccf.update();
+								ccf.selectLine(addr);
 							}
 						});
-						ccf.selectLine(addr);
 					} catch (Exception ex) {
 						ex.printStackTrace();
 					}

@@ -36,7 +36,10 @@ public class BreakpointManager implements ItemSelectable {
            instance = new BreakpointManager();
         return instance;
     }
-    
+
+    public int getNumBreakpoints() {
+        return breakpointLines.size();
+    }
     public boolean isBreakpoint(uint32 address) {
         return isBreakpoint(addressToLineTable.getOrDefault(address, -1));
     }
@@ -49,7 +52,7 @@ public class BreakpointManager implements ItemSelectable {
      * @param line
      * @return
      */
-    private static boolean isValidBreakpoint(String line) {
+    public static boolean isValidBreakpoint(String line) {
         Tokenizer t = new Tokenizer();
         try {
             t.setReader(new BufferedReader(new StringReader(line)));
@@ -134,8 +137,6 @@ public class BreakpointManager implements ItemSelectable {
     /**
      * to call when some lines were either removed or added
      * synchronized to avoid possible concurrency issues, as function might not be reentrant
-     * @param lineInEditor
-     * @param linesToShift
      * @param inserted:   false if lines were removed
      */
     public synchronized void linesChanged(int firstLine, int lastLine, boolean inserted) {
