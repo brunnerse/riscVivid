@@ -70,6 +70,7 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     private JScrollPane addrScrollPane;
     private JScrollPane codeScrollPane;
     private JScrollBar clockCycleScrollBarVertical;
+    private JScrollBar clockCycleScrollBarHorizontal;
     private JScrollBar addrScrollBar;
     private JScrollBar codeScrollBar;
     //private JScrollBar clockCycleScrollBarHorizontal;
@@ -110,10 +111,11 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e)
             {
-                clockCycleScrollBarVertical.setValue(e.getValue());
-                addrScrollBar.setValue(e.getValue());
+                for (JScrollBar scrollBar : new JScrollBar[] {clockCycleScrollBarVertical, addrScrollBar}) {
+                    if (scrollBar.getValue() != e.getValue())
+                        scrollBar.setValue(e.getValue());
+                }
             }
-
         });
         //Address Table
         addrModel = new NotSelectableTableModel();
@@ -138,10 +140,11 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e)
             {
-                clockCycleScrollBarVertical.setValue(e.getValue());
-                codeScrollBar.setValue(e.getValue());
+                for (JScrollBar scrollBar : new JScrollBar[] {clockCycleScrollBarVertical, codeScrollBar}) {
+                    if (scrollBar.getValue() != e.getValue())
+                        scrollBar.setValue(e.getValue());
+                }
             }
-
         });
 
         //scroll pane and frame
@@ -174,16 +177,43 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         table.setDefaultRenderer(Object.class, new ClockCycleFrameTableCellRenderer());
         clockCycleScrollPane = new JScrollPane(table);
         clockCycleScrollBarVertical = clockCycleScrollPane.getVerticalScrollBar();
-        clockCycleScrollBarVertical.addAdjustmentListener(new AdjustmentListener()
+        clockCycleScrollBarHorizontal = clockCycleScrollPane.getHorizontalScrollBar();
+        AdjustmentListener listener = new AdjustmentListener()
         {
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e)
             {
-                addrScrollBar.setValue(e.getValue());
-                codeScrollBar.setValue(e.getValue());
-            }
+                int maxValVert = clockCycleScrollBarVertical.getMaximum() - clockCycleScrollBarVertical.getModel().getExtent();
+                int minValVert = clockCycleScrollBarVertical.getMinimum();
+                int maxValHori = clockCycleScrollBarHorizontal.getMaximum() - clockCycleScrollBarHorizontal.getModel().getExtent();
+                int minValHori = clockCycleScrollBarHorizontal.getMinimum();
+                //assert(maxValHori >= minValHori && maxValVert >= minValVert);
 
-        });
+                if (e.getSource() == clockCycleScrollBarVertical) {
+                    for (JScrollBar scrollBar : new JScrollBar[] {addrScrollBar, codeScrollBar}) {
+                        if (scrollBar.getValue() != e.getValue())
+                            scrollBar.setValue(e.getValue());
+                    }
+                    double normedVerticalValue = 0;
+                    if (maxValVert - minValVert > 0)
+                        normedVerticalValue = (double)(clockCycleScrollBarVertical.getValue() - minValVert) / (maxValVert - minValVert);
+                    int setPointForHorizontal = (int) Math.round(normedVerticalValue * (maxValHori - minValHori)) + minValHori;
+                    if (clockCycleScrollBarHorizontal.getValue() != setPointForHorizontal)
+                        clockCycleScrollBarHorizontal.setValue(setPointForHorizontal);
+                } else if (e.getSource() == clockCycleScrollBarHorizontal) {
+                    double normedHorizontalValue = 0;
+                    if (maxValHori - minValHori > 0)
+                        normedHorizontalValue = (double)(clockCycleScrollBarHorizontal.getValue() - minValHori) / (maxValHori - minValHori);
+                    int setPointForVertical = (int) Math.round(normedHorizontalValue * (maxValVert - minValVert)) + minValVert;
+                    if (clockCycleScrollBarVertical.getValue() != setPointForVertical)
+                        clockCycleScrollBarVertical.setValue(setPointForVertical);
+                } else {
+                    return;
+                }
+            }
+        };
+        clockCycleScrollBarVertical.addAdjustmentListener(listener);
+        clockCycleScrollBarHorizontal.addAdjustmentListener(listener);
 
         // scrolling synchronously causes view violations
         // requires a more complex/sophisticated approach
