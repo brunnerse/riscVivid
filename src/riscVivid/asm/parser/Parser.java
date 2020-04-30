@@ -706,10 +706,8 @@ public class Parser {
 	private void align(Token[] tokens) throws ParserException {
 		try {
 			int align = Integer.decode(tokens[1].getString());
-			if (align > 0 && align < 32)
-				align = 2 << align - 1;
-			else if (align == 0)
-				align = 1;
+			if (align >= 0 && align < 32)
+				align = 1 << align;
 			else
 				throw new ParserException(NUMBER_TOO_BIG, tokens[1]);
 			while (segmentPointer_.get() % align != 0)
@@ -778,21 +776,24 @@ public class Parser {
 	 */
 	private void data(Token[] tokens) throws ParserException {
 		segmentPointer_ = dataPointer_;
+		int startAddr;
 		if (tokens.length == 1) {
-			return;
+		    while (segmentPointer_.get() % 4 != 0) // align segment
+		    	segmentPointer_.add(1);
+		    	startAddr = segmentPointer_.get();
 		} else if (tokens.length == 2) {
 			try {
-				int value = ValueInput.strToInt(tokens[1].getString());
-				if (value < 0)
+				startAddr = ValueInput.strToInt(tokens[1].getString());
+				if (startAddr < 0)
 					throw new ParserException(NUMBER_NEGATIVE, tokens[1]);
-				dataPointer_.set(value);
-				memory_.setDataBegin(value);
+				dataPointer_.set(startAddr);
 			} catch (NumberFormatException ex) {
 				throw new ParserException(NOT_A_NUMBER, tokens[1]);
 			}
 		} else {
 			throw new ParserException(UNEXPECTED_TRASH, tokens[2]);
 		}
+		memory_.setDataBegin(startAddr);
 	}
 
 	/**
@@ -868,21 +869,24 @@ public class Parser {
 	 */
 	private void text(Token[] tokens) throws ParserException {
 		segmentPointer_ = textPointer_;
+		int startAddr;
 		if (tokens.length == 1) {
-			return;
+			while (segmentPointer_.get() % 4 != 0) // align segment
+				segmentPointer_.add(1);
+			startAddr = segmentPointer_.get();
 		} else if (tokens.length == 2) {
 			try {
-				int value = Integer.decode(tokens[1].getString());
-				if (value < 0)
+				startAddr = ValueInput.strToInt(tokens[1].getString());
+				if (startAddr < 0)
 					throw new ParserException(NUMBER_NEGATIVE, tokens[1]);
-				textPointer_.set(value);
-				memory_.setTextBegin(value);
+				textPointer_.set(startAddr);
 			} catch (NumberFormatException ex) {
 				throw new ParserException(NOT_A_NUMBER, tokens[1]);
 			}
 		} else {
 			throw new ParserException(UNEXPECTED_TRASH, tokens[2]);
 		}
+		memory_.setTextBegin(startAddr);
 	}
 
 	/**

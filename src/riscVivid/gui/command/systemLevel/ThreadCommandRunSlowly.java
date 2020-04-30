@@ -73,7 +73,7 @@ public class ThreadCommandRunSlowly implements Runnable
             try
             {
                 // queue CommandUpdateFrames/execute() to event dispatch thread
-                EventQueue.invokeLater(new Runnable()
+                EventQueue.invokeAndWait(new Runnable()
                 {
                     @Override
                     public void run()
@@ -95,8 +95,10 @@ public class ThreadCommandRunSlowly implements Runnable
         }
         // when running stops or riscVivid has finished, set state back to executing, as executing means a program is loaded but not running
         mf.setOpenDLXSimState(GUI_CONST.OpenDLXSimState.EXECUTING);
-        if (sim.isFinished())
+        if (sim.isFinished()) {
+            player.dispose();
             new CommandSimulatorFinishedInfo().execute();
+        }
     }
 
 }

@@ -35,9 +35,9 @@ public class FindReplaceDialog extends JDialog
     private JTextField findField, replaceField;
     private JLabel findLabel, replaceLabel;
     
-    public FindReplaceDialog(MainFrame mf, EditorFrame editor) {
+    public FindReplaceDialog(MainFrame mf, EditorFrame editorFrame) {
         super(mf, "Find/Replace");
-        this.editor = editor;
+        this.editor = editorFrame;
         initialize(mf);
         final FrameConfiguration fc = new FrameConfiguration(this);
         fc.loadFrameConfiguration();
@@ -45,10 +45,20 @@ public class FindReplaceDialog extends JDialog
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                EditorFrame.getInstance(MainFrame.getInstance()).removeColorHighlights();
+                int selectionStart = editor.getSelectionStart();
+                int selectionEnd = editor.getSelectionEnd();
+                editor.removeColorHighlights();
+                editor.selectSection(selectionStart, selectionEnd);
                 fc.saveFrameConfiguration();
             }
         });
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        String selected = editor.getSelectedText();
+        if (selected != null)
+            findField.setText(selected);
+
+        setVisible(true);
     }
     
 
@@ -95,7 +105,6 @@ public class FindReplaceDialog extends JDialog
         
         setFont(findField.getFont().deriveFont((float)Preference.getFontSize()));
         resetLocationAndSize();
-        setVisible(true);
     }
 
     public void onFind() {

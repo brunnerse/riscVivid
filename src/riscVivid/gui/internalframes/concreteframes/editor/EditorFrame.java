@@ -336,6 +336,9 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
             selectSection(jta.getLineStartOffset(l), jta.getLineEndOffset(l));
         } catch (BadLocationException e) {}
     }
+    public String getSelectedText() {
+        return jta.getSelectedText();
+    }
     public void selectSection(int startIndex, int endIndex) {
         jta.select(startIndex,  endIndex);
     }
