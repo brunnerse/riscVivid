@@ -24,6 +24,7 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandResetSimulator;
 import riscVivid.gui.util.DialogWrapper;
+import riscVivid.util.BreakpointManager;
 
 import static riscVivid.gui.GUI_CONST.OpenDLXSimState.IDLE;
 
@@ -49,6 +50,7 @@ public class CommandNewFile implements Command
             }
             if (mf.getOpenDLXSimState() != IDLE)
                 new CommandResetSimulator(mf).execute();
+            BreakpointManager.getInstance().clearBreakpoints();
             mf.setEditorText("");
             mf.setEditorSavedState();
             mf.setLoadedCodeFilePath("");

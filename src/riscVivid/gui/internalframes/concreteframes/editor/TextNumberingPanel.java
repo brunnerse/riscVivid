@@ -485,7 +485,7 @@ public class TextNumberingPanel extends JPanel
                             if (e.getOffset() - firstLineStartOffset >= replacedLineLen / 2) {
                                 firstLineInserted++;
                             }
-                            BreakpointManager.getInstance().linesChanged(firstLineInserted, firstLineInserted + numLinesInserted - 1, true);
+                            bm.linesChanged(firstLineInserted, firstLineInserted + numLinesInserted - 1, true);
                         }
                         else if (e.getType().equals(DocumentEvent.EventType.REMOVE)) {
                             Element[] removedLines = rootChange.getChildrenRemoved();

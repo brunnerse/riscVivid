@@ -282,8 +282,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         if (editorTitle.length() == 0)
         	editorTitle = InternalFrameFactory.getFrameName(EditorFrame.class);
         this.editor.setFrameTitle(editorTitle);
-        // file changed: remove all breakpoints
-        BreakpointManager.getInstance().clearBreakpoints();
     }
 
     public UndoManager getEditorUndoManager() {

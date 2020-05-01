@@ -93,7 +93,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         forwardingCheckBox = new JCheckBox("Use Forwarding");
         forwardingCheckBox.setSelected(Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true)); // load current value
 
-        noBranchDelaySlotCheckBox = new JCheckBox("Ignore Branch Delay Slot");
+        noBranchDelaySlotCheckBox = new JCheckBox("Ignore Branch Delay Slots");
         noBranchDelaySlotCheckBox.setSelected(Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true)); // load current value
         
         mipsCompatibilityCheckBox = new JCheckBox("MIPS compatibility mode (requires forwarding)");

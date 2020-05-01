@@ -31,6 +31,7 @@ import riscVivid.gui.command.systemLevel.CommandResetSimulator;
 import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
 import riscVivid.gui.command.systemLevel.CommandStartExecuting;
 import riscVivid.gui.util.DialogWrapper;
+import riscVivid.util.BreakpointManager;
 
 public class CommandLoadAndRunFile implements Command
 {
@@ -72,6 +73,7 @@ public class CommandLoadAndRunFile implements Command
                 if (c9.hasFailed())
                     return;
                 mf.setLoadedCodeFilePath(f.getAbsolutePath());
+                BreakpointManager.getInstance().clearBreakpoints();
 
                 //compile/assemble code with asm package
                 CommandCompileCode c8 = new CommandCompileCode(mf, f);

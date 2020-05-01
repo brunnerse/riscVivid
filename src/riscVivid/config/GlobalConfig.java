@@ -25,7 +25,7 @@ public interface GlobalConfig {
 	static final String VERSION = "1.4";
 	static final String ABOUT = 
 			"riscVivid v"+VERSION+" - A RISC-V processor simulator.\n"
-					+"(C)opyright 2013-2019 The riscVivid project, University of Augsburg\n\n"
+					+"(C)opyright 2013-2020 The riscVivid project, University of Augsburg\n\n"
 					+"openDLX contributors: Stefan Metzlaff, Alexander Vogelgsang, Nico Krezic-Luger\n"
 					+"                      Arne Garbade, Patrick Lehner\n"
 					+"RISC-V support:       Jörg Mische\n"

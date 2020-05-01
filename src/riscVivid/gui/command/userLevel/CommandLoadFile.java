@@ -27,6 +27,7 @@ import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandLoadCodeFileToEditor;
 import riscVivid.gui.command.systemLevel.CommandOpenCodeFile;
 import riscVivid.gui.util.DialogWrapper;
+import riscVivid.util.BreakpointManager;
 
 public class CommandLoadFile implements Command
 {
@@ -58,6 +59,7 @@ public class CommandLoadFile implements Command
                c8.execute();
                if (c8.hasFailed())
                    return;
+               BreakpointManager.getInstance().clearBreakpoints();
                mf.setLoadedCodeFilePath(f.getAbsolutePath());
                mf.setEditorFrameVisible();
             }

@@ -60,16 +60,14 @@ public class CommandLoadCodeFileToEditor implements Command
             mf.getContentPane().setCursor(
                     Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-            String help = codeFile.getAbsolutePath().replace("\\", "/");
-            String text;
-            if (clean == true)
-                text = "";
-            else
-                text = mf.getEditorText() + "\n";
-            text += CodeLoader.loadCode(help);
-            mf.setEditorText(text);
-            if (clean)
-            	mf.setEditorSavedState();
+            String filePath = codeFile.getAbsolutePath().replace("\\", "/");
+            if (clean) {
+                mf.setEditorText(CodeLoader.loadCode(filePath));
+                mf.setEditorSavedState();
+            } else {
+                mf.insertEditorText("\n" + CodeLoader.loadCode(filePath));
+            }
+
             if (mf.getOpenDLXSimState() != IDLE)
                 new CommandResetSimulator(mf).execute();
         }

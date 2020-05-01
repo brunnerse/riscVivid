@@ -109,7 +109,7 @@ public class BreakpointManager implements ItemSelectable {
      */
     public boolean addBreakpoint(int lineInEditor, String lineText) {
         if (isValidBreakpoint(lineText)) {
-            if (breakpointLines.add(lineInEditor)) // notify listeners if line wasnt already contained
+            if (breakpointLines.add(lineInEditor)) // notify listeners if line wasnt already a breakpoint
                 notifyListeners(lineInEditor, true);
             return true;
         } else {
