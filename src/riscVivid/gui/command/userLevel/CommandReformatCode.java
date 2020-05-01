@@ -26,6 +26,7 @@ public class CommandReformatCode implements Command {
             LineNumberReader reader = new LineNumberReader(new StringReader(mf.getEditorText()));
             Tokenizer tokenizer = new Tokenizer(reader);
             StringBuilder output = new StringBuilder();
+            final int tabSize = EditorFrame.getInstance(mf).getTabSize();
 
             Token[] lineTokens;
             reader.mark(1000);
@@ -42,8 +43,16 @@ public class CommandReformatCode implements Command {
                             line.append(t.getString());
                             break;
                         case Directive:
-                            if (!specialDirectives.contains(t.getString()))
+                            if (specialDirectives.contains(t.getString())) {
+                                if (lastToken != null) // there's something before the directive in the line
+                                    line.append("\n");
                                 line.append("\t");
+                            }
+                            else {
+                                line.append("\t");
+                                if (lastToken == null || lastToken.getString().length() < tabSize)
+                                    line.append("\t");
+                            }
                             line.append(t.getString());
                             break;
                         case Separator:
@@ -100,7 +109,6 @@ public class CommandReformatCode implements Command {
                     while (commentStartIdx+1 < line.length() && line.codePointAt(commentStartIdx+1) <= 0x20)
                         line.deleteCharAt(commentStartIdx+1);
                     line.insert(commentStartIdx+1, " ");
-                    int tabSize = EditorFrame.getInstance(mf).getTabSize();
                     final int TARGET_CHARS = 5*8;
                     // count how many spaces to insert; tabs count more
                     int charsBeforeComment = 0;
