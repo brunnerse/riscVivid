@@ -23,7 +23,9 @@ package riscVivid.gui.command.userLevel;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.UndoManager;
 
+import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
 
 public class CommandPerformEditorRedo implements Command
 {
@@ -47,6 +49,7 @@ public class CommandPerformEditorRedo implements Command
             // if an addition follows immediately to a deletion, do both
             if (redoAction.contains("deletion") && manager.getRedoPresentationName().contains("addition"))
                 manager.redo();
+			EditorFrame.getInstance(MainFrame.getInstance()).holdScrollPane(100);
 		} catch (CannotRedoException e) {
 			/* This exception is thrown, when there is no more redo available.
 			 * Nothing to be done here

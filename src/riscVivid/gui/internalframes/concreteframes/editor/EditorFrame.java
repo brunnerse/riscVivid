@@ -288,13 +288,27 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
     public void setText(String text)
     {
-        final Point p = scrollPane.getViewport().getViewPosition();
         jta.setText(text);
-        // TODO: better solution to keep the ViewPosition than to fix it for a fixed time
+        // TODO: better solution to keep the ViewPosition than to hold it for a fixed time
+        holdScrollPane( 100);
+        updateTitle();
+    }
+
+    /**
+     * fixes the position of the scroll pane for the given time
+     * @param milliseconds
+     */
+    public void holdScrollPane(int milliseconds) {
+        this.holdScrollPane(scrollPane.getViewport().getViewPosition(), milliseconds);
+    }
+
+    /**
+     * fixes the position of the scroll pane at Point p for the given time
+     */
+    public void holdScrollPane(final Point p, final int milliseconds) {
         // don't allow the scrollPane to change the ViewPosition for DELAY ms
         scrollPane.getViewport().addChangeListener(new ChangeListener() {
-            final int DELAY=100;
-            private Date removeTime =  new Date(new Date().getTime() + DELAY);
+            private Date removeTime =  new Date(new Date().getTime() + milliseconds);
             @Override
             public void stateChanged(ChangeEvent e) {
                 JViewport viewport = (JViewport)e.getSource();
@@ -305,7 +319,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
                 }
             }
         });
-        updateTitle();
     }
 
     public void insertText(String text)

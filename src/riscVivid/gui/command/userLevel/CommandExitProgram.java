@@ -90,7 +90,9 @@ public class CommandExitProgram implements Command
         }
 
         // delete temporary files
-        TmpFileCleaner.cleanUp();
+        try {
+            TmpFileCleaner.cleanUp();
+        } catch(Exception e) {}
 
         //save current window position
         new CommandSaveFrameConfigurationSysLevel(mf).execute();
