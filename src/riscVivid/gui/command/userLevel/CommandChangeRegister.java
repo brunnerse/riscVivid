@@ -32,13 +32,13 @@ import riscVivid.gui.util.DialogWrapper;
 public class CommandChangeRegister implements Command
 {
 
-    private int row; //in
+    private uint8 register;
     private MainFrame mf;
     private RiscVividSimulator openDLXSim;
 
-    public CommandChangeRegister(int row)
+    public CommandChangeRegister(uint8 register)
     {
-        this.row = row;
+        this.register = register;
         this.mf = MainFrame.getInstance();
         openDLXSim = mf.getOpenDLXSim();
     }
@@ -53,7 +53,7 @@ public class CommandChangeRegister implements Command
                 Integer value = ValueInput.getValue("change register value: ",0);
                 if (value != null)
                 {
-                    openDLXSim.getPipeline().getRegisterSet().write(new uint8(row), new uint32(value), false);
+                    openDLXSim.getPipeline().getRegisterSet().write(register, new uint32(value), false);
                     new CommandUpdateFrames(mf).execute();
                 }
             }

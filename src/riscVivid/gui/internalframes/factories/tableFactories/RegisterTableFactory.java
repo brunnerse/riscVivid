@@ -84,7 +84,7 @@ public class RegisterTableFactory extends TableFactory
                 int row = table.rowAtPoint(p);
 
                 if (e.getClickCount() == 2)
-                    new CommandChangeRegister(row).execute();
+                    new CommandChangeRegister(new uint8(registerOrder[row])).execute();
             }
         });
 

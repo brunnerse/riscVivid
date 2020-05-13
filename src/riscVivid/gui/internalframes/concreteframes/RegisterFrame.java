@@ -68,9 +68,9 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     {
         for (int i = 0; i < ArchCfg.getRegisterCount(); ++i)
         {
-            int registerNum = registerOrder[i];
+            uint8 register = new uint8(registerOrder[i]);
             final String value;
-            final uint32 register_value = rs.read(new uint8(registerNum));
+            final uint32 register_value = rs.read(register);
             if (Preference.displayRegistersAsHex())
                 value = register_value.getValueAsHexString();
             else
