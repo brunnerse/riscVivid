@@ -114,8 +114,6 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
             instance = new EditorFrame(InternalFrameFactory.getFrameName(EditorFrame.class), mf);
             FrameConfiguration fc = new FrameConfiguration(instance);
             fc.loadFrameConfiguration();
-            instance.setMaximumSize(new Dimension(instance.getMaximumSize().width,
-                    Math.min(instance.getMaximumSize().height, mf.getContentPane().getHeight())));
         }
         return instance;
     }
@@ -214,7 +212,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         EventCommandLookUp.put(save, new CommandSave());
         EventCommandLookUp.put(saveAs, new CommandSaveAs());
         EventCommandLookUp.put(clear, new CommandNewFile(mf));
-//        EventCommandLookUp.put(undo, undoCommand); 
+//        EventCommandLookUp.put(undo, undoCommand);   // this is done in setUndoManager()
 //        EventCommandLookUp.put(redo, redoCommand);
         EventCommandLookUp.put(enlarge, new CommandChangeFontSize(+1));
         EventCommandLookUp.put(reduce, new CommandChangeFontSize(-1));

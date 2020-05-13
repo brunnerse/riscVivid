@@ -96,10 +96,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         noBranchDelaySlotCheckBox = new JCheckBox("Ignore Branch Delay Slots");
         noBranchDelaySlotCheckBox.setSelected(Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true)); // load current value
         
-        mipsCompatibilityCheckBox = new JCheckBox("MIPS compatibility mode (requires forwarding)");
-        mipsCompatibilityCheckBox.setSelected(Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true)); // load current value
-
-        mipsCompatibilityCheckBox = new JCheckBox("MIPS compatibility mode (requires forwarding)");
+        mipsCompatibilityCheckBox = new JCheckBox("MIPS Compatibility Mode (requires Forwarding)");
         mipsCompatibilityCheckBox.setSelected(Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true)); // load current value
 
         // disable MIPS compatibility if no forwarding is active
@@ -111,10 +108,10 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         mipsCompatibilityCheckBox.addItemListener(this);
         noBranchDelaySlotCheckBox.addItemListener(this);
 
-        memoryWarningCheckBox = new JCheckBox("Enable unreserved memory warnings");
+        memoryWarningCheckBox = new JCheckBox("Enable Unreserved Memory Warnings");
         memoryWarningCheckBox.setSelected(Preference.isMemoryWarningsEnabled());
 
-        initializationWarningCheckBox = new JCheckBox("Enable warnings for reading uninitialized registers");
+        initializationWarningCheckBox = new JCheckBox("Enable Warnings for Reading Uninitialized Registers");
         initializationWarningCheckBox.setSelected(Preference.isInitializationWarningsEnabled());
         /*create a JComboBoxes
          *
@@ -473,7 +470,8 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
             }
             else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
-                confirm.doClick();
+                if (this.isVisible())
+                    confirm.doClick();
                 return true;
             }
         }
