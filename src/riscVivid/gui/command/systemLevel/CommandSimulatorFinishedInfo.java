@@ -35,7 +35,9 @@ public class CommandSimulatorFinishedInfo implements Command
         MainFrame mf =MainFrame.getInstance();
         RiscVividSimulator sim = mf.getOpenDLXSim();
 
-        if (sim != null && sim.getCurrentCycle() >= sim.getSimCycles()) {
+        if (sim == null)
+            return;
+        if (sim.getCurrentCycle() >= sim.getSimCycles()) {
         	DialogWrapper.showWarningDialog(mf, "The simulator has reached its maximum cycle count.\n" +
         		"This could indicate that the program is stuck in an infinite loop\n" +
         		"or that it has not been terminated correctly.",

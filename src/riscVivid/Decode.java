@@ -53,7 +53,7 @@ public class Decode
 	private Queue<FetchDecodeData> fetch_decode_latch;
 
 	private LinkedList<uint8> forwardedRegs = new LinkedList<uint8>();
-	private int cyclesSinceLastBranch = Integer.MAX_VALUE;
+	private int cyclesSinceLastBranch = ArchCfg.getNumBranchDelaySlots();
 	
 	public Decode(RegisterSet reg_set)
 	{
