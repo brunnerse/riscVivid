@@ -29,8 +29,6 @@ package riscVivid.asm.instruction;
 public class Instruction {
 	private int instrWord_;
 	
-	public static final int XLEN = 64;
-	
 	public static final int OPCODE_load		= 0x03;
 	public static final int OPCODE_imm		= 0x13;
 	public static final int OPCODE_store	= 0x23;
@@ -94,7 +92,7 @@ public class Instruction {
 	 * 
 	 * @param opcode
 	 * @param funct3
-	 * @param funct7
+	 * @param funct12
 	 */
 	public Instruction(int opcode, int funct3, int funct12) throws InstructionException {
 		if (opcode>0x7f || opcode<0 ||  funct3<0 || funct3>7)
@@ -215,7 +213,7 @@ public class Instruction {
 	}
 
 	public void setShamt(int imm) throws InstructionException {
-		if (imm<0 || imm > XLEN)
+		if (imm<0 || imm > 0x1f)
 			throw new InstructionException("immI out of range");
 		instrWord_ = (instrWord_ & 0x000fffff) | (imm<<20);
 	}
