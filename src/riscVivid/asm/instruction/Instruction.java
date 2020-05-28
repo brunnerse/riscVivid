@@ -393,7 +393,7 @@ public class Instruction {
 					strBuf.append(rsStr());
 					if (immI()!=0) {
 						strBuf.append(',');
-						strBuf.append(Integer.toHexString(immI()));
+						strBuf.append(String.format("0x%08x", immI()));
 					}
 				}
 				break;

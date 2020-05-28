@@ -583,7 +583,7 @@ public class Decode
 				cyclesSinceLastBranch++;
 		}
 		// if branch instructions were executed before, don't check for initialization,
-		// as the instruction might be reset
+		// as the instruction might be ignored as a branch delay slot
 		if (!ArchCfg.ignoreBranchDelaySlots() || cyclesSinceLastBranch > ArchCfg.getNumBranchDelaySlots() - 1) {
 			if (inst.getReadRs() && !reg_set.isRegisterInitialized(inst.getRs())) {
 				if (!forwardedRegs.contains(inst.getRs())) {

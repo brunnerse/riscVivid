@@ -53,7 +53,6 @@ public class Parser {
 	private static final String NUMBER_NEGATIVE = "negative value not allowed here";
 	private static final String NUMBER_TOO_BIG = "number is too big or too small";
 	private static final String REG_OR_IMM = "expected register or number but got";
-	private static final String TEXT_OVERFLOW = "text segment overflow";
 	private static final String UNKNOWN_MNEMONIC = "unknown mnemonic";
 	private static final String UNEXPECTED_LITERAL_END = "unexpected end of string literal";
 	private static final String UNEXPECTED_TOKEN = "unexpected token";
@@ -297,10 +296,6 @@ public class Parser {
 		}
 		segmentPointer_.add(4);
 		memory_.setTextEnd(segmentPointer_.get());
-		if (memory_.isInDataSegment(segmentPointer_.get())) {
-			//TODO translate text data? throw exception?
-			throw new ParserException(TEXT_OVERFLOW, tokens[0]);
-		}
 	}
 
 	private void expect(Token t, String s) throws ParserException
@@ -458,9 +453,9 @@ public class Parser {
 			expect(tokens[i++], ",");
 			instr.setRt(expect_reg(tokens[i++]));
 			expect(tokens[i++], ",");
-			instr.setImmB(Integer.decode(tokens[i++].getString()) - segmentPointer_.get());
-			if (i < tokens.length) {
-				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
+			instr.setImmB(Integer.decode(tokens[i].getString()) - segmentPointer_.get());
+			if (i < tokens.length-1) {
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i+1]);
 			}
 			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
@@ -476,7 +471,7 @@ public class Parser {
 
 	/**
 	 * jal relative
-	 * jal r7, relative
+	 * jal r7, relative  (this is no longer supported)
 	 * 
 	 * @param tokens
 	 * @return
@@ -491,13 +486,18 @@ public class Parser {
 			if (value==null) {
 				instr.setRd(1);
 			} else {
+			        // the format jal reg, relative is not supported by the ALU
+				throw new ParserException(NOT_A_NUMBER, tokens[i]);
+				/*
 				instr.setRd(value);
 				i++;
-				expect(tokens[i++], ",");
+				expect(tokens[i], ",");
+				i++;
+				 */
 			}
-			instr.setImmJ(Integer.decode(tokens[i++].getString()) - segmentPointer_.get());
+			instr.setImmJ(Integer.decode(tokens[i].getString()) - segmentPointer_.get());
 			if (i < tokens.length - 1) {
-				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i+1]);
 			}
 			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
@@ -522,9 +522,9 @@ public class Parser {
 		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
 		int i=1;
 		try {
-			instr.setImmJ(Integer.decode(tokens[i++].getString()) - segmentPointer_.get());
+			instr.setImmJ(Integer.decode(tokens[i].getString()) - segmentPointer_.get());
 			if (i < tokens.length - 1) {
-				throw new ParserException(UNEXPECTED_TRASH, tokens[++i]);
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i+1]);
 			}
 			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
