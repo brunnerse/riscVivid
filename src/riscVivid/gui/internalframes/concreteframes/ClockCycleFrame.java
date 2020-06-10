@@ -26,7 +26,7 @@ import java.awt.Font;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map.Entry;
 
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -264,21 +264,23 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
                 model.addColumn(i);
                 model.addRow(new String[] { "" });
 
-                final HashMap<uint32, String> h = ClockCycleLog.log.get(i);
+                final ArrayList<Entry<String, uint32>> list = ClockCycleLog.log.get(i);
                 // go through the addresses of the instructions executed in Cycle i
-                for (uint32 checkAddr : h.keySet())
+                for (Entry<String, uint32> entry : list)
                 {
-                    final ArrayList<uint32> forbidden = new ArrayList<>();
+                    uint32 checkAddr = entry.getValue();
+                    String stage = entry.getKey();
                     // fill the ith column
                     for (int k = addrModel.getRowCount() - 1; k >= 0; --k)
                     {
-                        if (addrModel.getValueAt(k, 0).equals(checkAddr.getValueAsHexString())
-                                && !forbidden.contains(checkAddr))
+                        if (addrModel.getValueAt(k, 0).equals(checkAddr.getValueAsHexString()))
                         {
-                            model.setValueAt(h.get(checkAddr), k, i);
-                            forbidden.add(checkAddr);
-                            // current checkAddr is now in forbidden -> if-statement will always be false
-                            break; 
+                            // check if the address already has a stage;
+                            // if so, the address is probably twice in the addrModel; continue searching
+                            if (model.getValueAt(k, i) == null || model.getValueAt(k,i).equals("")) {
+                                model.setValueAt(stage, k, i);
+                                break;
+                            }
                         }
                     }
                 }

@@ -25,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 
 
 import org.apache.log4j.Level;
@@ -218,13 +220,20 @@ public class RiscVividSimulator
             logger.debug("-------------------");
             stat.countCycle();
 
-            HashMap<uint32, String> h = new HashMap<>();
-            h.put(getPipeline().getFetchDecodeLatch().element().getPc(), GUI_CONST.FETCH);
-            h.put(getPipeline().getDecodeExecuteLatch().element().getPc(), GUI_CONST.DECODE);
-            h.put(getPipeline().getExecuteMemoryLatch().element().getPc(), GUI_CONST.EXECUTE);
-            h.put(getPipeline().getMemoryWriteBackLatch().element().getPc(), GUI_CONST.MEMORY);
-            h.put(getPipeline().getWriteBackLatch().element().getPc(), GUI_CONST.WRITEBACK);
-            ClockCycleLog.log.add(h);
+            ArrayList<Entry<String, uint32>> list = new ArrayList();
+            PipelineContainer p = getPipeline();
+
+            if (p.getFetchDecodeLatch().element().getInstr() != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.FETCH, getPipeline().getFetchDecodeLatch().element().getPc()));
+            if (p.getDecodeExecuteLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.DECODE, getPipeline().getDecodeExecuteLatch().element().getPc()));
+            if (p.getExecuteMemoryLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.EXECUTE, getPipeline().getExecuteMemoryLatch().element().getPc()));
+            if (p.getMemoryWriteBackLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.MEMORY, getPipeline().getMemoryWriteBackLatch().element().getPc()));
+            if (p.getWriteBackLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.WRITEBACK, getPipeline().getWriteBackLatch().element().getPc()));
+            ClockCycleLog.log.add(list);
             ClockCycleLog.code.add(getPipeline().getFetchDecodeLatch().element().getPc());
             
         }
