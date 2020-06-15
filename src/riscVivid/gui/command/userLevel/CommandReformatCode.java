@@ -103,12 +103,15 @@ public class CommandReformatCode implements Command {
                 // remove leading whitespaces before the comment
                 while (commentStartIdx > 0 && line.codePointAt(commentStartIdx-1) <= 0x20)
                     line.deleteCharAt(--commentStartIdx);
-                // if line contains a comment and something before the comment, set tabs correctly
-                if (commentStartIdx > 0) {
-                    // between the # and the comma, there must be one space (0x20)
+
+                // between the # and the actual comment, there must be one space (0x20)
+                if (commentStartIdx >= 0 && commentStartIdx+1 < line.length()) {
                     while (commentStartIdx+1 < line.length() && line.codePointAt(commentStartIdx+1) <= 0x20)
                         line.deleteCharAt(commentStartIdx+1);
                     line.insert(commentStartIdx+1, " ");
+                }
+                // if line contains a comment and something before the comment, set tabs correctly
+                if (commentStartIdx > 0) {
                     final int TARGET_CHARS = 5*8;
                     // count how many spaces to insert; tabs count more
                     int charsBeforeComment = 0;
