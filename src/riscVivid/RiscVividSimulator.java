@@ -400,7 +400,27 @@ public class RiscVividSimulator
         }
 
         // EXECUTE STAGE
-        eod = pipeline.getExecuteStage().doCycle();
+        try
+        {
+            eod = pipeline.getExecuteStage().doCycle();
+        }
+        catch (ExecuteStageException e) {
+            if ( ArchCfg.getNumBranchDelaySlots() > 2 && ArchCfg.ignoreBranchDelaySlots() &&
+                ((ExecuteFetchData)execute_fetch_latch.toArray()[1]).getJump() ) {
+                    logger.debug("Ignoring Exception \"" + e.getMessage() + "\" in EXECUTE as the causing instruction is flushed in the next cycle");
+                    // create dummy ExecuteOutputData
+                    DecodeExecuteData ded = decode_execute_latch.element();
+                    ExecuteFetchData old_efd = execute_fetch_latch.element();
+                    old_efd.flush();
+                    ExecuteMemoryData flushData = new ExecuteMemoryData(ded.getInst(),ded.getPc(), new uint32[2],  new uint32(),false);
+                    eod = new ExecuteOutputData(flushData, old_efd, execute_branchprediction_latch.element(),
+                            new boolean[PipelineConstants.STAGES]);
+            }  else {
+                throw e;
+            }
+            //TODO: when scall 93 is immediately followed by an instruction throwing an exception in the execute stage,
+            // the exception is still thrown although the instruction won't be completed anyway*/
+        }
         // EXECUTE STAGE
 
         // LATCH
