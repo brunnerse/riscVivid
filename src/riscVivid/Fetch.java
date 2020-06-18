@@ -153,7 +153,7 @@ public class Fetch {
 
 		PipelineException fetchEx = null;
 		if (Preference.isMemoryWarningsEnabled() && !imem.isReserved(program_counter, 4))
-			fetchEx = new UnreservedMemoryAccessException(program_counter, 4, UnreservedMemoryAccessException.Stage.FETCH, getPc());
+			fetchEx = new UnreservedMemoryAccessException(new uint32(getPc()), 4, UnreservedMemoryAccessException.Stage.FETCH, getPc());
 		
 		FetchDecodeData fdd = new FetchDecodeData(instr, getPc());
 		

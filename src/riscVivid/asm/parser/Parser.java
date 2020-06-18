@@ -46,7 +46,9 @@ public class Parser {
 	private static final String LABEL_ALREADY_EXISTS = "label already exists";
 	private static final String LABEL_DOES_NOT_EXISTS = "label does not exist";
 	private static final String LABEL_NOT_ALLOWED_HERE = "Label not allowed here";
+	private static final String MAIN_NOT_IN_TEXT = "main label is not in a text segment";
 	private static final String MISSING_SEPARATOR = "missing separator before";
+	private static final String MISSING_INITIAL_DIRECTIVE = "missing initial directive .text or .data";
 	private static final String NOT_A_NUMBER = "expected number or label but got";
 	private static final String NOT_A_CHAR_OR_CHAR_ARRAY = "expected a character or string but got";
 	private static final String NOT_A_REGISTER = "expected register specifier but got";
@@ -141,7 +143,17 @@ public class Parser {
 		mnemonicAddressToLine = new Hashtable<uint32, Integer>();
 		memory_ = memory;
 		unresolvedInstructions_ = new ArrayList<UnresolvedInstruction>();
+
 		Token[] tokens = tokenizer_.readLine();
+		// skip empty lines at the start of the file
+		while (tokens != null && tokens.length == 0)
+			tokens = tokenizer_.readLine();
+		// check the first token: it has to be a directive declaring either a text or a data area
+		if (tokens == null || tokens[0].getTokenType() != TokenType.Directive ||
+				!(tokens[0].getString().equalsIgnoreCase(".text") || tokens[0].getString().equalsIgnoreCase(".data"))
+		)
+			throw new ParserException(MISSING_INITIAL_DIRECTIVE, null);
+
 		while (tokens != null) {
 		    // if line contains a mnemonic, add the line to the mnemonicLineAddress hashtable
 		    for (Token t : tokens) {
@@ -207,6 +219,8 @@ public class Parser {
 	private void addLabel(String label) throws ParserException {
 		if (globalLabels_.containsKey(label))
 			throw new ParserException(LABEL_ALREADY_EXISTS, null);
+		if (label.equals("main") && segmentPointer_ != textPointer_)
+			throw new ParserException(MAIN_NOT_IN_TEXT, null);
 		globalLabels_.put(label, segmentPointer_.get());
 	}
 
@@ -295,7 +309,7 @@ public class Parser {
 			memory_.writeWord(segmentPointer_.get(), iw);
 		}
 		segmentPointer_.add(4);
-		memory_.setTextEnd(segmentPointer_.get());
+		updateMemorySegmentEnd();
 	}
 
 	private void expect(Token t, String s) throws ParserException
@@ -678,7 +692,7 @@ public class Parser {
 			ascii(tokens);
 			memory_.writeByte(segmentPointer_.get(), (byte) 0x0);//terminating null
 			segmentPointer_.add(1);
-			memory_.setDataEnd(segmentPointer_.get());
+			updateMemorySegmentEnd();
 		} else if (name.equalsIgnoreCase(".byte")) {
 			byteDir(tokens);
 		} else if (name.equalsIgnoreCase(".data")) {
@@ -712,7 +726,7 @@ public class Parser {
 				throw new ParserException(NUMBER_TOO_BIG, tokens[1]);
 			while (segmentPointer_.get() % align != 0)
 				segmentPointer_.add(1);
-			memory_.setDataEnd(segmentPointer_.get());
+			updateMemorySegmentEnd();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
 		} catch (NumberFormatException ex) {
@@ -735,7 +749,7 @@ public class Parser {
 			for (int i = 0; i < str.length; ++i) {
 				memory_.writeByte(segmentPointer_.get(), str[i]);
 				segmentPointer_.add(1);
-				memory_.setDataEnd(segmentPointer_.get());
+				updateMemorySegmentEnd();
 			}
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
@@ -759,7 +773,7 @@ public class Parser {
 				int value = Integer.decode(tokens[i++].getString());
 				memory_.writeByte(segmentPointer_.get(), (byte) value);
 				segmentPointer_.add(1);
-				memory_.setDataEnd(segmentPointer_.get());
+				updateMemorySegmentEnd();
 			} while (i < tokens.length && tokens[i++].getString().equals(","));
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
@@ -827,7 +841,7 @@ public class Parser {
 				int value = Integer.decode(tokens[i++].getString());
 				memory_.writeHalf(segmentPointer_.get(), (short) value);
 				segmentPointer_.add(2);
-				memory_.setDataEnd(segmentPointer_.get());
+				updateMemorySegmentEnd();
 			} while (i < tokens.length && tokens[i++].getString().equals(","));
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
@@ -851,9 +865,9 @@ public class Parser {
 				segmentPointer_.add(value);
 			} while (i < tokens.length && tokens[i++].getString().equals(","));
 			if (segmentPointer_ == dataPointer_)
-				memory_.setDataEnd(segmentPointer_.get());
+			    updateMemorySegmentEnd();
 			else if (segmentPointer_ == textPointer_)
-				memory_.setTextEnd(segmentPointer_.get());
+			    updateMemorySegmentEnd();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
 		} catch (NumberFormatException ex) {
@@ -903,7 +917,7 @@ public class Parser {
 				int value = ValueInput.strToInt(tokens[i++].getString());
 				memory_.writeWord(segmentPointer_.get(), value);
 				segmentPointer_.add(4);
-				memory_.setDataEnd(segmentPointer_.get());
+				updateMemorySegmentEnd();
 			} while (i < tokens.length && tokens[i++].getString().equals(","));
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_DIRECTIVE, tokens[0]);
@@ -912,6 +926,13 @@ public class Parser {
 		}
 	}
 
+
+	private void updateMemorySegmentEnd() {
+		if (segmentPointer_ == textPointer_)
+			memory_.setTextEnd(segmentPointer_.get());
+		else
+			memory_.setDataEnd(segmentPointer_.get());
+	}
 	/*
 	 * ========================================================================
 	 */
