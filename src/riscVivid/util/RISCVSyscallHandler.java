@@ -29,6 +29,8 @@ import riscVivid.asm.instruction.Registers;
 import riscVivid.datatypes.*;
 import riscVivid.exception.MemoryException;
 import riscVivid.gui.dialog.Input;
+import riscVivid.gui.util.DialogWrapper;
+import riscVivid.memory.DataMemory;
 import riscVivid.memory.MainMemory;
 
 /* Very dirty implementation of syscalls: 
@@ -48,7 +50,7 @@ public class RISCVSyscallHandler {
 	private TrapObservable oOutput = null;
 	private TrapObservable oInput = null;
 	private Input input = null;
-	private MainMemory mem=null;
+	private DataMemory mem=null;
 
 	private int lastExitCode = 0;
 	
@@ -77,9 +79,9 @@ public class RISCVSyscallHandler {
 		this.input = input;
 	}
 
-	public void setMemory(MainMemory mainMem) 
+	public void setMemory(DataMemory dataMem)
 	{
-		mem = mainMem;
+		mem = dataMem;
 	}
 
 	public int getLastExitCode() {
@@ -142,6 +144,15 @@ public class RISCVSyscallHandler {
 				for(i=0; i<len; i++)
 					mem.write_u8(new uint32(addr+i), new uint8(raw[i]));
 				reg_set.write(A0, new uint32(len));
+			}
+			if (!mem.isReserved(new uint32(addr), len)) {
+				// find first unreserved byte
+				int unreservedAddr = addr;
+				while (mem.isReserved(new uint32(unreservedAddr), 1))
+					unreservedAddr++;
+				DialogWrapper.showWarningDialog("The user input is " + (unreservedAddr > addr ? "partially " : "") +
+						"written into unreserved memory at " + new uint32(unreservedAddr).getValueAsHexString(),
+						"Input into unreserved memory region");
 			}
 			break;
 		

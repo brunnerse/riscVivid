@@ -163,7 +163,7 @@ public class RiscVividSimulator
         }
 */
 		RISCVSyscallHandler syscall_handler = RISCVSyscallHandler.getInstance();
-        syscall_handler.setMemory(pipeline.getMainMemory());
+        syscall_handler.setMemory(pipeline.getDataMemory());
 
         // Obtain the statistics object
         stat = Statistics.getInstance();
