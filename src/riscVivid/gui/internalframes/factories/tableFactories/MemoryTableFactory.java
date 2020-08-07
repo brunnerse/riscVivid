@@ -85,22 +85,36 @@ public class MemoryTableFactory extends TableFactory
 
         table.addMouseListener(new MouseAdapter()
         {
+            int selectedRow = -1;
             @Override
             public void mouseClicked(MouseEvent e)
             {
                 Point p = e.getPoint();
                 int row = table.rowAtPoint(p);
 
-                if (e.getClickCount() == 2)
+                if (e.getClickCount() == 2) {
                     new CommandChangeMemory(new uint32(Integer.parseInt(
                             model.getValueAt(row, 0).toString().substring(2),
                             16))).execute();
-            }
+                 } else if (e.getClickCount() == 1) {
+                     // if one row is selected, delete the selection if the user clicks on the row
+                     if (table.getSelectedRows().length == 1) {
+                         if (selectedRow == row){
+                             table.clearSelection();
+                             selectedRow = -1;
+                         } else {
+                             selectedRow = row;
+                         }
+                     } else {
+                         selectedRow = -1;
+                     }
+                 }
+        }
 
-        });
+    });
 
         table.setFillsViewportHeight(true);
         return table;
-    }
+}
 
 }

@@ -178,6 +178,7 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         clockCycleScrollPane = new JScrollPane(table);
         clockCycleScrollBarVertical = clockCycleScrollPane.getVerticalScrollBar();
         clockCycleScrollBarHorizontal = clockCycleScrollPane.getHorizontalScrollBar();
+
         AdjustmentListener listener = new AdjustmentListener()
         {
             @Override

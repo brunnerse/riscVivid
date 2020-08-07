@@ -20,7 +20,7 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.renderer;
 
-import java.awt.Component;
+import java.awt.*;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -45,6 +45,9 @@ public class ClockCycleFrameTableCellRenderer implements TableCellRenderer
         label.setFont(table.getFont());
         label.setForeground(table.getForeground());
         label.setBackground(table.getBackground());
+
+        if (isSelected)
+            label.setBackground(new Color(0xBAD2E4));
 
         if (label.getText() != null)
         {

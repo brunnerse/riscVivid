@@ -20,17 +20,19 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import riscVivid.datatypes.uint8;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
+import riscVivid.gui.command.userLevel.CommandChangeRegister;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
 import riscVivid.gui.internalframes.renderer.LogFrameTableCellRenderer;
 import riscVivid.gui.internalframes.util.LogReader;
@@ -132,6 +134,30 @@ public final class LogFrame extends OpenDLXSimInternalFrame
         add(scrollpane, BorderLayout.CENTER);
 
         MWheelFontSizeChanger.getInstance().add(scrollpane);
+
+        infoTable.addMouseListener(new MouseAdapter()
+        {
+            int selectedRow = -1;
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                Point p = e.getPoint();
+                int row = infoTable.rowAtPoint(p);
+
+                // if one row is selected, delete the selection if the user clicks on the row
+                if (infoTable.getSelectedRows().length == 1) {
+                    if (selectedRow == row){
+                        infoTable.clearSelection();
+                        selectedRow = -1;
+                    } else {
+                        selectedRow = row;
+                    }
+                } else {
+                    selectedRow = -1;
+                }
+            }
+        });
 
         setFont(infoTable.getFont().deriveFont((float)(Preference.getFontSize())));
         Dimension desktopSize = mf.getContentPane().getSize();

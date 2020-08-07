@@ -31,6 +31,10 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.internalframes.renderer.CodeFrameTableCellRenderer;
 import riscVivid.gui.internalframes.util.NotSelectableTableModel;
 
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 public class CodeTableFactory extends TableFactory
 {
 
@@ -60,6 +64,30 @@ public class CodeTableFactory extends TableFactory
         tcm.getColumn(1).setMaxWidth(defaultWidth);
         tcm.getColumn(2).setMaxWidth(2*defaultWidth);
         table.setDefaultRenderer(Object.class, new CodeFrameTableCellRenderer());
+
+        table.addMouseListener(new MouseAdapter()
+        {
+            int selectedRow = -1;
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                Point p = e.getPoint();
+                int row = table.rowAtPoint(p);
+
+                // if one row is selected, delete the selection if the user clicks on the row
+                if (table.getSelectedRows().length == 1) {
+                    if (selectedRow == row){
+                        table.clearSelection();
+                        selectedRow = -1;
+                    } else {
+                        selectedRow = row;
+                    }
+                } else {
+                    selectedRow = -1;
+                }
+            }
+        });
 
         //insert code
         int start, end;
