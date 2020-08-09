@@ -112,10 +112,10 @@ public class Instructions {
 					"j[Jump] disp: pc-relative jump");
 			add("jalr", new Instruction(OPCODE_JALR, 0x0), ParseType.ITYPE, 
 					"jal[Jump And Link] rd,disp: pc-relative jump, safe old pc in rd");
-			add("jr", new Instruction(OPCODE_JALR, 0x0, 0x000), ParseType.ONEREG, 
-					"retl[RETurn]: return from subroutine by jumping to ra");
-			add("ret", new Instruction(0x00008067), ParseType.NOARGS, 
-					"retl[RETurn]: return from subroutine by jumping to ra");
+			add("jr", new Instruction(OPCODE_JALR, 0x0, 0x000), ParseType.SRCREG,
+					"jr[Jump to Register] rd: jump to address in rd");
+			add("ret", new Instruction(0x00008067), ParseType.NOARGS,
+					"ret[RETurn]: return from subroutine by jumping to ra");
 			add("beq", new Instruction(OPCODE_branch, 0x0), ParseType.BTYPE, 
 					"beq[Branch if EQual] rs,rt,disp: branch if rs==rt");
 			add("bne", new Instruction(OPCODE_branch, 0x1), ParseType.BTYPE, 
