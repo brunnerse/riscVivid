@@ -357,21 +357,32 @@ public class Parser {
 	}
 	
 	/**
-	 * jalr r1, gp, 0
-	 * 
+	 * jalr gp
+	 * jalr r1, gp
+	 * jalr r1, gp, 0x10
+	 *
 	 * @param tokens
 	 * @return
-	 * @throws ParserException
+	 * @throws ParserExceptionD
 	 */
 	private int iType(Token[] tokens) throws ParserException {
 		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
 		int i=1;
 		try {
-			instr.setRd(expect_reg(tokens[i++]));
-			expect(tokens[i++], ",");
+			// if only one argument was given
+			if (tokens.length < 3) {
+				instr.setRd(1);
+			} else {
+				instr.setRd(expect_reg(tokens[i++]));
+				expect(tokens[i++], ",");
+			}
 			instr.setRs(expect_reg(tokens[i++]));
-			expect(tokens[i++], ",");
-			instr.setImmI(Integer.decode(tokens[i++].getString()));
+			// check if a third argument was given as offset
+			if (i < tokens.length && tokens[i++].getString().equals(",")) {
+				instr.setImmI(Integer.decode(tokens[i++].getString()));
+			} else {
+				instr.setImmI(0);
+			}
 			if (i < tokens.length)
 				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
 			return instr.instrWord();
@@ -485,7 +496,7 @@ public class Parser {
 
 	/**
 	 * jal relative
-	 * jal r7, relative  (this is no longer supported)
+	 * jal r7, relative
 	 * 
 	 * @param tokens
 	 * @return
@@ -498,16 +509,13 @@ public class Parser {
 			// reg or no reg
 			Integer	value = Registers.instance().getInteger(tokens[i].getString());
 			if (value==null) {
+				// no reg given: instruction defaults to writing into ra (x1)
 				instr.setRd(1);
 			} else {
-			        // the format jal reg, relative is not supported by the ALU
-				throw new ParserException(NOT_A_NUMBER, tokens[i]);
-				/*
 				instr.setRd(value);
 				i++;
 				expect(tokens[i], ",");
 				i++;
-				 */
 			}
 			instr.setImmJ(Integer.decode(tokens[i].getString()) - segmentPointer_.get());
 			if (i < tokens.length - 1) {
