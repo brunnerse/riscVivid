@@ -110,8 +110,8 @@ public class Instructions {
 					"jal[Jump And Link] rd,disp: pc-relative jump, safe old pc in rd");
 			add("j", new Instruction(OPCODE_JAL), ParseType.JUMP, 
 					"j[Jump] disp: pc-relative jump");
-			add("jalr", new Instruction(OPCODE_JALR, 0x0), ParseType.ITYPE, 
-					"jal[Jump And Link] rd,disp: pc-relative jump, safe old pc in rd");
+			add("jalr", new Instruction(OPCODE_JALR, 0x0), ParseType.ITYPE,
+					"jalr[Jump And Link] rd, rs: jump to address in rs, safe old pc in rd");
 			add("jr", new Instruction(OPCODE_JALR, 0x0, 0x000), ParseType.SRCREG,
 					"jr[Jump to Register] rd: jump to address in rd");
 			add("ret", new Instruction(0x00008067), ParseType.NOARGS,
@@ -146,6 +146,12 @@ public class Instructions {
 					"sw[Store Word] rt,imm(rs): write 32 bits to address rs+imm");
 			add("nop", new Instruction(OPCODE_imm, 0x0), ParseType.NOARGS, 
 					"nop[No OPeration]: do nothing");
+			add("mv", new Instruction(OPCODE_reg, 0x0), ParseType.MVLI,
+					"mv[Move Value] rd, rs:  copy value of rs to rd");
+			add("li", new Instruction(OPCODE_imm, 0x0), ParseType.MVLI,
+					"li[Load Immediate] rd, imm:  load immediate value into rd");
+			add("add", new Instruction(OPCODE_reg, 0x0), ParseType.ARITH, // add "add" twice so asm.instr2str works correctly
+					"add[ADD] rd,rs,rt/imm: add rs and rt/imm and save result in rd");
 			add("add", new Instruction(OPCODE_imm, 0x0), ParseType.ARITH,
 					"add[ADD] rd,rs,rt/imm: add rs and rt/imm and save result in rd");
 			add("sub", new Instruction(OPCODE_reg, 0x0, 0x400), ParseType.RTYPE,

@@ -300,6 +300,9 @@ public class Parser {
 			case SRCREG:
 				iw = srcReg(tokens);
 				break;
+			case MVLI:
+				iw = mvli(tokens);
+				break;
 			case NOARGS:
 				iw = noArgs(tokens);
 				break;
@@ -355,7 +358,51 @@ public class Parser {
 			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
 		}
 	}
-	
+
+
+	/**
+	 * mv rd, rs
+	 * li rd, 100
+	 *
+	 * @param tokens
+	 * @return
+	 * @throws ParserException
+	 */
+	private int mvli(Token[] tokens) throws ParserException {
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
+		try {
+		    instr.setRd(expect_reg(tokens[i++]));
+		    expect(tokens[i++], ",");
+			switch (tokens[0].getString()) {
+				case "mv":
+					Integer value = Registers.instance().getInteger(tokens[i].getString());
+					if (value == null)
+						throw new ParserException(NOT_A_REGISTER, tokens[i]);
+					instr.setRt(value);
+					break;
+				case "li":
+					value = Integer.decode(tokens[i].getString());
+					if (value == null)
+						throw new ParserException(NOT_A_NUMBER, tokens[i]);
+					instr.setImmI(value);
+					break;
+				default:
+					throw new ParserException(UNKNOWN_MNEMONIC, tokens[0]);
+			}
+			if (i < tokens.length - 1)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
+			return instr.instrWord();
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
+		} catch (InstructionException ex) {
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
+		} catch (NullPointerException ex) {
+			throw new ParserException(NOT_A_REGISTER, tokens[i]);
+		} catch (NumberFormatException ex) {
+			throw new ParserException(NOT_A_NUMBER, tokens[i]);
+		}
+	}
 	/**
 	 * jalr gp
 	 * jalr r1, gp
@@ -363,7 +410,7 @@ public class Parser {
 	 *
 	 * @param tokens
 	 * @return
-	 * @throws ParserExceptionD
+	 * @throws ParserException
 	 */
 	private int iType(Token[] tokens) throws ParserException {
 		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
@@ -399,7 +446,7 @@ public class Parser {
 
 	/**
 	 * e.g. lui r1, 123
-	 * 
+	 *
 	 * @param tokens
 	 * @return
 	 * @throws ParserException
