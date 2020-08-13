@@ -20,17 +20,17 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -50,7 +50,7 @@ import riscVivid.gui.util.MWheelFontSizeChanger;
 import riscVivid.util.ClockCycleLog;
 
 @SuppressWarnings("serial")
-public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GUI_CONST
+public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GUI_CONST, ListSelectionListener
 {
 
     private final RiscVividSimulator openDLXSim;
@@ -74,6 +74,7 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     private JScrollBar addrScrollBar;
     private JScrollBar codeScrollBar;
     //private JScrollBar clockCycleScrollBarHorizontal;
+    private boolean isSelectionAdjusting = false;
 
     public ClockCycleFrame(String title)
     {
@@ -150,6 +151,11 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         //scroll pane and frame
         clockCycleScrollPane = makeTableScrollPane();
 
+        for (JTable table : new JTable[]{addrTable, codeTable, table}) {
+            addMouseListenerToTable(table);
+            table.getSelectionModel().addListSelectionListener(this);
+        }
+
         for (JScrollPane s : new JScrollPane[] {clockCycleScrollPane,
                 addrScrollPane, codeScrollPane})
             MWheelFontSizeChanger.getInstance().add(s);
@@ -164,6 +170,33 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         setFont(addrTable.getFont().deriveFont((float)Preference.getFontSize()));
         this.setLocation(0, desktopSize.height - getPreferredSize().height - 50);
         setVisible(true);
+    }
+
+    private void addMouseListenerToTable(final JTable table) {
+        MouseAdapter listener = new MouseAdapter() {
+            public JTable t = table;
+            int selectedRow = -1;
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                Point p = e.getPoint();
+                int row = t.rowAtPoint(p);
+
+                // if one row is selected, delete the selection if the user clicks on the row
+                if (t.getSelectedRows().length == 1) {
+                    if (selectedRow == row){
+                        t.clearSelection();
+                        selectedRow = -1;
+                    } else {
+                        selectedRow = row;
+                    }
+                } else {
+                    selectedRow = -1;
+                }
+            }
+        };
+        table.addMouseListener(listener);
     }
 
     private JScrollPane makeTableScrollPane()
@@ -399,4 +432,30 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     	}
     }
 
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+        if (isSelectionAdjusting)
+            return;
+        isSelectionAdjusting = true;
+        System.out.println(e);
+        ListSelectionModel sourceModel = (ListSelectionModel)e.getSource();
+        int firstIdx = e.getFirstIndex();
+        int lastIdx = e.getLastIndex();
+
+        for (JTable table : new JTable[]{table, codeTable, addrTable}) {
+            ListSelectionModel model = table.getSelectionModel();
+            if (model != sourceModel) {
+                for (int i = firstIdx; i <= lastIdx; ++i) {
+                    if (sourceModel.isSelectedIndex(i) != model.isSelectedIndex(i)) {
+                        if (sourceModel.isSelectedIndex(i))
+                            model.addSelectionInterval(i, i);
+                        else
+                            model.removeSelectionInterval(i, i);
+                    }
+                }
+            }
+        }
+        isSelectionAdjusting = false;
+    }
 }
