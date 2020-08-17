@@ -220,7 +220,7 @@ public class RiscVividSimulator
             logger.debug("-------------------");
             stat.countCycle();
 
-            ArrayList<Entry<String, uint32>> list = new ArrayList();
+            ArrayList<Entry<String, uint32>> list = new ArrayList<>();
             PipelineContainer p = getPipeline();
 
             if (p.getFetchDecodeLatch().element().getInstr() != PipelineConstants.PIPELINE_BUBBLE_INSTR)
@@ -418,8 +418,6 @@ public class RiscVividSimulator
             }  else {
                 throw e;
             }
-            //TODO: when scall 93 is immediately followed by an instruction throwing an exception in the execute stage,
-            // the exception is still thrown although the instruction won't be completed anyway*/
         }
         // EXECUTE STAGE
 
