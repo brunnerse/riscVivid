@@ -377,7 +377,6 @@ public class Instruction {
 				strBuf.append(String.format("0x%08x", pc+immJ()));
 				break;
 			case OPCODE_JALR:
-				// missing: funct3!=0
 				if (instrWord_==0x00008067) {
 					strBuf.append("ret");
 				} else {
@@ -390,10 +389,13 @@ public class Instruction {
 							strBuf.append(',');
 						}
 					}
-					strBuf.append(rsStr());
 					if (immI()!=0) {
-						strBuf.append(',');
-						strBuf.append(String.format("0x%08x", immI()));
+						strBuf.append(immI());
+						strBuf.append('(');
+						strBuf.append(rsStr());
+						strBuf.append(')');
+					} else {
+						strBuf.append(rsStr());
 					}
 				}
 				break;

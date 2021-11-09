@@ -405,8 +405,9 @@ public class Parser {
 	}
 	/**
 	 * jalr gp
-	 * jalr r1, gp
-	 * jalr r1, gp, 0x10
+	 * jalr ra, gp
+	 * jalr ra, 0x10(gp)
+	 * jalr 0x10(gp)
 	 *
 	 * @param tokens
 	 * @return
@@ -416,20 +417,30 @@ public class Parser {
 		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
 		int i=1;
 		try {
-			// if only one argument was given
-			if (tokens.length < 3) {
-				instr.setRd(1);
-			} else {
-				instr.setRd(expect_reg(tokens[i++]));
+			Integer reg = Registers.instance().getInteger(tokens[i].getString());
+			// default to register ra if first argument isn't a register or there's just one argument
+			// (cases: jalr 0x10(gp), jalr gp)
+			if (reg == null || tokens.length < 3) {
+				instr.setRd(1); // default to register ra (x1)
+			} else { // (cases: jalr ra, 0x10(gp)   and  jalr ra, gp)
+				instr.setRd(reg);
+				i++;
 				expect(tokens[i++], ",");
 			}
-			instr.setRs(expect_reg(tokens[i++]));
-			// check if a third argument was given as offset
-			if (i < tokens.length && tokens[i++].getString().equals(",")) {
-				instr.setImmI(Integer.decode(tokens[i++].getString()));
+			Integer regTarget = Registers.instance().getInteger(tokens[i].getString());
+			// check if an offset was given  (cases: jalr 0x10(gp)   and   jalr ra, 0x10(gp) )
+			if (regTarget == null) {
+				// offset was given
+				int imm = Integer.decode(tokens[i++].getString());
+				instr.setImmI(imm);
+				expect(tokens[i++], "(");
+				instr.setRs(expect_reg(tokens[i++]));
+				expect(tokens[i++], ")");
 			} else {
-				instr.setImmI(0);
+				// no offset was given  (case:  jalr ra, gp)
+				instr.setRs(expect_reg(tokens[i++]));
 			}
+
 			if (i < tokens.length)
 				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
 			return instr.instrWord();
