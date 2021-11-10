@@ -43,7 +43,7 @@ public abstract class CommonFileChooser {
     public File chooseFile() {
         final JFileChooser chooser = new JFileChooser("Choose file");
         chooser.setDialogType(JFileChooser.OPEN_DIALOG);
-        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
         chooser.setFileFilter(getFileFilter());
 

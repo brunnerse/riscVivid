@@ -20,8 +20,7 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -49,6 +48,13 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     private RegisterSet rs;
     private JTable registerTable;
     private JCheckBox checkBoxHex;
+    private JScrollPane scrollPane;
+
+    static int registerOrder[] = {0, 1, 2, 3, 4, 8,  // zero - fp
+                                5, 6, 7, 28, 29, 30, 31, // t0 - t6
+                                10, 11, 12, 13, 14, 15, 16, 17, // a0 - a7
+                                9, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 // s1 - s11
+                                };
 
     public RegisterFrame(String title)
     {
@@ -62,8 +68,9 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     {
         for (int i = 0; i < ArchCfg.getRegisterCount(); ++i)
         {
+            uint8 register = new uint8(registerOrder[i]);
             final String value;
-            final uint32 register_value = rs.read(new uint8(i));
+            final uint32 register_value = rs.read(register);
             if (Preference.displayRegistersAsHex())
                 value = register_value.getValueAsHexString();
             else
@@ -78,18 +85,19 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
     {
         super.initialize();
         //make the scrollpane
-        registerTable = new RegisterTableFactory(rs).createTable();
-        JScrollPane scrollpane = new JScrollPane(registerTable);
-        scrollpane.setFocusable(false);
+        registerTable = new RegisterTableFactory(rs, registerOrder).createTable();
+        scrollPane = new JScrollPane(registerTable);
+        scrollPane.setFocusable(false);
+
         registerTable.setFillsViewportHeight(true);
-        TableSizeCalculator.setDefaultMaxTableSize(scrollpane, registerTable,
+        TableSizeCalculator.setDefaultMaxTableSize(scrollPane, registerTable,
                 TableSizeCalculator.SET_SIZE_WIDTH);
 
-        MWheelFontSizeChanger.getInstance().add(scrollpane);
+        MWheelFontSizeChanger.getInstance().add(scrollPane);
 
         //config internal frame
         setLayout(new BorderLayout());
-        add(scrollpane, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
         // new checkbox
         checkBoxHex = new JCheckBox("values as hex");
 		checkBoxHex.setSelected(Preference.displayRegistersAsHex());
@@ -99,7 +107,15 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
 		add(controlPanel, BorderLayout.SOUTH);
 
         setFont(registerTable.getFont().deriveFont((float)Preference.getFontSize()));
+        Dimension minSize = new Dimension();
+        minSize.height = this.getHeight() - scrollPane.getViewport().getHeight() + registerTable.getHeight();
+        Dimension desktopSize = MainFrame.getInstance().getContentPane().getSize();
+        this.setPreferredSize(new Dimension(getPreferredSize().width, (int) Math.min(desktopSize.height,
+            getPreferredSize().getHeight() - scrollPane.getPreferredSize().height
+                    + registerTable.getRowCount() * registerTable.getRowHeight() + 50)));
+
         pack();
+        setLocation(0,0);
         setVisible(true);
     }
 
@@ -113,7 +129,7 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
 	    	registerTable.getTableHeader().setFont(f);
 	    	registerTable.setRowHeight(f.getSize() + 4);
 	    	TableColumn registerColumn = registerTable.getColumn("Register");
-	    	int registerColWidth = registerTable.getFontMetrics(f).stringWidth("00: zero__");
+	    	int registerColWidth = registerTable.getFontMetrics(f).stringWidth("0x0: zero__");
 	    	// if width is shortened, first set min width, then max width
 	    	if (registerColWidth < registerColumn.getMaxWidth()) {
 	    		registerColumn.setMinWidth(registerColWidth);
@@ -127,6 +143,8 @@ public final class RegisterFrame extends OpenDLXSimInternalFrame implements Item
 	    	// the last column may expand indefinitely
 	    	valuesColumn.setMaxWidth(Integer.MAX_VALUE);
 	    	valuesColumn.setMinWidth(valuesColWidth);
+
+	    	int minWidth = valuesColWidth + registerColWidth;
     	}
     }
 

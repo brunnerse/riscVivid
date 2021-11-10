@@ -21,12 +21,12 @@
 package riscVivid.util;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map.Entry;
 
 import riscVivid.datatypes.uint32;
 
 public class ClockCycleLog
 {
-    public static ArrayList<HashMap<uint32, String>> log = new ArrayList<>();
+    public static ArrayList<ArrayList<Entry<String, uint32>>> log = new ArrayList<>();
     public static ArrayList<uint32> code = new ArrayList<>();
 }

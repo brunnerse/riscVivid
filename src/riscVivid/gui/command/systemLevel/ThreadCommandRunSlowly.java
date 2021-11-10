@@ -26,15 +26,18 @@ import riscVivid.RiscVividSimulator;
 import riscVivid.exception.PipelineException;
 import riscVivid.gui.GUI_CONST;
 import riscVivid.gui.MainFrame;
+import riscVivid.gui.dialog.Player;
 
 public class ThreadCommandRunSlowly implements Runnable
 {
 
     private MainFrame mf;
+    Player player;
 
-    public ThreadCommandRunSlowly(MainFrame mf)
+    public ThreadCommandRunSlowly(MainFrame mf, Player player)
     {
         this.mf = mf;
+        this.player = player;
     }
 
     @Override
@@ -46,13 +49,15 @@ public class ThreadCommandRunSlowly implements Runnable
         //check if running was paused/quit or if openDLXSim has finished
         while (!sim.isFinished() && mf.isRunning())
         {
-            while (mf.isPause())
+            if (player.isPaused())
             {
                 try
                 {
                     Thread.sleep(100);
                 }
-                catch (Exception e) {}
+                catch (InterruptedException e) {}
+
+                continue; // check again if simulator is finished and mf is running instead of doing a step
             }
 
             // do a cycle within riscVivid
@@ -67,7 +72,7 @@ public class ThreadCommandRunSlowly implements Runnable
 
             try
             {
-                //queue CommandUpdateFrames/execute() to event dispatch thread
+                // queue CommandUpdateFrames/execute() to event dispatch thread
                 EventQueue.invokeAndWait(new Runnable()
                 {
                     @Override
@@ -78,8 +83,8 @@ public class ThreadCommandRunSlowly implements Runnable
                     }
 
                 });
-                //wait a certain amount of time, which is defined within MainFrame
-                Thread.sleep(mf.getRunSpeed() * 100);
+                // wait a certain amount of time, which is defined within MainFrame
+                Thread.sleep(player.getRunSpeed() * 100);
             }
             catch (Exception e)
             {
@@ -88,12 +93,10 @@ public class ThreadCommandRunSlowly implements Runnable
             }
 
         }
-        // when running stops or riscVivid has finished, set state back to executing, as executing means a riscVivid is loaded but not running through
+        // when running stops or riscVivid has finished, set state back to executing, as executing means a program is loaded but not running
         mf.setOpenDLXSimState(GUI_CONST.OpenDLXSimState.EXECUTING);
-        // if the current riscVivid has finished, dont allow any gui updates any more
-        if (sim.isFinished())
-        {
-            mf.setUpdateAllowed(false);
+        if (sim.isFinished()) {
+            player.dispose();
             new CommandSimulatorFinishedInfo().execute();
         }
     }

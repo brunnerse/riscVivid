@@ -29,8 +29,6 @@ package riscVivid.asm.instruction;
 public class Instruction {
 	private int instrWord_;
 	
-	public static final int XLEN = 64;
-	
 	public static final int OPCODE_load		= 0x03;
 	public static final int OPCODE_imm		= 0x13;
 	public static final int OPCODE_store	= 0x23;
@@ -94,7 +92,7 @@ public class Instruction {
 	 * 
 	 * @param opcode
 	 * @param funct3
-	 * @param funct7
+	 * @param funct12
 	 */
 	public Instruction(int opcode, int funct3, int funct12) throws InstructionException {
 		if (opcode>0x7f || opcode<0 ||  funct3<0 || funct3>7)
@@ -215,7 +213,7 @@ public class Instruction {
 	}
 
 	public void setShamt(int imm) throws InstructionException {
-		if (imm<0 || imm > XLEN)
+		if (imm<0 || imm > 0x1f)
 			throw new InstructionException("immI out of range");
 		instrWord_ = (instrWord_ & 0x000fffff) | (imm<<20);
 	}
@@ -354,7 +352,8 @@ public class Instruction {
 				strBuf.append(rsStr());
 				strBuf.append(',');
 				strBuf.append(rtStr());
-				strBuf.append(",pc");
+				strBuf.append(",");
+				// strBuf.append(",pc");
 				strBuf.append(String.format("0x%08x", pc+immB()));
 				break;
 			case OPCODE_LUI:
@@ -378,7 +377,6 @@ public class Instruction {
 				strBuf.append(String.format("0x%08x", pc+immJ()));
 				break;
 			case OPCODE_JALR:
-				// missing: funct3!=0
 				if (instrWord_==0x00008067) {
 					strBuf.append("ret");
 				} else {
@@ -391,10 +389,13 @@ public class Instruction {
 							strBuf.append(',');
 						}
 					}
-					strBuf.append(rsStr());
 					if (immI()!=0) {
-						strBuf.append(',');
-						strBuf.append(Integer.toHexString(immI()));
+						strBuf.append(immI());
+						strBuf.append('(');
+						strBuf.append(rsStr());
+						strBuf.append(')');
+					} else {
+						strBuf.append(rsStr());
 					}
 				}
 				break;

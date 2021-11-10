@@ -20,7 +20,7 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.renderer;
 
-import java.awt.Component;
+import java.awt.*;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -55,6 +55,8 @@ public final class CodeFrameTableCellRenderer implements TableCellRenderer, GUI_
                     table.getModel().getValueAt(row, 2).toString().split(" ")[0]));
         }
 
+        if (isSelected)
+            label.setBackground(new Color(0xBAD2E4));
         //FETCH
         if (label.getText().contains(FETCH))
             label.setBackground(GUI_CONST.IF_COLOR);

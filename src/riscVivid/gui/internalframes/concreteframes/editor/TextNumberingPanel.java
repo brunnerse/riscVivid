@@ -21,16 +21,27 @@
 package riscVivid.gui.internalframes.concreteframes.editor;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.beans.*;
 import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 
+import riscVivid.datatypes.uint32;
+import riscVivid.gui.MainFrame;
+import riscVivid.gui.Preference;
+import riscVivid.gui.internalframes.Updateable;
+import riscVivid.util.BreakpointManager;
+
+//TODO: add popup menu
 @SuppressWarnings("serial")
 public class TextNumberingPanel extends JPanel
-        implements CaretListener, DocumentListener, PropertyChangeListener
+        implements CaretListener, DocumentListener, PropertyChangeListener, MouseListener, ItemListener, Updateable
 {
 
     public final static float WEST = 0.0f;
@@ -38,7 +49,7 @@ public class TextNumberingPanel extends JPanel
     public final static float EAST = 1.0f;
     private final static Border BORDER = new MatteBorder(0, 0, 0, 2, Color.GRAY);
     private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
-    private JTextComponent component;
+    private JTextArea component;
     private boolean updateFont;
     private int borderGap;
     private Color currentLineForeground;
@@ -49,15 +60,19 @@ public class TextNumberingPanel extends JPanel
     private int lastLine;
     private Font lastFont;
     private HashMap<String, FontMetrics> fonts;
+    private BreakpointManager bm;
 
-    public TextNumberingPanel(JTextComponent component)
+    private MainFrame mf;
+
+    public TextNumberingPanel(JTextArea component, MainFrame mf)
     {
-        this(component, 3);
+        this(component, mf, 3);
     }
 
-    public TextNumberingPanel(JTextComponent component, int minimumDisplayDigits)
+    public TextNumberingPanel(JTextArea component, MainFrame mf, int minimumDisplayDigits)
     {
         this.component = component;
+        this.mf = mf;
 
         setFont(component.getFont());
 
@@ -69,6 +84,79 @@ public class TextNumberingPanel extends JPanel
         component.getDocument().addDocumentListener(this);
         component.addCaretListener(this);
         component.addPropertyChangeListener("font", this);
+        this.addMouseListener(this);
+        
+        bm = BreakpointManager.getInstance();
+        this.setComponentPopupMenu(createPopupMenu());
+    }
+
+    private JPopupMenu createPopupMenu() {
+        final JPopupMenu popupMenu = new JPopupMenu();
+        final JMenuItem itemAddBP = new JMenuItem("Add breakpoint here");
+        final JMenuItem itemRemoveBP = new JMenuItem("Remove breakpoint here");
+        final JMenuItem itemClearAllBP = new JMenuItem("Clear all breakpoints");
+        popupMenu.add(itemAddBP);
+        popupMenu.add(itemRemoveBP);
+        popupMenu.add(itemClearAllBP);
+
+        class PopupListener extends MouseAdapter implements PopupMenuListener, ActionListener {
+            private Point triggerPosition = new Point(-1,-1);
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+                    this.triggerPosition = e.getPoint();
+                }
+            }
+
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (e.getSource() == itemRemoveBP) {
+                        bm.removeBreakpoint(getLineNumberAt(triggerPosition));
+                    } else if (e.getSource() == itemAddBP) {
+                        int line = getLineNumberAt(triggerPosition);
+                        bm.addBreakpoint(line, getLineText(line));
+                    } else if (e.getSource() == itemClearAllBP) {
+                        bm.clearBreakpoints();
+                    }
+                    repaint();
+                } catch (BadLocationException ble) {};
+
+            }
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                for (JMenuItem item : new JMenuItem[] {itemAddBP, itemRemoveBP, itemClearAllBP}) {
+                    item.setFont(item.getFont().deriveFont((float) Preference.getFontSize()));
+                }
+                try {
+                    int line = getLineNumberAt(triggerPosition);
+                    if (bm.isBreakpoint(getLineNumberAt(triggerPosition))) {
+                        itemAddBP.setEnabled(false);
+                        itemRemoveBP.setEnabled(true);
+                    } else {
+                        itemAddBP.setEnabled(BreakpointManager.isValidBreakpoint(getLineText(line)));
+                        itemRemoveBP.setEnabled(false);
+                    }
+                } catch (BadLocationException ble){
+                    itemAddBP.setEnabled(false);
+                    itemRemoveBP.setEnabled(false);
+                } finally {
+                    itemClearAllBP.setEnabled(bm.getNumBreakpoints() > 0);
+                }
+            }
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }
+            public void popupMenuCanceled(PopupMenuEvent e) { }
+        }
+
+        PopupListener listener = new PopupListener();
+        this.addMouseListener(listener);
+        popupMenu.addPopupMenuListener(listener);
+
+        for (JMenuItem item : new JMenuItem[] {itemAddBP, itemRemoveBP, itemClearAllBP}) {
+            item.addActionListener(listener);
+            item.setFont(item.getFont().deriveFont((float) Preference.getFontSize()));
+            popupMenu.add(item);
+        }
+
+        return popupMenu;
     }
 
     public boolean getUpdateFont()
@@ -95,6 +183,11 @@ public class TextNumberingPanel extends JPanel
         setPreferredWidth();
     }
 
+    public Color getBreakpointColor()
+    {
+        return Color.red.darker();
+    }
+    
     public Color getCurrentLineForeground()
     {
         return currentLineForeground == null ? getForeground() : currentLineForeground;
@@ -155,7 +248,6 @@ public class TextNumberingPanel extends JPanel
     {
         super.paintComponent(g);
 
-
         FontMetrics fontMetrics = component.getFontMetrics(component.getFont());
         Insets insets = getInsets();
         int availableWidth = getSize().width - insets.left - insets.right;
@@ -163,11 +255,28 @@ public class TextNumberingPanel extends JPanel
         Rectangle clip = g.getClipBounds();
         int rowStartOffset = component.viewToModel(new Point(0, clip.y));
         int endOffset = component.viewToModel(new Point(0, clip.y + clip.height));
-
+       // determine whether to draw the mark that the execution is stopped on a specific line
+        boolean drawStoppedOnLine = mf.isExecuting() && mf.getOpenDLXSim() != null && !mf.getOpenDLXSim().isFinished();
+        int lineStoppedOn = -1;
+        if (drawStoppedOnLine) {
+            uint32 addrStoppedOn = mf.getOpenDLXSim().getPipeline().getMemoryWriteBackLatch().element().getPc();
+            if (addrStoppedOn.getValue() == 0 || !bm.isBreakpoint(addrStoppedOn))
+                drawStoppedOnLine = false;
+            else
+                lineStoppedOn = bm.getCorrespondingLine(addrStoppedOn);
+        }
         while (rowStartOffset <= endOffset)
         {
             try
             {
+                int lineNumber = getLineNumber(rowStartOffset);
+                if (bm.isBreakpoint(lineNumber)) {
+                    int diameter = (int)(fontMetrics.getMaxAscent()*1.25);
+                    g.setColor(getBreakpointColor());
+                    g.fillOval(getSize().width - insets.right - diameter, 
+                            getOffsetY(rowStartOffset, fontMetrics) - diameter*3/4, diameter, diameter);
+                }
+                
                 if (isCurrentLine(rowStartOffset))
                 {
                     g.setColor(getCurrentLineForeground());
@@ -177,13 +286,24 @@ public class TextNumberingPanel extends JPanel
                     g.setColor(getForeground());
                 }
 
-
-                String lineNumber = getTextLineNumber(rowStartOffset);
-                int stringWidth = fontMetrics.stringWidth(lineNumber);
+                String lineNumberText = String.valueOf(lineNumber);
+                int stringWidth = fontMetrics.stringWidth(lineNumberText);
                 int x = getOffsetX(availableWidth, stringWidth) + insets.left;
                 int y = getOffsetY(rowStartOffset, fontMetrics);
-                g.drawString(lineNumber, x, y);
-
+                g.drawString(lineNumberText, x, y);
+                
+                if (lineNumber == lineStoppedOn && drawStoppedOnLine) {
+                    g.setColor(Color.darkGray);
+                    float prevFontSize = g.getFont().getSize();
+                    g.setFont(g.getFont().deriveFont(Font.BOLD).deriveFont(prevFontSize * 1.25f));
+                    g.drawString("WB", insets.left, y);
+                    int height = (int)(fontMetrics.getAscent() * 0.8);
+                    int rightCoord = getSize().width - 2;
+                    int leftCoord = Math.max(rightCoord - 2*height, 2*insets.left + fontMetrics.stringWidth("WB") + 4);
+                    g.fillPolygon(new int[] {rightCoord, leftCoord, rightCoord}, new int[]{y,y - height/2, y - height}, 3);
+                    g.setFont(g.getFont().deriveFont(Font.PLAIN).deriveFont(prevFontSize));
+                }
+                
                 rowStartOffset = Utilities.getRowEnd(component, rowStartOffset) + 1;
             }
             catch (Exception e)
@@ -206,20 +326,47 @@ public class TextNumberingPanel extends JPanel
         }
     }
 
-    protected String getTextLineNumber(int rowStartOffset)
+    protected String getLineNumberAsString(int textIndex)
     {
+        int lineNumber = getLineNumber(textIndex);
+        return lineNumber >= 0 ? String.valueOf(lineNumber) : "";
+    }
+    
+    private int getLineNumber(int textIndex)
+    {      
         Element root = component.getDocument().getDefaultRootElement();
-        int index = root.getElementIndex(rowStartOffset);
+        int index = root.getElementIndex(textIndex);
         Element line = root.getElement(index);
+    
+        if (textIndex <= line.getEndOffset())
+        {
+            return index + 1;
+        } else
+        {
+            return -1;
+        }
+    }
 
-        if (line.getStartOffset() == rowStartOffset)
-        {
-            return String.valueOf(index + 1);
-        }
-        else
-        {
-            return "";
-        }
+    /**
+     * @return the line number, starting with line 1
+     */
+    private int getLineNumberAt(Point p) throws BadLocationException {
+        Element root = component.getDocument().getDefaultRootElement();
+        int modelLineNum = component.viewToModel(p);
+        if (p.y > component.modelToView(modelLineNum).getMaxY())
+                throw new BadLocationException("No Line here: Point.y is out of range", p.y);
+        
+        return root.getElementIndex(modelLineNum) + 1;
+    }
+
+    /**
+     * @param line the line number (starting with 1, not 0!)
+     */
+    private String getLineText(int line) throws BadLocationException {
+        // use line-1, as the component starts line counting at 0
+        int lineStartOffset = component.getLineStartOffset(line-1);
+        int lineLength = component.getLineEndOffset(line-1) - lineStartOffset;
+        return component.getText(lineStartOffset, lineLength);
     }
 
     private int getOffsetX(int availableWidth, int stringWidth)
@@ -278,13 +425,9 @@ public class TextNumberingPanel extends JPanel
     @Override
     public void caretUpdate(CaretEvent e)
     {
-
-
         int caretPosition = component.getCaretPosition();
         Element root = component.getDocument().getDefaultRootElement();
         int currentLine = root.getElementIndex(caretPosition);
-
-
 
         if (lastLine != currentLine)
         {
@@ -293,25 +436,26 @@ public class TextNumberingPanel extends JPanel
         }
     }
 
+    // TODO: find out when update is called and call BreakPointManager.linesChanged()
     @Override
     public void changedUpdate(DocumentEvent e)
     {
-        documentChanged();
+        documentChanged(e);
     }
 
     @Override
-    public void insertUpdate(DocumentEvent e)
+    public void insertUpdate(final DocumentEvent e)
     {
-        documentChanged();
+        documentChanged(e);
     }
 
     @Override
-    public void removeUpdate(DocumentEvent e)
+    public void removeUpdate(final DocumentEvent e)
     {
-        documentChanged();
+        documentChanged(e);
     }
 
-    private void documentChanged()
+    private void documentChanged(final DocumentEvent e)
     {
 
         SwingUtilities.invokeLater(new Runnable()
@@ -320,13 +464,55 @@ public class TextNumberingPanel extends JPanel
             {
                 int preferredHeight = component.getPreferredSize().height;
 
-
-
-                if (lastHeight != preferredHeight)
+                if (lastHeight != preferredHeight) // line was inserted/removed
                 {
                     setPreferredWidth();
-                    repaint();
                     lastHeight = preferredHeight;
+                    
+                    BreakpointManager bm = BreakpointManager.getInstance();
+                    
+                    // handle line insertion/removal for breakpoints
+                    Element rootDoc = e.getDocument().getDefaultRootElement();
+                    DocumentEvent.ElementChange rootChange = e.getChange(rootDoc);
+                    if (rootChange != null) {
+                        if (e.getType().equals(DocumentEvent.EventType.INSERT)) {
+                            Element[] addedLines = rootChange.getChildrenAdded();
+                            int numLinesInserted = addedLines.length - 1; // the start line doesnt count
+                            int firstLineStartOffset = addedLines[0].getStartOffset();
+                            int firstLineInserted = rootDoc.getElementIndex(firstLineStartOffset) + 1;
+                            // if actual insertion position is closer to the end than to the start, insert in next line, not in the current line
+                            int replacedLineLen = rootChange.getChildrenRemoved()[0].getEndOffset() - rootChange.getChildrenRemoved()[0].getStartOffset();
+                            if (e.getOffset() - firstLineStartOffset >= replacedLineLen / 2) {
+                                firstLineInserted++;
+                            }
+                            bm.linesChanged(firstLineInserted, firstLineInserted + numLinesInserted - 1, true);
+                        }
+                        else if (e.getType().equals(DocumentEvent.EventType.REMOVE)) {
+                            Element[] removedLines = rootChange.getChildrenRemoved();
+                            int numLinesRemoved = removedLines.length - 1; // the start line doesnt count
+                            int firstLineStartOffset = removedLines[0].getStartOffset();
+                            int firstLineRemoved = rootDoc.getElementIndex(firstLineStartOffset) + 1;
+                            // if actual remove position is closer to the end than to the start, remove the next line instead of the current line
+                            int replacedLineLen = rootChange.getChildrenRemoved()[0].getEndOffset() - rootChange.getChildrenRemoved()[0].getStartOffset();
+                            if (e.getOffset() - firstLineStartOffset >= replacedLineLen / 2) {
+                                firstLineRemoved++;
+                            }
+
+                            if (bm.isBreakpoint(firstLineRemoved)) {
+                                int startRemovedText = rootChange.getChildrenRemoved()[0].getEndOffset();
+                                int lengthRemovedText = rootChange.getChildrenAdded()[0].getEndOffset() - startRemovedText;
+                                try {
+                                    String firstLineRemovedText = e.getDocument().getText(startRemovedText, lengthRemovedText);
+                                    bm.addBreakpoint(firstLineRemoved - 1, firstLineRemovedText); // adds the breakpoint if the removed text is a valid breakpoint
+                                } catch (BadLocationException e1) {
+                                }
+                                
+                            }
+                            bm.linesChanged(firstLineRemoved, firstLineRemoved + numLinesRemoved- 1, false);
+                        }
+                    }
+                    
+                    repaint();
                 }
             }
 
@@ -357,6 +543,47 @@ public class TextNumberingPanel extends JPanel
     	super.setFont(f);
     	if (this.component != null) //otherwise throws exception while initializing
     		setPreferredWidth();
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        try {
+            int lineNumber = getLineNumberAt(e.getPoint());
+            Element lineElement = component.getDocument().getDefaultRootElement().getElement(lineNumber-1);
+            if (bm.isBreakpoint(lineNumber)) {
+                bm.removeBreakpoint(lineNumber);
+            } else {
+                int lineLength = lineElement.getEndOffset() - lineElement.getStartOffset();
+                bm.addBreakpoint(lineNumber,  getLineText(lineNumber));
+            }
+        } catch (BadLocationException blEx) {}
+        this.repaint();
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent arg0) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent arg0) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent arg0) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent arg0) {
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent arg0) {
+        this.repaint();
+    }
+
+    @Override
+    public void update() {
+        this.repaint();
     }
 
 }

@@ -41,7 +41,7 @@ public class CommandSaveAs implements Command
             	return;
             CommandSave.save(saveFile);
 
-            //if there's no valid file currently loaded, 
+            // if there's no valid file currently loaded,
             // set the loaded file to the chosen one
             File loadedFile = new File(mf.getLoadedCodeFilePath());
             if (!loadedFile.exists()) {

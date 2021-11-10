@@ -26,6 +26,7 @@ import java.awt.Font;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
 import riscVivid.gui.util.MWheelFontSizeChanger;
@@ -49,7 +50,10 @@ public final class StatisticsFrame extends OpenDLXSimInternalFrame
         setFont(statArea.getFont().deriveFont((float)Preference.getFontSize()));
         MWheelFontSizeChanger.getInstance().add(statArea, scrollpane);
 
-        setSize(new Dimension(200, 200));
+        Dimension desktopSize = MainFrame.getInstance().getContentPane().getSize();
+        setPreferredSize(new Dimension(desktopSize.width/2, statArea.getFont().getSize() * 23));
+        pack();
+        this.setLocation(0, 100);
         setVisible(true);
 
     }

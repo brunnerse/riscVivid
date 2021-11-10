@@ -31,6 +31,10 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.internalframes.renderer.CodeFrameTableCellRenderer;
 import riscVivid.gui.internalframes.util.NotSelectableTableModel;
 
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 public class CodeTableFactory extends TableFactory
 {
 
@@ -61,18 +65,42 @@ public class CodeTableFactory extends TableFactory
         tcm.getColumn(2).setMaxWidth(2*defaultWidth);
         table.setDefaultRenderer(Object.class, new CodeFrameTableCellRenderer());
 
-        //insert code
-        int start;
-        if (!openDLXSim.getConfig().containsKey("text_begin"))
-            start = openDLXSim.getPipeline().getFetchStage().getPc().getValue();
-        else
-            start = stringToInt(openDLXSim.getConfig().getProperty("text_begin"));
+        table.addMouseListener(new MouseAdapter()
+        {
+            int selectedRow = -1;
 
-        int end = openDLXSim.getSimCycles();
-        if (!openDLXSim.getConfig().containsKey("text_end"))
-            end = start + 4 * openDLXSim.getSimCycles();
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                Point p = e.getPoint();
+                int row = table.rowAtPoint(p);
+
+                // if one row is selected, delete the selection if the user clicks on the row
+                if (table.getSelectedRows().length == 1) {
+                    if (selectedRow == row){
+                        table.clearSelection();
+                        selectedRow = -1;
+                    } else {
+                        selectedRow = row;
+                    }
+                } else {
+                    selectedRow = -1;
+                }
+            }
+        });
+
+        //insert code
+        int start, end;
+        if (openDLXSim.getConfig().containsKey("text_begin_0"))
+            start = stringToInt(openDLXSim.getConfig().getProperty("text_begin_0"));
         else
-            end = stringToInt(openDLXSim.getConfig().getProperty("text_end"));
+            start = openDLXSim.getPipeline().getFetchStage().getPc().getValue();
+
+        int lastTextIdx = 0;
+        while (openDLXSim.getConfig().containsKey("text_end_"+(lastTextIdx+1)))
+           lastTextIdx++;
+        end = stringToInt(openDLXSim.getConfig().getProperty("text_end_"+lastTextIdx,
+                    String.valueOf(start + 4 * openDLXSim.getSimCycles())));
 
         DLXAssembler asm = new DLXAssembler();
         try
@@ -84,8 +112,8 @@ public class CodeTableFactory extends TableFactory
 
                 model.addRow(new Object[]
                         {
-                            addr,
-                            inst,
+                            addr.getValueAsHexString(),
+                            inst.getValueAsHexString(),
                             asm.Instr2Str(addr.getValue(), inst.getValue())
                         });
             }

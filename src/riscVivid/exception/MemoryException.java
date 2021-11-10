@@ -21,10 +21,16 @@
 package riscVivid.exception;
 
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class MemoryException extends PipelineException {
 
-	public MemoryException(String message) {
-		super(message);
+	public MemoryException(String message) {super(message);}
+	public MemoryException(String message, uint32 instrAddress) {
+		super(message, instrAddress);
+	}
+	public MemoryException(String message, uint32 instrAddress, boolean isFatal) {
+		super(message, instrAddress, isFatal);
 	}
 }

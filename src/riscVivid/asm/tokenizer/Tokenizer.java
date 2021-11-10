@@ -65,14 +65,27 @@ public class Tokenizer {
 	private State stringBackslashState;
 	private State stringEndState;
 	private State characterLiteralState;
+	private State characterExpectingEndState;
+	private State characterBackslashState;
+	private State characterBackslashAfter1State;
+	private State characterBackslashAfter2State;
+	private State characterEndState;
 
 	/**
 	 * create new Tokenizer and initialize state machine
-	 * 
+	 *
 	 * @param reader
 	 * @throws IOException
 	 */
-	public Tokenizer() {
+	public Tokenizer(BufferedReader reader) throws IOException {
+		this();
+		this.setReader(reader);
+	}
+
+	/**
+	 * create new Tokenizer and initialize state machine
+	 */
+	 public Tokenizer() {
 
 		startState = new State(false, "start");
 		identifierState = new State(true, "identifier");
@@ -89,6 +102,11 @@ public class Tokenizer {
 		stringBackslashState = new State(false, "string backslash");
 		stringEndState = new State(true, "string literal end");
 		characterLiteralState = new State(false, "character literal");
+		characterExpectingEndState = new State(false, "character expecting '");
+		characterBackslashState = new State(false, "character backslash");
+		characterBackslashAfter1State = new State(false, "character after backslash 1");
+		characterBackslashAfter2State = new State(false, "character after backslash 2");
+		characterEndState = new State(true, "character literal end");
 		// ================* startState *================
 		//leading whitespace
 		startState.addTransition(new Transition(startState, new CharacterList(
@@ -272,8 +290,49 @@ public class Tokenizer {
 					}
 				}));
 		// ================* characterLiteralState *================
-		//TODO: evaluating character literal
-	}
+		 char[] escapedChars = {'\'', '\\'};
+		 characterLiteralState.addTransition(new FunctionTransition(characterExpectingEndState,
+				 new InverseCharacterList(escapedChars), new Procedure() {
+		 	public void procedure(Object o) {
+		 		appendChar();
+			}
+		 }));
+		 characterLiteralState.addTransition(new FunctionTransition(characterBackslashState,
+				 new Character('\\'), new Procedure() {
+		 	public void procedure(Object o) {
+		 		appendChar();
+			}
+		 }));
+		 characterExpectingEndState.addTransition(new Transition(characterEndState, new Character('\'')));
+		 characterBackslashState.addTransition(new FunctionTransition(characterExpectingEndState,
+				 new CharacterList(escapedChars), new Procedure() {
+			 public void procedure(Object o) {
+				 appendChar();
+			 }
+		 }));
+		 characterBackslashState.addTransition(new FunctionTransition(characterExpectingEndState,
+				 new Character('0'), new Procedure() {
+			 public void procedure(Object o) {
+				 appendChar();
+			 }
+		 }));
+		 characterBackslashState.addTransition(new Transition(characterBackslashAfter1State,
+				 new Character('x')));
+		 characterBackslashAfter1State.addTransition(new FunctionTransition(characterBackslashAfter2State,
+				new CharacterList(Properties.T_HEX_DIGIT), new Procedure() {
+			 public void procedure(Object o) {
+			 	 appendChar('x');
+				 appendChar();
+			 }
+		 }));
+		 characterBackslashAfter2State.addTransition(new FunctionTransition(characterExpectingEndState,
+				 new CharacterList(Properties.T_HEX_DIGIT), new Procedure() {
+			 public void procedure(Object o) {
+				 appendChar();
+			 }
+		 }));
+		 characterBackslashAfter2State.addTransition(new Transition(characterEndState, new Character('\'')));
+	 }
 
 	public void setReader(BufferedReader reader) throws IOException {
 		if (reader == null)
@@ -328,7 +387,7 @@ public class Tokenizer {
 		}
 		//TODO: problems with exceptions?
 		if (token_ != null && currentState != null && !currentState.isAccepting()) {
-			throw new TokenizerException("unexpected end of token'", reader_.position());
+			throw new TokenizerException("unexpected end of token", reader_.position());
 		}
 		if (char_ != -1 && !lastState.isAccepting())
 			throw new TokenizerException("not expected character: '" + (char) char_ + "'",

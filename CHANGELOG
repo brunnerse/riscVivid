@@ -9,3 +9,14 @@ riscVivid v1.3
 - minor improvements
 - font size can now be increased/decreased via icons or Ctrl + Mousewheel
 - check boxes to toggle between hex and decimal display of values
+
+riscVivid v1.4
+==============
+- automatic formatting
+- number of branch delay slots is switchable from 2 to 3
+- forwarding and ignoring branch delay slots can be deactivated
+- find/replace dialog for the editor 
+- optional warning if unreserved memory is accessed
+- optional warning if an uninitialized register is read
+- syscalls are handled by flushing the pipeline and restarting the subsequent instruction
+- breakpoint implementation

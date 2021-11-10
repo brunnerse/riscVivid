@@ -53,14 +53,13 @@ import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 import riscVivid.gui.menubar.MainFrameMenuBarFactory;
 import riscVivid.gui.menubar.StateValidator;
 import riscVivid.gui.util.PipelineExceptionHandler;
+import riscVivid.util.BreakpointManager;
 import riscVivid.util.RISCVSyscallHandler;
 import riscVivid.util.TrapObservableDefault;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame implements ActionListener, ItemListener
 {
-    public static final int RUN_SPEED_DEFAULT = 16;
-
     // MainFrame is a Singleton.
     // hence it has a private constructor
     private static final MainFrame mf = new MainFrame();
@@ -72,23 +71,18 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private UndoManager undoMgr;
     private EditorFrame editor;
     private JDesktopPane desktop;
-    private boolean updateAllowed = true;
-    private int runSpeed = RUN_SPEED_DEFAULT;
-    private boolean pause = false;
     private OpenDLXSimState state = OpenDLXSimState.IDLE;
     private File configFile;
     private JMenuBar menuBar;
-    private JMenuItem forwardingMenuItem;
     private PipelineExceptionHandler pexHandler = null;
     private String loadedCodeFilePath="";
     
     private MainFrame()
     {
+        super("riscVivid " + GlobalConfig.VERSION);
         initialize();
         final ImageIcon icon = new ImageIcon(getClass().getResource("/img/riscVivid-quadrat128x128.png"), "riscVivid icon");
         setIconImage(icon.getImage());
-
-        setTitle("riscVivid " + GlobalConfig.VERSION);
 
         // Register output for pipeline
         TrapObservableDefault observableOutput = new TrapObservableDefault();
@@ -124,22 +118,18 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     private void initialize()
     {
         undoMgr = new UndoManager();
-        
-        //uses a factory to outsource creation of the menuBar
-        MainFrameMenuBarFactory menuBarFactory = new MainFrameMenuBarFactory(this, this, this);
-        Hashtable<String, JMenuItem> importantItems = new Hashtable<>();
-        menuBar = menuBarFactory.createJMenuBar(importantItems);
-        setJMenuBar(menuBar);
-        forwardingMenuItem = importantItems.get(MainFrameMenuBarFactory.STRING_MENU_SIMULATOR_FORWARDING);
+        undoMgr.setLimit(500);
 
         setMinimumSize(new Dimension(200, 200));
         desktop = new JDesktopPane();
         desktop.setBackground(Color.WHITE);
         setContentPane(desktop);
 
-        editor = EditorFrame.getInstance(this);
-        editor.setUndoManager(undoMgr);
-        desktop.add(editor);
+        //uses a factory to outsource creation of the menuBar
+        MainFrameMenuBarFactory menuBarFactory = new MainFrameMenuBarFactory(this, this, this);
+        Hashtable<String, JMenuItem> importantItems = new Hashtable<>();
+        menuBar = menuBarFactory.createJMenuBar();
+        setJMenuBar(menuBar);
 
         output = Output.getInstance(mf);
         input = Input.getInstance(mf);
@@ -149,9 +139,12 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         setExtendedState(MAXIMIZED_BOTH);
         setVisible(true);
 
-        /// select editor frame
+        /// create and select editor frame
         try
         {
+            editor = EditorFrame.getInstance(this);
+            editor.setUndoManager(undoMgr);
+            desktop.add(editor);
             editor.setSelected(true);
         } catch (PropertyVetoException e1)
         {
@@ -220,16 +213,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         return (state == OpenDLXSimState.IDLE);
     }
 
-    public boolean isUpdateAllowed()
-    {
-        return updateAllowed;
-    }
-
-    public void setUpdateAllowed(boolean updateAllowed)
-    {
-        this.updateAllowed = updateAllowed;
-    }
-
     public void addInternalFrame(OpenDLXSimInternalFrame mif)
     {
         desktop.add(mif);
@@ -272,16 +255,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     	editor.setVisible(true);
     }
     
-    public void setRunSpeed(int speed)
-    {
-        this.runSpeed = speed;
-    }
-
-    public int getRunSpeed()
-    {
-        return runSpeed;
-    }
-
     public File getConfigFile()
     {
         return configFile;
@@ -290,16 +263,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
     public void setConfigFile(File configFile)
     {
         this.configFile = configFile;
-    }
-
-    public boolean isPause()
-    {
-        return pause;
-    }
-
-    public void setPause(boolean pause)
-    {
-        this.pause = pause;
     }
 
     public PipelineExceptionHandler getPipelineExceptionHandler()
@@ -319,11 +282,6 @@ public class MainFrame extends JFrame implements ActionListener, ItemListener
         if (editorTitle.length() == 0)
         	editorTitle = InternalFrameFactory.getFrameName(EditorFrame.class);
         this.editor.setFrameTitle(editorTitle);
-    }
-
-    public JMenuItem getForwardingMenuItem()
-    {
-        return forwardingMenuItem;
     }
 
     public UndoManager getEditorUndoManager() {

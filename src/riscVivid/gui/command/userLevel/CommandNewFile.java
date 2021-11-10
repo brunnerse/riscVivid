@@ -22,7 +22,11 @@ package riscVivid.gui.command.userLevel;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
-import riscVivid.gui.util.AskForSave;
+import riscVivid.gui.command.systemLevel.CommandResetSimulator;
+import riscVivid.gui.util.DialogWrapper;
+import riscVivid.util.BreakpointManager;
+
+import static riscVivid.gui.GUI_CONST.OpenDLXSimState.IDLE;
 
 public class CommandNewFile implements Command
 {
@@ -40,19 +44,18 @@ public class CommandNewFile implements Command
         {
             if (!mf.isEditorTextSaved())
             {
-            	if (!AskForSave.askAndSave(false)) {
+            	if (!DialogWrapper.askForSave(false)) {
             		return;
             	}
             }
-
+            if (mf.getOpenDLXSimState() != IDLE)
+                new CommandResetSimulator(mf).execute();
+            BreakpointManager.getInstance().clearBreakpoints();
+            mf.setEditorText("");
+            mf.setEditorSavedState();
+            mf.setLoadedCodeFilePath("");
+            mf.setEditorFrameVisible();
         }
-        mf.setEditorText("");
-        mf.setEditorSavedState();
-        mf.setLoadedCodeFilePath("");
-        mf.setEditorFrameVisible();
-        
-        // TODO Actually no file is assigned to the empty editor. 
-        // (However, as long as the file is not saved, the simulator uses temporary files.)
     }
 
 }

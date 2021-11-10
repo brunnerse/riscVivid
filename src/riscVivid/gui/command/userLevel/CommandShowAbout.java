@@ -26,6 +26,7 @@ import javax.swing.JOptionPane;
 import riscVivid.config.GlobalConfig;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandShowAbout implements Command
 {
@@ -35,7 +36,7 @@ public class CommandShowAbout implements Command
 //        final ImageIcon icon = new ImageIcon(
 //                getClass().getResource("/img/openDLX_small.png"),
 //                "riscVivid logo");
-        JOptionPane.showMessageDialog(MainFrame.getInstance(),
+        DialogWrapper.showMessageDialog(MainFrame.getInstance(),
                 GlobalConfig.ABOUT,
                 "About",
                 JOptionPane.INFORMATION_MESSAGE);

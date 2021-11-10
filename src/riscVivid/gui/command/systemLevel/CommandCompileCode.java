@@ -21,11 +21,12 @@
 package riscVivid.gui.command.systemLevel;
 
 import java.io.File;
-import javax.swing.JOptionPane;
 
 import riscVivid.asm.*;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.util.DialogWrapper;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
 
 public class CommandCompileCode implements Command
 {
@@ -54,19 +55,19 @@ public class CommandCompileCode implements Command
         }
         catch (AssemblerException e)
         {
-
-            JOptionPane.showMessageDialog(mf, e.toString());
-
             if (e.getLine() != -1)
             {
                 mf.colorEditorLine(e.getLine());
             }
+            DialogWrapper.showErrorDialog(mf, e.toString(), "Error during compiling");
+            EditorFrame.getInstance(mf).removeColorHighlights();
+            EditorFrame.getInstance(mf).selectLine(e.getLine());
         }
         catch (Exception e)
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Compiling/Assembling Code Failed");
+            DialogWrapper.showErrorDialog(mf, "Compiling/Assembling Code Failed");
         }
     }
 

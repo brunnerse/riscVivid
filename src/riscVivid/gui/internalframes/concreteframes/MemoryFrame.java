@@ -20,10 +20,7 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -38,7 +35,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -57,6 +53,7 @@ import riscVivid.gui.internalframes.factories.InternalFrameFactory;
 import riscVivid.gui.internalframes.factories.tableFactories.MemoryTableFactory;
 import riscVivid.gui.internalframes.util.TableSizeCalculator;
 import riscVivid.gui.internalframes.util.ValueInput;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.gui.util.MWheelFontSizeChanger;
 
 @SuppressWarnings("serial")
@@ -78,7 +75,16 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
     {
         super(name, false);
         this.mf = mf;
+	// find start address of first data segment in config
+	if (mf.getOpenDLXSim().getConfig().contains("data_begin_0")) 
+		startAddr = ValueInput.strToInt(mf.getOpenDLXSim().getConfig().getProperty("data_begin_0"));
+	else if (mf.getOpenDLXSim().getConfig().contains("data_begin")) 
+		startAddr = ValueInput.strToInt(mf.getOpenDLXSim().getConfig().getProperty("data_begin"));
+
         initialize();
+
+        Dimension desktopSize = mf.getContentPane().getSize();
+        this.setLocation(desktopSize.width/2 - this.getWidth() - 20, desktopSize.height - this.getHeight() - 20);
     }
 
     @Override
@@ -171,7 +177,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
         try {
         	Integer newStartAddr;
         	try {
-                newStartAddr = ValueInput.getValueSilent(addrInput.getText());
+                newStartAddr = ValueInput.strToInt(addrInput.getText());
         	} catch(NumberFormatException ex) { // addrInput is possibly a label
         		if (Labels.labels != null && Labels.labels.containsKey(addrInput.getText()))
         			   newStartAddr = (Integer) Labels.labels.get(addrInput.getText());
@@ -192,7 +198,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
 		    	}
         	}
         	
-            Integer newRows = ValueInput.getValueSilent(rowInput.getText());
+            Integer newRows = ValueInput.strToInt(rowInput.getText());
             if (newRows == null)
             	newRows = rows;
         	// if number of rows stays the same, only update the table
@@ -232,7 +238,7 @@ public final class MemoryFrame extends OpenDLXSimInternalFrame implements Action
                }
             }
         } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "for input only hex (0x..) " +
+                DialogWrapper.showErrorDialog(this, "for input only hex (0x..) " +
                         "address, decimal address or label (e.g. \"main\") allowed");
         }
         memoryTable.scrollRectToVisible(memoryTable.getCellRect(0, 0, false));

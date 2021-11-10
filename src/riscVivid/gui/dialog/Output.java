@@ -26,6 +26,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -48,7 +50,6 @@ public class Output extends JDialog implements TrapObserver
 
     private JTextArea textArea;
     private JButton confirm;
-    private JPanel emptyPanel;
 
     private Output(JFrame owner)
     {
@@ -78,19 +79,15 @@ public class Output extends JDialog implements TrapObserver
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.add(confirm);
-        emptyPanel = new JPanel();
-        emptyPanel.setBackground(Color.WHITE);
         add(textScroller, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        setLocationRelativeTo(owner);
 
         final KeyListener keylis = new KeyAdapter()
         {
             @Override
             public void keyPressed(KeyEvent e)
             {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                if (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_ESCAPE)
                     confirm.doClick();
             }
         };
@@ -98,8 +95,29 @@ public class Output extends JDialog implements TrapObserver
         addKeyListener(keylis);
 
         setFont(textArea.getFont().deriveFont((float)Preference.getFontSize()));
-        pack();
         setMinimumSize(new Dimension(250, 250));
+        setMaximumSize(new Dimension(750, 500));
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (getSize().getWidth() > getMaximumSize().getWidth())
+                    setSize((int)getMaximumSize().getWidth(), (int)getSize().getHeight());
+                if (getSize().getHeight() > getMaximumSize().getHeight())
+                    setSize((int)getSize().getWidth(), (int)getMaximumSize().getHeight());
+            }
+            @Override
+            public void componentShown(ComponentEvent e) {
+                pack();
+                textArea.setCaretPosition(textArea.getText().length());
+            }
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                clear();
+            }
+        });
+        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        setLocationRelativeTo(owner);
     }
 
     public static Output getInstance(JFrame f)
@@ -115,9 +133,7 @@ public class Output extends JDialog implements TrapObserver
         if (arg != null)
             addText(arg);
 
-        //pack(); // enables constantly growing output frame
         setVisible(true);
-        textArea.setCaretPosition(textArea.getText().length());
     }
 
     @Override

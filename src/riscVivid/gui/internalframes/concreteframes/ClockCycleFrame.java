@@ -20,19 +20,20 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map.Entry;
 
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 import riscVivid.PipelineConstants;
 import riscVivid.RiscVividSimulator;
@@ -49,7 +50,7 @@ import riscVivid.gui.util.MWheelFontSizeChanger;
 import riscVivid.util.ClockCycleLog;
 
 @SuppressWarnings("serial")
-public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GUI_CONST
+public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GUI_CONST, ListSelectionListener
 {
 
     private final RiscVividSimulator openDLXSim;
@@ -69,9 +70,11 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     private JScrollPane addrScrollPane;
     private JScrollPane codeScrollPane;
     private JScrollBar clockCycleScrollBarVertical;
+    private JScrollBar clockCycleScrollBarHorizontal;
     private JScrollBar addrScrollBar;
     private JScrollBar codeScrollBar;
     //private JScrollBar clockCycleScrollBarHorizontal;
+    private boolean isSelectionAdjusting = false;
 
     public ClockCycleFrame(String title)
     {
@@ -109,10 +112,11 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e)
             {
-                clockCycleScrollBarVertical.setValue(e.getValue());
-                addrScrollBar.setValue(e.getValue());
+                for (JScrollBar scrollBar : new JScrollBar[] {clockCycleScrollBarVertical, addrScrollBar}) {
+                    if (scrollBar.getValue() != e.getValue())
+                        scrollBar.setValue(e.getValue());
+                }
             }
-
         });
         //Address Table
         addrModel = new NotSelectableTableModel();
@@ -137,24 +141,62 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e)
             {
-                clockCycleScrollBarVertical.setValue(e.getValue());
-                codeScrollBar.setValue(e.getValue());
+                for (JScrollBar scrollBar : new JScrollBar[] {clockCycleScrollBarVertical, codeScrollBar}) {
+                    if (scrollBar.getValue() != e.getValue())
+                        scrollBar.setValue(e.getValue());
+                }
             }
-
         });
 
         //scroll pane and frame
         clockCycleScrollPane = makeTableScrollPane();
 
+        for (JTable table : new JTable[]{addrTable, codeTable, table}) {
+            addMouseListenerToTable(table);
+            table.getSelectionModel().addListSelectionListener(this);
+        }
+
         for (JScrollPane s : new JScrollPane[] {clockCycleScrollPane,
                 addrScrollPane, codeScrollPane})
             MWheelFontSizeChanger.getInstance().add(s);
-        setFont(addrTable.getFont().deriveFont((float)Preference.getFontSize()));
+
         add(addrScrollPane, BorderLayout.EAST);
         add(codeScrollPane, BorderLayout.WEST);
         add(clockCycleScrollPane, BorderLayout.CENTER);
+
+        Dimension desktopSize = MainFrame.getInstance().getContentPane().getSize();
+        setPreferredSize(new Dimension(desktopSize.width/2, desktopSize.height/3));
         pack();
+        setFont(addrTable.getFont().deriveFont((float)Preference.getFontSize()));
+        this.setLocation(0, desktopSize.height - getPreferredSize().height - 50);
         setVisible(true);
+    }
+
+    private void addMouseListenerToTable(final JTable table) {
+        MouseAdapter listener = new MouseAdapter() {
+            public JTable t = table;
+            int selectedRow = -1;
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                Point p = e.getPoint();
+                int row = t.rowAtPoint(p);
+
+                // if one row is selected, delete the selection if the user clicks on the row
+                if (t.getSelectedRows().length == 1) {
+                    if (selectedRow == row){
+                        t.clearSelection();
+                        selectedRow = -1;
+                    } else {
+                        selectedRow = row;
+                    }
+                } else {
+                    selectedRow = -1;
+                }
+            }
+        };
+        table.addMouseListener(listener);
     }
 
     private JScrollPane makeTableScrollPane()
@@ -168,16 +210,44 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         table.setDefaultRenderer(Object.class, new ClockCycleFrameTableCellRenderer());
         clockCycleScrollPane = new JScrollPane(table);
         clockCycleScrollBarVertical = clockCycleScrollPane.getVerticalScrollBar();
-        clockCycleScrollBarVertical.addAdjustmentListener(new AdjustmentListener()
+        clockCycleScrollBarHorizontal = clockCycleScrollPane.getHorizontalScrollBar();
+
+        AdjustmentListener listener = new AdjustmentListener()
         {
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e)
             {
-                addrScrollBar.setValue(e.getValue());
-                codeScrollBar.setValue(e.getValue());
-            }
+                int maxValVert = clockCycleScrollBarVertical.getMaximum() - clockCycleScrollBarVertical.getModel().getExtent();
+                int minValVert = clockCycleScrollBarVertical.getMinimum();
+                int maxValHori = clockCycleScrollBarHorizontal.getMaximum() - clockCycleScrollBarHorizontal.getModel().getExtent();
+                int minValHori = clockCycleScrollBarHorizontal.getMinimum();
+                //assert(maxValHori >= minValHori && maxValVert >= minValVert);
 
-        });
+                if (e.getSource() == clockCycleScrollBarVertical) {
+                    for (JScrollBar scrollBar : new JScrollBar[] {addrScrollBar, codeScrollBar}) {
+                        if (scrollBar.getValue() != e.getValue())
+                            scrollBar.setValue(e.getValue());
+                    }
+                    double normedVerticalValue = 0;
+                    if (maxValVert - minValVert > 0)
+                        normedVerticalValue = (double)(clockCycleScrollBarVertical.getValue() - minValVert) / (maxValVert - minValVert);
+                    int setPointForHorizontal = (int) Math.round(normedVerticalValue * (maxValHori - minValHori)) + minValHori;
+                    if (clockCycleScrollBarHorizontal.getValue() != setPointForHorizontal)
+                        clockCycleScrollBarHorizontal.setValue(setPointForHorizontal);
+                } else if (e.getSource() == clockCycleScrollBarHorizontal) {
+                    double normedHorizontalValue = 0;
+                    if (maxValHori - minValHori > 0)
+                        normedHorizontalValue = (double)(clockCycleScrollBarHorizontal.getValue() - minValHori) / (maxValHori - minValHori);
+                    int setPointForVertical = (int) Math.round(normedHorizontalValue * (maxValVert - minValVert)) + minValVert;
+                    if (clockCycleScrollBarVertical.getValue() != setPointForVertical)
+                        clockCycleScrollBarVertical.setValue(setPointForVertical);
+                } else {
+                    return;
+                }
+            }
+        };
+        clockCycleScrollBarVertical.addAdjustmentListener(listener);
+        clockCycleScrollBarHorizontal.addAdjustmentListener(listener);
 
         // scrolling synchronously causes view violations
         // requires a more complex/sophisticated approach
@@ -201,7 +271,7 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     @Override
     public void update()
     {
-
+        int[] addrSelectedRows = codeTable.getSelectedRows();
         //clear table
         addrModel.setRowCount(0);
         codeModel.setRowCount(0);
@@ -228,21 +298,23 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
                 model.addColumn(i);
                 model.addRow(new String[] { "" });
 
-                final HashMap<uint32, String> h = ClockCycleLog.log.get(i);
+                final ArrayList<Entry<String, uint32>> list = ClockCycleLog.log.get(i);
                 // go through the addresses of the instructions executed in Cycle i
-                for (uint32 checkAddr : h.keySet())
+                for (Entry<String, uint32> entry : list)
                 {
-                    final ArrayList<uint32> forbidden = new ArrayList<>();
+                    uint32 checkAddr = entry.getValue();
+                    String stage = entry.getKey();
                     // fill the ith column
                     for (int k = addrModel.getRowCount() - 1; k >= 0; --k)
                     {
-                        if (addrModel.getValueAt(k, 0).equals(checkAddr.getValueAsHexString())
-                                && !forbidden.contains(checkAddr))
+                        if (addrModel.getValueAt(k, 0).equals(checkAddr.getValueAsHexString()))
                         {
-                            model.setValueAt(h.get(checkAddr), k, i);
-                            forbidden.add(checkAddr);
-                            // current checkAddr is now in forbidden -> if-statement will always be false
-                            break; 
+                            // check if the address already has a stage;
+                            // if so, the address is probably twice in the addrModel; continue searching
+                            if (model.getValueAt(k, i) == null || model.getValueAt(k,i).equals("")) {
+                                model.setValueAt(stage, k, i);
+                                break;
+                            }
                         }
                     }
                 }
@@ -265,6 +337,12 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
         codeTable.scrollRectToVisible(codeTable.getCellRect(table.getRowCount() - 1, 0, true));
         addrTable.scrollRectToVisible(addrTable.getCellRect(addrTable.getRowCount() - 1, 0, true));
 
+        // restore selected rows
+        for (int row : addrSelectedRows) {
+            codeTable.addRowSelectionInterval(row, row);
+            addrTable.addRowSelectionInterval(row, row);
+            table.addRowSelectionInterval(row, row);
+        }
     }
 
     @Override
@@ -272,6 +350,26 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     {
         setVisible(false);
         dispose();
+    }
+
+    public void selectLine(uint32 address) {
+        TableModel model = addrTable.getModel();
+        // find line with that address; reverse search to find the most recent execution of the command
+        int row = -1;
+        for (int i = model.getRowCount() - 1; i >= 0; --i) {
+            if (model.getValueAt(i, 0).equals(address.getValueAsHexString())) {
+                row = i;
+                break;
+            }
+        }
+        if (row >= 0) {
+            codeTable.clearSelection();
+            addrTable.clearSelection();
+            table.clearSelection();
+            codeTable.setRowSelectionInterval(row, row);
+            addrTable.setRowSelectionInterval(row, row);
+            table.setRowSelectionInterval(row, row);
+        }
     }
 
     @Override
@@ -334,4 +432,30 @@ public final class ClockCycleFrame extends OpenDLXSimInternalFrame implements GU
     	}
     }
 
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+        if (isSelectionAdjusting)
+            return;
+        isSelectionAdjusting = true;
+        System.out.println(e);
+        ListSelectionModel sourceModel = (ListSelectionModel)e.getSource();
+        int firstIdx = e.getFirstIndex();
+        int lastIdx = e.getLastIndex();
+
+        for (JTable table : new JTable[]{table, codeTable, addrTable}) {
+            ListSelectionModel model = table.getSelectionModel();
+            if (model != sourceModel) {
+                for (int i = firstIdx; i <= lastIdx; ++i) {
+                    if (sourceModel.isSelectedIndex(i) != model.isSelectedIndex(i)) {
+                        if (sourceModel.isSelectedIndex(i))
+                            model.addSelectionInterval(i, i);
+                        else
+                            model.removeSelectionInterval(i, i);
+                    }
+                }
+            }
+        }
+        isSelectionAdjusting = false;
+    }
 }

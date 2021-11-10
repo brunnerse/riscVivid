@@ -1,5 +1,5 @@
-riscVivid v1.2 - A RISC-V processor simulator.
-Copyright (C) 2013-2016 The riscVivid project, University of Augsburg
+riscVivid v1.4 - A RISC-V processor simulator.
+Copyright (C) 2013-2020 The riscVivid project, University of Augsburg
 
 riscVivid is a fork of openDLX <http://sourceforge.net/projects/opendlx>
 

@@ -24,15 +24,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Properties;
-import java.util.Queue;
+import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+// import jdk.vm.ci.code.Register;
+import riscVivid.asm.instruction.Registers;
 import riscVivid.datatypes.ArchCfg;
 import riscVivid.datatypes.BranchPredictionModuleExecuteData;
 import riscVivid.datatypes.BranchPredictionModuleFetchData;
@@ -54,10 +55,10 @@ import riscVivid.datatypes.WriteBackData;
 import riscVivid.datatypes.WritebackOutputData;
 import riscVivid.datatypes.uint32;
 import riscVivid.datatypes.uint8;
-import riscVivid.exception.DecodeStageException;
-import riscVivid.exception.MemoryException;
-import riscVivid.exception.PipelineException;
+import riscVivid.exception.*;
+import riscVivid.exception.UnreservedMemoryAccessException.Area;
 import riscVivid.gui.GUI_CONST;
+import riscVivid.gui.Preference;
 import riscVivid.memory.DataMemory;
 import riscVivid.memory.InstructionMemory;
 import riscVivid.memory.MainMemory;
@@ -76,11 +77,8 @@ public class RiscVividSimulator
     private boolean caught_break = false;
     private int clock_cycle;
     private int sim_cycles;
-    private boolean finished;
+    private boolean finished = false;
 
-    /**
-     * @param args
-     */
     public void riscVividCmdl_main()
     {
 
@@ -131,13 +129,15 @@ public class RiscVividSimulator
         logger.info("loading:" + config.getProperty("file"));
 
 
-        sim_cycles = new Integer(config.getProperty("cycles"));
+        sim_cycles = Integer.parseInt(config.getProperty("cycles"));
 
         pipeline = new PipelineContainer();
-        pipeline.setMainMemory(new MainMemory(config.getProperty("file"), stringToUint32(config.getProperty("code_start_addr")).getValue(), (short) stringToUint32(config.getProperty("memory_latency")).getValue()));
+        pipeline.setMainMemory(new MainMemory(config.getProperty("file"), stringToUint32(config.getProperty("code_start_addr")).getValue(),
+        		(short) stringToUint32(config.getProperty("memory_latency")).getValue()));
         pipeline.setInstructionMemory(new InstructionMemory(pipeline.getMainMemory(), config));
         pipeline.setDataMemory(new DataMemory(pipeline.getMainMemory(), config));
-        pipeline.setFetchStage(new Fetch(new uint32(stringToUint32(config.getProperty("entry_point"))), pipeline.getInstructionMemory()));
+        pipeline.setFetchStage(new Fetch(new uint32(stringToUint32(config.getProperty("entry_point"))), pipeline.getInstructionMemory(),
+                ArchCfg.getNumBranchDelaySlots()));
         pipeline.setRegisterSet(new RegisterSet());
         pipeline.setDecodeStage(new Decode(pipeline.getRegisterSet()));
         pipeline.setExecuteStage(new Execute());
@@ -163,7 +163,7 @@ public class RiscVividSimulator
         }
 */
 		RISCVSyscallHandler syscall_handler = RISCVSyscallHandler.getInstance();
-        syscall_handler.setMemory(pipeline.getMainMemory());
+        syscall_handler.setMemory(pipeline.getDataMemory());
 
         // Obtain the statistics object
         stat = Statistics.getInstance();
@@ -220,14 +220,22 @@ public class RiscVividSimulator
             logger.debug("-------------------");
             stat.countCycle();
 
-            HashMap<uint32, String> h = new HashMap<>();
-            h.put(getPipeline().getFetchDecodeLatch().element().getPc(), GUI_CONST.FETCH);
-            h.put(getPipeline().getDecodeExecuteLatch().element().getPc(), GUI_CONST.DECODE);
-            h.put(getPipeline().getExecuteMemoryLatch().element().getPc(), GUI_CONST.EXECUTE);
-            h.put(getPipeline().getMemoryWriteBackLatch().element().getPc(), GUI_CONST.MEMORY);
-            h.put(getPipeline().getWriteBackLatch().element().getPc(), GUI_CONST.WRITEBACK);
-            ClockCycleLog.log.add(h);
+            ArrayList<Entry<String, uint32>> list = new ArrayList<>();
+            PipelineContainer p = getPipeline();
+
+            if (p.getFetchDecodeLatch().element().getInstr() != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.FETCH, getPipeline().getFetchDecodeLatch().element().getPc()));
+            if (p.getDecodeExecuteLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.DECODE, getPipeline().getDecodeExecuteLatch().element().getPc()));
+            if (p.getExecuteMemoryLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.EXECUTE, getPipeline().getExecuteMemoryLatch().element().getPc()));
+            if (p.getMemoryWriteBackLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.MEMORY, getPipeline().getMemoryWriteBackLatch().element().getPc()));
+            if (p.getWriteBackLatch().element().getInst().getInstr()  != PipelineConstants.PIPELINE_BUBBLE_INSTR)
+                list.add(new SimpleEntry<>(GUI_CONST.WRITEBACK, getPipeline().getWriteBackLatch().element().getPc()));
+            ClockCycleLog.log.add(list);
             ClockCycleLog.code.add(getPipeline().getFetchDecodeLatch().element().getPc());
+            
         }
         else if (caught_break)
         {
@@ -253,6 +261,19 @@ public class RiscVividSimulator
         }
 
         clock_cycle++;
+        
+        // check pipeline if any exceptions occured; throwing at the end so the simulator is able to continue normally!
+        if (pipeline.getLastException() != null) {
+            if (pipeline.getLastException() instanceof UnreservedMemoryAccessException &&
+                    !Preference.isMemoryWarningsEnabled()) {
+                // don't throw
+            } else if (pipeline.getLastException() instanceof UninitializedRegisterException &&
+                    !Preference.isInitializationWarningsEnabled()) {
+                // don't throw
+            } else {
+                throw pipeline.popLastException();
+            }
+        }
     }
 
     /**
@@ -306,37 +327,10 @@ public class RiscVividSimulator
             throw new PipelineException("Wrong number of entries in execute/memory latch: " + execute_memory_latch.size());
         }
 
-        if (ArchCfg.isa_type == ISAType.MIPS)
+        if (execute_fetch_latch.size() != ArchCfg.getNumBranchDelaySlots() - 1)
         {
-            if (execute_fetch_latch.size() != 1)
-            {
-                throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
-            }
+            throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
         }
-        else if (ArchCfg.isa_type == ISAType.DLX)
-        {
-            if (ArchCfg.use_forwarding == false)
-            {
-                // THE DLX pipeline has a delay of 2 cycles between execute and fetch.
-                // Such that 3 bubbles are between the branch instruction and its target instruction.
-                if (execute_fetch_latch.size() != 2)
-                {
-                    throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
-                }
-            }
-            else
-            {
-                if (execute_fetch_latch.size() != 1)
-                {
-                    throw new PipelineException("Wrong number of entries in execute/fetch latch: " + execute_fetch_latch.size());
-                }
-            }
-        }
-        else
-        {
-            throw new PipelineException("Unknown ISA: " + ArchCfg.isa_type);
-        }
-
 
         if (execute_branchprediction_latch.size() != 1)
         {
@@ -353,43 +347,6 @@ public class RiscVividSimulator
 
         boolean stall = false;
 
-        // Executing the WB-Stage first:
-        // simulates WB writing in the first half of the cycle and ID reading in the second half of the cycle
-        // also, makes handling interrupts easier
-        
-        // WRITE BACK STAGE
-        wod = pipeline.getWriteBackStage().doCycle();
-        caught_break = wod.getCaughtBreak();
-        // WRITE BACK STAGE
-
-        // Interrupt handling: flush the pipeline, start from the instruction subsequent to the scall
-        if (wod.getInterruptOccured()) {
-    		logger.debug("INTERRUPT: pipeline is being flushed, restarting the subsequent instruction at " +
-    				execute_memory_latch.element().getPc() + " in the next cycle");
-    		// flush the pipeline except memory_writeback_latch, as it has already been executed
-    		fetch_decode_latch.element().flush();
-    		decode_execute_latch.element().flush();
-    		execute_memory_latch.element().flush();
-    		// flush execute_branchprediciton_latch, branchprediction_execute_latch and branchprediction_fetch_latch
-    		// by replacing their content with dummies
-	        uint32 zero = new uint32(0x0);
-	        Instruction bubble =  pipeline.getDecodeStage().decodeInstr(PipelineConstants.PIPELINE_BUBBLE_INSTR);
-	        // add 1 bubble into the branch prediction module
-	        ExecuteBranchPredictionData ebd = new ExecuteBranchPredictionData(bubble, zero, zero, false);
-    		execute_branchprediction_latch.remove();
-    		execute_branchprediction_latch.add(ebd);
-    		branchprediction_execute_latch.remove();
-    		branchprediction_execute_latch.add(new BranchPredictionModuleExecuteData(false, zero, zero));
-    		branchprediction_fetch_latch.remove();
-    		branchprediction_fetch_latch.add(new BranchPredictionModuleFetchData(false, zero, zero));
-
-    		// feed the Fetch Stage a jump to the scall so it continues with the subsequent instruction in the next cycle
-			ExecuteFetchData efd = new ExecuteFetchData(memory_writeback_latch.element().getInst(),
-					memory_writeback_latch.element().getPc(),
-					memory_writeback_latch.element().getPc(), true, true);
-    		execute_fetch_latch.remove();
-	        execute_fetch_latch.add(efd);
-        }
 
         // FETCH STAGE
         // flush the decode on jump
@@ -397,13 +354,29 @@ public class RiscVividSimulator
         fod = pipeline.getFetchStage().doCycle();
         // FETCH STAGE
 
+        // WRITE BACK STAGE
+        // Executing the WB-Stage before the ID-Stage:
+        // simulates WB writing in the first half of the cycle and ID reading in the second half of the cycle
+        // also, makes handling interrupts easier
+        wod = pipeline.getWriteBackStage().doCycle();
+        caught_break = wod.getCaughtBreak();
+
+        // Interrupt handling: flush the pipeline, start from the instruction subsequent to the scall
         if (wod.getInterruptOccured()) {
-        	// flush output of fetch stage
-        	fod.getFdd().flush();
-        	for (int i = 0; i < fod.getFlush().length; ++i) {
-        		fod.getFlush()[i] = false;
-        	}
+            logger.debug("INTERRUPT: pipeline is being flushed, restarting the subsequent instruction at " +
+                    execute_memory_latch.element().getPc() + " in the next cycle");
+
+            // flush stages
+            fetch_decode_latch.element().flush();
+            fod.getFdd().flush();
+            for (ExecuteFetchData efd : execute_fetch_latch)
+                efd.flush();
+            Arrays.fill(fod.getFlush(), true);
+            // set Pc to the scall because at the end of the cycle it is incremented and points to the next instruction
+            pipeline.getFetchStage().setPc(memory_writeback_latch.element().getPc());
         }
+        // WRITE BACK STAGE
+
         // LATCH
         if (fod.getFlush()[PipelineConstants.DECODE_STAGE])
         {
@@ -422,12 +395,30 @@ public class RiscVividSimulator
         {
             logger.debug("Flushed EXECUTE PC: "
             	+ decode_execute_latch.element().getPc().getValueAsHexString() + " "
-            	+ decode_execute_latch.element().getInst().toString());
+            	+ decode_execute_latch.element().getInst().getString());
             decode_execute_latch.element().flush();
         }
 
         // EXECUTE STAGE
-        eod = pipeline.getExecuteStage().doCycle();
+        try
+        {
+            eod = pipeline.getExecuteStage().doCycle();
+        }
+        catch (ExecuteStageException e) {
+            if ( ArchCfg.getNumBranchDelaySlots() > 2 && ArchCfg.ignoreBranchDelaySlots() &&
+                ((ExecuteFetchData)execute_fetch_latch.toArray()[1]).getJump() ) {
+                    logger.debug("Ignoring Exception \"" + e.getMessage() + "\" in EXECUTE as the causing instruction is flushed in the next cycle");
+                    // create dummy ExecuteOutputData
+                    DecodeExecuteData ded = decode_execute_latch.element();
+                    ExecuteFetchData old_efd = execute_fetch_latch.element();
+                    old_efd.flush();
+                    ExecuteMemoryData flushData = new ExecuteMemoryData(ded.getInst(),ded.getPc(), new uint32[2],  new uint32(),false);
+                    eod = new ExecuteOutputData(flushData, old_efd, execute_branchprediction_latch.element(),
+                            new boolean[PipelineConstants.STAGES]);
+            }  else {
+                throw e;
+            }
+        }
         // EXECUTE STAGE
 
         // LATCH
@@ -436,6 +427,16 @@ public class RiscVividSimulator
         bpmod = pipeline.getBranchPredictionModule().doCycle();
         // BRANCH PREDICTOR MODULE: lookup for jump target and update prediction tables
 
+        // LATCH
+        if (fod.getFlush()[PipelineConstants.MEMORY_STAGE])
+        {
+            logger.debug("Flushed MEMORY PC: "
+                    + execute_memory_latch.element().getPc().getValueAsHexString() + " "
+                    + execute_memory_latch.element().getInst().getString());
+            execute_memory_latch.element().flush();
+            for (ExecuteFetchData efd : execute_fetch_latch)
+                efd.flush();
+        }
         // MEMORY STAGE
         mod = pipeline.getMemoryStage().doCycle();
         // MEMORY STAGE
@@ -494,6 +495,25 @@ public class RiscVividSimulator
                 pipeline.getFetchStage().increasePC();
             }
         }
+        
+        // check for nonfatal exceptions in the pipeline; if multiple exceptions occured, prioritize the one from the later stage
+        if (wod.hasExceptionOccured()) {
+            pipeline.setLastException(wod.getException());
+        } else if (mod.hasExceptionOccured()) {
+            UnreservedMemoryAccessException ex = (UnreservedMemoryAccessException) mod.getException();
+            ex.setArea(pipeline.getInstructionMemory().isReserved(ex.getAddress(), ex.getNBytes()) ?
+                    Area.INSTRUCTION : Area.NONE);
+            pipeline.setLastException(ex);
+        } else if (dod.hasExceptionOccured()) {
+            pipeline.setLastException(dod.getException());
+        } else if (fod.hasExceptionOccured()) {
+            UnreservedMemoryAccessException ex = (UnreservedMemoryAccessException)fod.getException();
+            // only set exception if fetch reads from data memory, as fetch could read memory behind the last instruction
+            if (pipeline.getDataMemory().isReserved(ex.getAddress(), ex.getNBytes())) {
+                ex.setArea(Area.DATA);
+                pipeline.setLastException(ex);
+            }
+        }
 
         return caught_break;
     }
@@ -540,13 +560,8 @@ public class RiscVividSimulator
         // add 1 bubbles into fetch stage (used for jumps)
         ExecuteFetchData efd = new ExecuteFetchData(bubble, zero, zero, false, false);
 
-        efl.add(efd);
-        if ((ArchCfg.isa_type == ISAType.DLX) && (ArchCfg.use_forwarding == false))
-        {
-            // THE DLX pipeline has a delay of 2 cycles between execute and fetch.
-            // Such that 3 bubbles are between the branch instruction and its target instruction.
+        for (int i = 0; i < ArchCfg.getNumBranchDelaySlots() - 1; ++i)
             efl.add(efd);
-        }
 
         // add 1 bubble into decode stage
         FetchDecodeData fdd = new FetchDecodeData();
@@ -786,6 +801,14 @@ public class RiscVividSimulator
             logger.info("Simulation stopped by user.");
         }
         finished = true;
+    }
+
+    public Integer getExitCode() {
+        if (caught_break) {
+            return RISCVSyscallHandler.getInstance().getLastExitCode();
+        } else {
+            return null;
+        }
     }
 
 }

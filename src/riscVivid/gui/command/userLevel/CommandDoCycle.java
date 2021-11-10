@@ -41,8 +41,11 @@ public class CommandDoCycle implements Command
     public void execute()
     {
 
-        if (mf.isExecuting() && mf.isUpdateAllowed())
+        if (mf.isExecuting())
         {
+            if (mf.getOpenDLXSim().isFinished())
+                new CommandResetCurrentProgram(mf).execute();
+
             RiscVividSimulator openDLXSim = mf.getOpenDLXSim();
             try
             {
@@ -59,7 +62,6 @@ public class CommandDoCycle implements Command
             }
             else
             {
-                mf.setUpdateAllowed(false);
                 new CommandSimulatorFinishedInfo().execute();
             }
         }

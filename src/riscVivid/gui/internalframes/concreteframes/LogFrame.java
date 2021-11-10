@@ -20,22 +20,24 @@
  ******************************************************************************/
 package riscVivid.gui.internalframes.concreteframes;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import riscVivid.datatypes.uint8;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
+import riscVivid.gui.command.userLevel.CommandChangeRegister;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
 import riscVivid.gui.internalframes.renderer.LogFrameTableCellRenderer;
 import riscVivid.gui.internalframes.util.LogReader;
 import riscVivid.gui.internalframes.util.NotSelectableTableModel;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.gui.util.MWheelFontSizeChanger;
 
 @SuppressWarnings("serial")
@@ -47,7 +49,6 @@ public final class LogFrame extends OpenDLXSimInternalFrame
     private NotSelectableTableModel model;
     private JScrollPane scrollpane;
     //data
-    private final MainFrame mf;
     private LogReader logReader;
     private String logFileAddr;
 
@@ -56,8 +57,8 @@ public final class LogFrame extends OpenDLXSimInternalFrame
     public LogFrame(String title)
     {
         super(title, true);
+        MainFrame mf = MainFrame.getInstance();
         initialize();
-        mf = MainFrame.getInstance();
         try
         {
             logFileAddr = mf.getOpenDLXSim().getConfig().getProperty("log_file");
@@ -66,7 +67,7 @@ public final class LogFrame extends OpenDLXSimInternalFrame
         catch (Exception e)
         {
             String err = "Reading log file failed -  " + e.toString();
-            JOptionPane.showMessageDialog(mf, err);
+            DialogWrapper.showErrorDialog(mf, err);
         }
 
         // Change resize mode of the table appropriately 021if the size changes
@@ -120,6 +121,7 @@ public final class LogFrame extends OpenDLXSimInternalFrame
     protected void initialize()
     {
         super.initialize();
+        MainFrame mf = MainFrame.getInstance();
         setLayout(new BorderLayout());
         model = new NotSelectableTableModel();
         infoTable = new JTable(model);
@@ -133,8 +135,35 @@ public final class LogFrame extends OpenDLXSimInternalFrame
 
         MWheelFontSizeChanger.getInstance().add(scrollpane);
 
+        infoTable.addMouseListener(new MouseAdapter()
+        {
+            int selectedRow = -1;
+
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                Point p = e.getPoint();
+                int row = infoTable.rowAtPoint(p);
+
+                // if one row is selected, delete the selection if the user clicks on the row
+                if (infoTable.getSelectedRows().length == 1) {
+                    if (selectedRow == row){
+                        infoTable.clearSelection();
+                        selectedRow = -1;
+                    } else {
+                        selectedRow = row;
+                    }
+                } else {
+                    selectedRow = -1;
+                }
+            }
+        });
+
         setFont(infoTable.getFont().deriveFont((float)(Preference.getFontSize())));
-        setSize(new Dimension(300, 200));
+        Dimension desktopSize = mf.getContentPane().getSize();
+        setPreferredSize(new Dimension(desktopSize.width/2, infoTable.getRowHeight() * 20));
+        pack();
+        this.setLocation(0, 30);
         setVisible(true);
     }
 

@@ -23,7 +23,11 @@ package riscVivid.gui.command.userLevel;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
+import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
+
+import java.awt.*;
 
 public class CommandPerformEditorUndo implements Command
 {
@@ -41,7 +45,12 @@ public class CommandPerformEditorUndo implements Command
     public void execute()
     {
     	try {
+    	    String undoAction = manager.getUndoPresentationName();
 			manager.undo();
+            // if a deletion follows immediately to an addition, do both
+			if (undoAction.contains("addition") && manager.getUndoPresentationName().contains("deletion"))
+			    manager.undo();
+			EditorFrame.getInstance(MainFrame.getInstance()).holdScrollPane(100);
 		} catch (CannotUndoException e) {
 			/* This exception is thrown, when there is no more undo available.
 			 * Nothing to be done here

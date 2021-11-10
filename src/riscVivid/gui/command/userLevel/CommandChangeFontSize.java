@@ -2,9 +2,7 @@ package riscVivid.gui.command.userLevel;
 
 import java.awt.Font;
 
-import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
+import javax.swing.*;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
@@ -33,7 +31,6 @@ public class CommandChangeFontSize implements Command {
 			stepSize = 2;
 		else
 			stepSize = 1;
-		
 		int newSize = oldSize + dir * stepSize;
 		setFontSize(newSize);
 		
@@ -41,8 +38,13 @@ public class CommandChangeFontSize implements Command {
 	
 	public static void setFontSize(int fontSize) {
         Preference.pref.putInt(Preference.fontSize, fontSize);
-		MainFrame mf = MainFrame.getInstance();
+        Font font = new Font("System", Font.PLAIN, fontSize);
+		UIManager.put("OptionPane.messageFont", font);
+		UIManager.put("OptionPane.buttonFont", font);
+		UIManager.put("OptionPane.font", font);
+		UIManager.put("TextField.font", font);
 
+		MainFrame mf = MainFrame.getInstance();
 		setMenuBarFontSize(mf, fontSize);
 		setInternalFramesFontSize(mf, fontSize);
 		

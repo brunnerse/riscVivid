@@ -23,11 +23,10 @@ package riscVivid.gui.command.systemLevel;
 import java.awt.Cursor;
 import java.io.File;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.dialog.CodeFileChooser;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandOpenCodeFile implements Command
 {
@@ -57,7 +56,7 @@ public class CommandOpenCodeFile implements Command
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Opening file failed / getting file path failed");
+            DialogWrapper.showErrorDialog(mf, "Opening file failed / getting file path failed");
         }
         finally
         {

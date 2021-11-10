@@ -20,30 +20,24 @@
  ******************************************************************************/
 package riscVivid.gui.dialog;
 
-import java.awt.BorderLayout;
-import java.awt.Frame;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Properties;
 
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 import riscVivid.BranchPredictionModule;
 import riscVivid.datatypes.ArchCfg;
 import riscVivid.datatypes.BranchPredictorState;
 import riscVivid.datatypes.BranchPredictorType;
+import riscVivid.gui.GUI_CONST;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
+import riscVivid.gui.command.userLevel.CommandSetInitialize;
+import riscVivid.gui.util.DialogWrapper;
 
 @SuppressWarnings("serial")
-public class OptionDialog extends JDialog implements ActionListener
+public class OptionDialog extends JDialog implements ActionListener, ItemListener, KeyEventDispatcher
 {
     // two control buttons, press confirm to save selected options
     private JButton confirm;
@@ -53,6 +47,8 @@ public class OptionDialog extends JDialog implements ActionListener
     private JCheckBox forwardingCheckBox;
     private JCheckBox mipsCompatibilityCheckBox;
     private JCheckBox noBranchDelaySlotCheckBox;
+    private JCheckBox memoryWarningCheckBox;
+    private JCheckBox initializationWarningCheckBox;
     /*
      * JComboBox may be represented by Vectors or Arrays of Objects (Object [])
      * we have chosen "String[]" to be the representation (in fact - String) for
@@ -62,6 +58,11 @@ public class OptionDialog extends JDialog implements ActionListener
     private JComboBox<String> bpInitialStateComboBox;
     private JTextField btbSizeTextField;
 
+    private JComboBox<String> initRegisterComboBox;
+    private JComboBox<String> initMemoryComboBox;
+
+    private JComboBox<String> numBranchDelaySlotsComboBox;
+
     //input text fields
     private JTextField maxCyclesTextField;
 
@@ -70,7 +71,7 @@ public class OptionDialog extends JDialog implements ActionListener
         //calls modal constructor, set to "false" to make dialog non-modal
         super(owner, true);
         setLayout(new BorderLayout());
-        setTitle("options");
+        setTitle("Options");
         //control buttons
         confirm = new JButton("OK");
         confirm.addActionListener(this);
@@ -92,18 +93,26 @@ public class OptionDialog extends JDialog implements ActionListener
         forwardingCheckBox = new JCheckBox("Use Forwarding");
         forwardingCheckBox.setSelected(Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true)); // load current value
 
-        noBranchDelaySlotCheckBox = new JCheckBox("Ignore Branch Delay Slot");
+        noBranchDelaySlotCheckBox = new JCheckBox("Ignore Branch Delay Slots");
         noBranchDelaySlotCheckBox.setSelected(Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true)); // load current value
         
-        mipsCompatibilityCheckBox = new JCheckBox("MIPS compatibility mode (requires forwarding)");
+        mipsCompatibilityCheckBox = new JCheckBox("MIPS Compatibility Mode (requires Forwarding)");
         mipsCompatibilityCheckBox.setSelected(Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true)); // load current value
 
-        // disable MIPS compatibility if no forwading is active
+        // disable MIPS compatibility if no forwarding is active
         if (!forwardingCheckBox.isSelected())
         {
             mipsCompatibilityCheckBox.setSelected(false);
         }
+        forwardingCheckBox.addItemListener(this);
+        mipsCompatibilityCheckBox.addItemListener(this);
+        noBranchDelaySlotCheckBox.addItemListener(this);
 
+        memoryWarningCheckBox = new JCheckBox("Enable Unreserved Memory Warnings");
+        memoryWarningCheckBox.setSelected(Preference.isMemoryWarningsEnabled());
+
+        initializationWarningCheckBox = new JCheckBox("Enable Warnings for Reading Uninitialized Registers");
+        initializationWarningCheckBox.setSelected(Preference.isInitializationWarningsEnabled());
         /*create a JComboBoxes
          *
          * JComboBox need a Object[] or Vector as data representation
@@ -112,11 +121,12 @@ public class OptionDialog extends JDialog implements ActionListener
 
         // bpType:
         JLabel bpTypeComboBoxDescriptionLabel = new JLabel("Branch Predictor: ");
-        bpTypeComboBox = new JComboBox<String>(ArchCfg.possibleBpTypeComboBoxValues);
-        bpTypeComboBox.setSelectedItem(BranchPredictionModule.getBranchPredictorTypeFromString(
-                Preference.pref.get(Preference.bpTypePreferenceKey, BranchPredictorType.UNKNOWN.toString())).toGuiString()); // load current value
+        bpTypeComboBox = new JComboBox<String>(BranchPredictorType.getValuesGuiStrings());
+        BranchPredictorType selectedType = ArchCfg.getBranchPredictorTypeFromString(
+                Preference.pref.get(Preference.bpTypePreferenceKey, ""));
+        bpTypeComboBox.setSelectedItem(selectedType.toGuiString()); // load current value
         //surrounding panel
-        JPanel bpTypeListPanel = new JPanel();
+        JPanel bpTypeListPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         //add the label
         bpTypeListPanel.add(bpTypeComboBoxDescriptionLabel);
         //add the box itself
@@ -124,11 +134,11 @@ public class OptionDialog extends JDialog implements ActionListener
 
         // bpInitialState:
         JLabel bpInitialStateComboBoxDescriptionLabel = new JLabel("Initial Predictor State: ");
-        bpInitialStateComboBox = new JComboBox<String>(ArchCfg.possibleBpInitialStateComboBoxValues);
-        bpInitialStateComboBox.setSelectedItem(BranchPredictionModule.getBranchPredictorInitialStateFromString(
+        bpInitialStateComboBox = new JComboBox<String>(BranchPredictorState.getValuesGuiStrings());
+        bpInitialStateComboBox.setSelectedItem(ArchCfg.getBranchPredictorInitialStateFromString(
                 Preference.pref.get(Preference.bpInitialStatePreferenceKey, BranchPredictorState.UNKNOWN.toString())).toGuiString()); // load current value
         //surrounding panel
-        JPanel bpInitialStateListPanel = new JPanel();
+        JPanel bpInitialStateListPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         //add the label
         bpInitialStateListPanel.add(bpInitialStateComboBoxDescriptionLabel);
         //add the box itself
@@ -143,7 +153,7 @@ public class OptionDialog extends JDialog implements ActionListener
         // the number in constructor means the number of lines in textfield
         maxCyclesTextField = new JTextField(10);
         //load current text from ArchCfg
-        maxCyclesTextField.setText((new Integer(ArchCfg.max_cycles)).toString());
+        maxCyclesTextField.setText((new Integer(ArchCfg.getMaxCycles())).toString());
         //surrounding panel, containing both JLabel and JTextField
         JPanel maxCyclesTextFieldPanel = new JPanel();
         //add the label
@@ -156,7 +166,7 @@ public class OptionDialog extends JDialog implements ActionListener
         // the number in constructor means the number of lines in textfield
         btbSizeTextField = new JTextField(5);
         //load current text from ArchCfg
-        btbSizeTextField.setText((new Integer(ArchCfg.branch_predictor_table_size)).toString());
+        btbSizeTextField.setText((new Integer(ArchCfg.getBranchPredictorTableSize())).toString());
         //surrounding panel, containing both JLabel and JTextField
         JPanel btbSizeTextFieldPanel = new JPanel();
         //add the label
@@ -164,33 +174,92 @@ public class OptionDialog extends JDialog implements ActionListener
         //add the field itself
         btbSizeTextFieldPanel.add(btbSizeTextField);
 
+        // Initial values:
+        JLabel initRegisterComboBoxDescriptionLabel = new JLabel("Initial Value of Register Bytes: ");
+        initRegisterComboBox = new JComboBox<String>();
+        //surrounding panel
+        JPanel initRegisterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        //add the label
+        initRegisterPanel.add(initRegisterComboBoxDescriptionLabel);
+        //add the box itself
+        initRegisterPanel.add(initRegisterComboBox);
+
+        JLabel initMemoryComboBoxDescriptionLabel = new JLabel("Initial Value of Memory Bytes: ");
+        initMemoryComboBox = new JComboBox<String>();
+        //surrounding panel
+        JPanel initMemoryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        //add the label
+        initMemoryPanel.add(initMemoryComboBoxDescriptionLabel);
+        //add the box itself
+        initMemoryPanel.add(initMemoryComboBox);
+
+        for (CommandSetInitialize.Choice c : CommandSetInitialize.Choice.values())
+        {
+            initRegisterComboBox.addItem(CommandSetInitialize.getChoiceString(c));
+            if (CommandSetInitialize.getChoiceInt(c) == Preference.pref.getInt(Preference.initializeRegistersPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(CommandSetInitialize.Choice.ZERO)))
+                initRegisterComboBox.setSelectedIndex(initRegisterComboBox.getItemCount()-1);
+
+            initMemoryComboBox.addItem(CommandSetInitialize.getChoiceString(c));
+            if (CommandSetInitialize.getChoiceInt(c) == Preference.pref.getInt(Preference.initializeMemoryPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(CommandSetInitialize.Choice.ZERO)))
+                initMemoryComboBox.setSelectedIndex(initMemoryComboBox.getItemCount()-1);
+        }
+
+
+        JLabel numBranchSlotsDescriptionLabel = new JLabel("Number of Branch Delay Slots: ");
+        numBranchDelaySlotsComboBox = new JComboBox<String>(new String[] {"2", "3"});
+        numBranchDelaySlotsComboBox.setSelectedItem(
+                Preference.pref.get(Preference.numBranchDelaySlotsPreferenceKey, "3"));
+        //surrounding panel
+        JPanel branchDelaySlotsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        //add the label
+        branchDelaySlotsPanel.add(numBranchSlotsDescriptionLabel);
+        //add the box itself
+        branchDelaySlotsPanel.add(numBranchDelaySlotsComboBox);
+
         //this panel contains all input components = top level panel
         JPanel optionPanel = new JPanel();
         optionPanel.setLayout(new GridLayout(0, 1));
 
         //dont forget adding the components to the panel !!!
-
-        optionPanel.add(forwardingCheckBox);
-        optionPanel.add(noBranchDelaySlotCheckBox);
-        optionPanel.add(mipsCompatibilityCheckBox);
-        optionPanel.add(bpTypeListPanel);
-        optionPanel.add(bpInitialStateListPanel);
-        optionPanel.add(btbSizeTextFieldPanel);
-        optionPanel.add(maxCyclesTextFieldPanel);
+        for (JComponent c : new JComponent[]{forwardingCheckBox, noBranchDelaySlotCheckBox, mipsCompatibilityCheckBox,
+                memoryWarningCheckBox, initializationWarningCheckBox,
+                // bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again when branch prediction works correctly
+                maxCyclesTextFieldPanel, initRegisterPanel, initMemoryPanel, branchDelaySlotsPanel})
+        {
+            optionPanel.add(c);
+            c.setFont(c.getFont().deriveFont((float)Preference.getFontSize()));
+            for (Component child : c.getComponents())
+               child.setFont(child.getFont().deriveFont((float)Preference.getFontSize()));
+        }
+        for (JComponent c : new JComponent[]{confirm, cancel})
+            c.setFont(c.getFont().deriveFont((float)Preference.getFontSize()));
 
         //adds the top-level-panel to the Dialog frame
         add(optionPanel, BorderLayout.CENTER);
 
         //dialog appears in the middle of the MainFrame
-        setLocationRelativeTo(owner);
         pack();
+        setLocationRelativeTo(owner);
         setResizable(false);
+
+        // add Listener
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+
         setVisible(true);
+    }
+
+    @Override
+    public void dispose() {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+        super.dispose();
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
         //just close the dialog
         if (e.getSource().equals(cancel))
         {
@@ -207,31 +276,26 @@ public class OptionDialog extends JDialog implements ActionListener
                     forwardingCheckBox.isSelected());
             Preference.pref.putBoolean(Preference.noBranchDelaySlotPreferenceKey,
             		noBranchDelaySlotCheckBox.isSelected());
+            // only enable mips if forwarding and noBranchdelaySlot is enabled
             Preference.pref.putBoolean(Preference.mipsCompatibilityPreferenceKey,
-                    mipsCompatibilityCheckBox.isSelected());
+                    mipsCompatibilityCheckBox.isSelected() && forwardingCheckBox.isSelected());
+            Preference.pref.putBoolean(Preference.enableMemoryWarningsPreferenceKey,
+                    memoryWarningCheckBox.isSelected());
+            Preference.pref.putBoolean(Preference.enableInitializationWarningsPreferenceKey,
+                    initializationWarningCheckBox.isSelected());
 
-            if(noBranchDelaySlotCheckBox.isSelected())
-                ArchCfg.no_branch_delay_slot = true;
-            else
-                ArchCfg.no_branch_delay_slot = false;
-            
-            if (forwardingCheckBox.isSelected())
+            boolean no_branch_delay_slot, use_load_stall_bubble, use_forwarding;
+
+            no_branch_delay_slot = noBranchDelaySlotCheckBox.isSelected();
+            use_forwarding = forwardingCheckBox.isSelected();
+
+            if (use_forwarding)
             {
-                ArchCfg.use_forwarding = true;
-                if(mipsCompatibilityCheckBox.isSelected())
-                {
-                    ArchCfg.use_load_stall_bubble = true;
-                }
-                else
-                {
-                    ArchCfg.use_load_stall_bubble = false;
-                }
-
+                use_load_stall_bubble = mipsCompatibilityCheckBox.isSelected();
             }
             else
             {
-                ArchCfg.use_forwarding = false;
-                ArchCfg.use_load_stall_bubble = false;
+                use_load_stall_bubble = false;
 
                 if(mipsCompatibilityCheckBox.isSelected())
                 {
@@ -239,66 +303,65 @@ public class OptionDialog extends JDialog implements ActionListener
                     mipsCompatibilityCheckBox.setSelected(false);
                     Preference.pref.putBoolean(Preference.mipsCompatibilityPreferenceKey, false);
 
-                    JOptionPane.showMessageDialog(MainFrame.getInstance(), "Reset \"MIPS compatibility mode\", since it requires activated forwarding.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    DialogWrapper.showMessageDialog(MainFrame.getInstance(), "Reset \"MIPS compatibility mode\", since it requires activated forwarding.", "Info",
+                            JOptionPane.INFORMATION_MESSAGE);
                 }
             }
-
-            // propagate forwarding to menu
-            propagateFWToMenu(forwardingCheckBox.isSelected());
 
             // TODO also add a field for disabling the branch prediction
             // TODO do some checks for the setting of the BP initial state and sizes
 
-            ArchCfg.branch_predictor_type = BranchPredictionModule.getBranchPredictorTypeFromGuiString(bpTypeComboBox.getSelectedItem().toString());
-            Preference.pref.put(Preference.bpTypePreferenceKey, ArchCfg.branch_predictor_type.toString());
+            BranchPredictorType branch_predictor_type = ArchCfg.getBranchPredictorTypeFromGuiString(bpTypeComboBox.getSelectedItem().toString());
+            Preference.pref.put(Preference.bpTypePreferenceKey, branch_predictor_type.toString());
 
-            ArchCfg.branch_predictor_initial_state = BranchPredictionModule.
+            BranchPredictorState branch_predictor_initial_state = ArchCfg.
                     getBranchPredictorInitialStateFromGuiString(
                             bpInitialStateComboBox.getSelectedItem().toString());
             Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                    ArchCfg.branch_predictor_initial_state.toString());
+                    branch_predictor_initial_state.toString());
 
-            ArchCfg.branch_predictor_table_size = Integer.parseInt(btbSizeTextField.getText());
+            int branch_predictor_table_size = Integer.parseInt(btbSizeTextField.getText());
             Preference.pref.put(Preference.btbSizePreferenceKey, btbSizeTextField.getText());
 
             // correct user input
-            switch(ArchCfg.branch_predictor_type)
+
+            switch(branch_predictor_type)
             {
             case UNKNOWN:
             case S_ALWAYS_TAKEN:
             case S_ALWAYS_NOT_TAKEN:
             case S_BACKWARD_TAKEN:
                 // unknown and static predictors have no initial state and no branch predictor table size
-                ArchCfg.branch_predictor_initial_state = BranchPredictorState.UNKNOWN;
+                branch_predictor_initial_state = BranchPredictorState.UNKNOWN;
                 Preference.pref.put(Preference.bpInitialStatePreferenceKey,
                         BranchPredictorState.UNKNOWN.toString());
 
-                ArchCfg.branch_predictor_table_size = 1;
+                branch_predictor_table_size = 1;
                 Preference.pref.put(Preference.btbSizePreferenceKey,
-                        new Integer(ArchCfg.branch_predictor_table_size).toString());
+                        new Integer(branch_predictor_table_size).toString());
                 break;
             case D_1BIT:
-                switch(ArchCfg.branch_predictor_initial_state)
+                switch(branch_predictor_initial_state)
                 {
                 case PREDICT_STRONGLY_NOT_TAKEN:
                 case PREDICT_WEAKLY_NOT_TAKEN:
                     // correct 2bit states to 1 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     break;
                 case PREDICT_STRONGLY_TAKEN:
                 case PREDICT_WEAKLY_TAKEN:
                     // correct 2bit states to 1 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     break;
                 case UNKNOWN:
                 default:
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     // TODO Throw exception
                     break;
                 }
@@ -306,25 +369,25 @@ public class OptionDialog extends JDialog implements ActionListener
 
             case D_2BIT_SATURATION:
             case D_2BIT_HYSTERESIS:
-                switch(ArchCfg.branch_predictor_initial_state)
+                switch(branch_predictor_initial_state)
                 {
                 case PREDICT_NOT_TAKEN:
                     // correct 1bit states to 2 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     break;
                 case PREDICT_TAKEN:
                     // correct 1bit states to 2 bit state
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                        branch_predictor_initial_state.toString());
                     break;
                 case UNKNOWN:
                 default:
-                    ArchCfg.branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
+                    branch_predictor_initial_state = BranchPredictorState.PREDICT_WEAKLY_NOT_TAKEN;
                     Preference.pref.put(Preference.bpInitialStatePreferenceKey,
-                            ArchCfg.branch_predictor_initial_state.toString());
+                            branch_predictor_initial_state.toString());
                     // TODO Throw exception
                     break;
                 }
@@ -332,24 +395,86 @@ public class OptionDialog extends JDialog implements ActionListener
             }
 
             // the btb has to be a power of two
-            if (ArchCfg.branch_predictor_table_size == 0)
+            if (branch_predictor_table_size == 0)
             {
-                ArchCfg.branch_predictor_table_size = 1;
-                Preference.pref.put(Preference.btbSizePreferenceKey, (new Integer(ArchCfg.branch_predictor_table_size)).toString());
+                branch_predictor_table_size = 1;
+                Preference.pref.put(Preference.btbSizePreferenceKey, (new Integer(branch_predictor_table_size)).toString());
                 // TODO Throw exception
             }
 
-            ArchCfg.max_cycles = Integer.parseInt(maxCyclesTextField.getText());
+            int max_cycles = Integer.parseInt(maxCyclesTextField.getText());
             Preference.pref.put(Preference.maxCyclesPreferenceKey, maxCyclesTextField.getText());
+
+            Preference.pref.putInt(Preference.initializeRegistersPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(initRegisterComboBox.getSelectedItem().toString()));
+            Preference.pref.putInt(Preference.initializeMemoryPreferenceKey,
+                    CommandSetInitialize.getChoiceInt(initMemoryComboBox.getSelectedItem().toString()));
+            Preference.pref.put(Preference.numBranchDelaySlotsPreferenceKey,
+                    numBranchDelaySlotsComboBox.getSelectedItem().toString());
+            int num_branch_delay_slots = Integer.decode(numBranchDelaySlotsComboBox.getSelectedItem().toString());
+
+
+            Properties config = new Properties();
+            config.setProperty("isa_type", ArchCfg.getISAType().toString());
+            config.setProperty("no_branch_delay_slot", String.valueOf(no_branch_delay_slot));
+            config.setProperty("use_forwarding", String.valueOf(use_forwarding));
+            config.setProperty("use_load_stall_bubble", String.valueOf(use_load_stall_bubble));
+            config.setProperty("num_branch_delay_slots", String.valueOf(num_branch_delay_slots));
+            config.setProperty("btb_predictor", branch_predictor_type.toString());
+            config.setProperty("btb_predictor_initial_state", branch_predictor_initial_state.toString());
+            config.setProperty("btb_size", String.valueOf(branch_predictor_table_size));
+            config.setProperty("max_cycles", String.valueOf(max_cycles));
+            ArchCfg.registerArchitectureConfig(config);
+
+            // if simulator was started, display message that simulator needs to be restarted in order to apply the new settings
+            if (MainFrame.getInstance().getOpenDLXSimState() != GUI_CONST.OpenDLXSimState.IDLE &&
+                    Preference.pref.getBoolean(Preference.showInitializeOptionMessage, true))
+            {
+                final String message = "In order to apply the new settings, the program must be reassembled.";
+                final JCheckBox checkbox = new JCheckBox("Do not show this message again.");
+                final Object content[] = {message, checkbox};
+                DialogWrapper.showWarningDialog(MainFrame.getInstance(), content, "Reassemble to apply settings");
+
+                Preference.pref.putBoolean(Preference.showInitializeOptionMessage, !checkbox.isSelected());
+            }
 
             setVisible(false);
             dispose();
         }
     }
 
-    private void propagateFWToMenu(boolean forwarding_enabled)
-    {
-        MainFrame.getInstance().getForwardingMenuItem().setSelected(forwarding_enabled);
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        if (e.getSource() == forwardingCheckBox) {
+           if (!forwardingCheckBox.isSelected()) {
+               if (mipsCompatibilityCheckBox.isSelected())
+                   mipsCompatibilityCheckBox.setSelected(false);
+           }
+           else if (forwardingCheckBox.isSelected() && !mipsCompatibilityCheckBox.isSelected()) {
+               mipsCompatibilityCheckBox.setSelected(true);
+           }
+        } else if (e.getSource() == mipsCompatibilityCheckBox) {
+            if (mipsCompatibilityCheckBox.isSelected() && !forwardingCheckBox.isSelected()) {
+                forwardingCheckBox.setSelected(true);
+            }
+        }
     }
 
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        if (e.getID() == KeyEvent.KEY_PRESSED) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+                cancel.doClick();
+                return true;
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+                if (this.isVisible())
+                    confirm.doClick();
+                return true;
+            }
+        }
+        return false;
+    }
 }

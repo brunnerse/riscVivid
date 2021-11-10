@@ -93,25 +93,30 @@ public class AsmFileLoader
         PrintWriter textOut = new PrintWriter(new FileWriter(configFile));
         textOut.println("file=" + parts + BINARY);
         textOut.println("code_start_addr=0x0");
-        textOut.println("entry_point=" + memory.getEntryPoint());
-        textOut.println("text_begin=0x" + Integer.toHexString(memory.getTextBegin()));
-        textOut.println("text_end=0x" + Integer.toHexString(memory.getTextEnd()));
-        textOut.println("data_begin=0x" + Integer.toHexString(memory.getDataBegin()));
-        textOut.println("data_end=0x" + Integer.toHexString(memory.getDataEnd()));
+        textOut.println("entry_point=0x" + Integer.toHexString(memory.getEntryPoint()));
+        for (int i = 0; i < memory.getNumTextSegments(); ++i) {
+            textOut.println("text_begin_" + i + "=0x" + Integer.toHexString(memory.getTextBegin(i)));
+            textOut.println("text_end_" + i + "=0x" + Integer.toHexString(memory.getTextEnd(i)));
+        }
+        for (int i = 0; i < memory.getNumDataSegments(); ++i) {
+            textOut.println("data_begin_" + i + "=0x" + Integer.toHexString(memory.getDataBegin(i)));
+            textOut.println("data_end_" + i + "=0x" + Integer.toHexString(memory.getDataEnd(i)));
+        }
         textOut.println("print_file=" + parts + ".out");
         textOut.println("log_file=" + parts + ".log");
         textOut.println("log4j=log4j.properties");
-        textOut.println("isa_type=" + ArchCfg.isa_type);
-        textOut.println("use_forwarding=" + ArchCfg.use_forwarding);
-        textOut.println("use_load_stall_bubble=" + ArchCfg.use_load_stall_bubble);
-        textOut.println("no_branch_delay_slot=" + ArchCfg.no_branch_delay_slot);
-        if(ArchCfg.branch_predictor_type != BranchPredictorType.UNKNOWN)
+        textOut.println("isa_type=" + ArchCfg.getISAType());
+        textOut.println("use_forwarding=" + ArchCfg.useForwarding());
+        textOut.println("use_load_stall_bubble=" + ArchCfg.useLoadStallBubble());
+        textOut.println("no_branch_delay_slot=" + ArchCfg.ignoreBranchDelaySlots());
+        textOut.println("num_branch_delay_slots=" + ArchCfg.getNumBranchDelaySlots());
+        if(ArchCfg.getBranchPredictorType() != BranchPredictorType.UNKNOWN)
         {
-        	textOut.println("btb_predictor=" + ArchCfg.branch_predictor_type);
-        	textOut.println("btb_predictor_initial_state=" + ArchCfg.branch_predictor_initial_state);
-        	textOut.println("btb_size=" + ArchCfg.branch_predictor_table_size);
+        	textOut.println("btb_predictor=" + ArchCfg.getBranchPredictorType());
+        	textOut.println("btb_predictor_initial_state=" + ArchCfg.getBranchPredictorInitialState());
+        	textOut.println("btb_size=" + ArchCfg.getBranchPredictorTableSize());
         }
-        textOut.println("cycles=" + ArchCfg.max_cycles);
+        textOut.println("cycles=" + ArchCfg.getMaxCycles());
         textOut.close();
         return configFile;
     }

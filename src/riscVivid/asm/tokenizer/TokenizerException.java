@@ -31,8 +31,13 @@ public class TokenizerException extends AssemblerException {
 		this.position_ = position;
 	}
 
-	public String getMessage() {
-		return super.getMessage() + " at" + position_;
+	@Override
+	public int getLine() {
+		return position_.line;
+	}
+	@Override
+	public int getRow() {
+		return position_.column;
 	}
 
 	public Position getPosition() {

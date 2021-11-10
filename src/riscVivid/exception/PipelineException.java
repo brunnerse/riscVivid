@@ -20,10 +20,36 @@
  ******************************************************************************/
 package riscVivid.exception;
 
+import riscVivid.datatypes.uint32;
+
 @SuppressWarnings("serial")
 public class PipelineException extends Exception {
+    // if simulation needs to be aborted because of the exception
+    private final boolean isFatal;
+    private uint32 address;
 
-	public PipelineException(String message) {
-		super(message);
+    public PipelineException(String message) {
+        this(message, null, true);
+    }
+    public PipelineException(String message, uint32 instrAddress) {
+		this(message, instrAddress, true);
 	}
+    
+    public PipelineException(String message, uint32 instrAddress, boolean isFatal) {
+        super(message);
+        this.address = instrAddress;
+        this.isFatal = isFatal;
+    }
+    
+    public boolean isFatal() {
+        return this.isFatal;
+    }
+
+    public uint32 getInstructionAddress() {
+        return this.address;
+    }
+
+    public void setInstructionAddress(uint32 instrAddress) {
+        this.address = instrAddress;
+    }
 }

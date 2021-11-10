@@ -24,9 +24,13 @@ package riscVivid.util;
 
 import org.apache.log4j.Logger;
 
+import riscVivid.RegisterSet;
+import riscVivid.asm.instruction.Registers;
 import riscVivid.datatypes.*;
 import riscVivid.exception.MemoryException;
 import riscVivid.gui.dialog.Input;
+import riscVivid.gui.util.DialogWrapper;
+import riscVivid.memory.DataMemory;
 import riscVivid.memory.MainMemory;
 
 /* Very dirty implementation of syscalls: 
@@ -36,13 +40,19 @@ import riscVivid.memory.MainMemory;
 
 public class RISCVSyscallHandler {
 	
+    private final uint8 A0 = new uint8(Registers.instance().getInteger("a0"));
+    private final uint8 A1 = new uint8(Registers.instance().getInteger("a1"));
+    private final uint8 A2 = new uint8(Registers.instance().getInteger("a2"));
+    private final uint8 A7 = new uint8(Registers.instance().getInteger("a7"));
+    
 	private static Logger logger = Logger.getLogger("SCALL");
 	private static final RISCVSyscallHandler instance = new RISCVSyscallHandler();
 	private TrapObservable oOutput = null;
 	private TrapObservable oInput = null;
 	private Input input = null;
-	private MainMemory mem=null;
-	
+	private DataMemory mem=null;
+
+	private int lastExitCode = 0;
 	
 	
 	private RISCVSyscallHandler()
@@ -69,9 +79,13 @@ public class RISCVSyscallHandler {
 		this.input = input;
 	}
 
-	public void setMemory(MainMemory mainMem) 
+	public void setMemory(DataMemory dataMem)
 	{
-		mem = mainMem;
+		mem = dataMem;
+	}
+
+	public int getLastExitCode() {
+		return this.lastExitCode;
 	}
 
 	private String stringFromMemory(int addr, int len)
@@ -86,23 +100,29 @@ public class RISCVSyscallHandler {
 		}
 		return new String(s);
 	}
-
-	public boolean checkExit(int a7)
-	{
-		return (a7==93);
-	}
 	
-	public int doSyscall(int a7, int a0, int a1, int a2, int a3)
+	/**
+	 * @param reg_set fromwhere the Syscall reads and writes needed registers
+	 * @return true if exit syscall was done, otherwise false
+	 */
+	public boolean doSyscall(RegisterSet reg_set)
 	{
 		int addr;
 		int len;
 		int i;
 		
+		int a0, a1, a2, a3;
+		int a7 = reg_set.read(A7, true).getValue();
+		
 		try {
 		switch(a7)
 		{
 		case 63: // read (fd, buf, len)
-			if (a0!=0) {
+		    a0 = reg_set.read(A0, true).getValue();
+		    a1 = reg_set.read(A1, true).getValue();
+		    a2 = reg_set.read(A2, true).getValue();
+		    
+			if (a0 != 0) {
 				logger.warn("Syscall 63: Reading only supported from stdin (a0==0)");
 				break;
 			}
@@ -123,12 +143,25 @@ public class RISCVSyscallHandler {
 				if (i<len) len=i;
 				for(i=0; i<len; i++)
 					mem.write_u8(new uint32(addr+i), new uint8(raw[i]));
-				return len;
+				reg_set.write(A0, new uint32(len));
+			}
+			if (!mem.isReserved(new uint32(addr), len)) {
+				// find first unreserved byte
+				int unreservedAddr = addr;
+				while (mem.isReserved(new uint32(unreservedAddr), 1))
+					unreservedAddr++;
+				DialogWrapper.showWarningDialog("The user input is " + (unreservedAddr > addr ? "partially " : "") +
+						"written into unreserved memory at " + new uint32(unreservedAddr).getValueAsHexString(),
+						"Input into unreserved memory region");
 			}
 			break;
 		
 		case 64: // write(fd, buf, len)
-			if (a0!=1) {
+			a0 = reg_set.read(A0, true).getValue();
+            a1 = reg_set.read(A1, true).getValue();
+            a2 = reg_set.read(A2, true).getValue();
+
+			if (a0 != 1) {
 				logger.warn("Syscall 64: Writing only supported to stdout (a0==1)");
 				break;
 			}
@@ -142,15 +175,16 @@ public class RISCVSyscallHandler {
 			break;
 			
 		case 93: // exit
-			logger.info("Exit programm with exit code " + a0);
-			break;
-
+		    a0 = reg_set.read(A0, true).getValue();
+		    this.lastExitCode = a0;
+			logger.info("Exit program with exit code " + a0);
+			return true;
 		default:
 			logger.warn("Unknown Syscall: " + a7);
 		}
 		} catch (MemoryException e) {
 		}
-		return 0;
+		return false;
 	}
 
 	

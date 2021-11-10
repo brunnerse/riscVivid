@@ -21,12 +21,12 @@
 package riscVivid.gui.command.userLevel;
 
 import java.io.File;
-import javax.swing.JOptionPane;
 
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandLoadCodeFileToEditor;
 import riscVivid.gui.command.systemLevel.CommandOpenCodeFile;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandLoadFileBelow implements Command
 {
@@ -47,18 +47,11 @@ public class CommandLoadFileBelow implements Command
             c10.execute();
             File f = c10.getCodeFile();
 
-            try
+            if (f != null)
             {
-                if (f != null)
-                {
-                    new CommandLoadCodeFileToEditor(mf, f, false).execute();
-                }
-            }
-            catch (Exception e)
-            {
-                System.err.println(e.toString());
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(mf, "Loading file into editor failed");
+                CommandLoadCodeFileToEditor c8 = new CommandLoadCodeFileToEditor(mf, f, false);
+                c8.execute();
+                // c8 can fail; before doing further, call c8.hasFailed() to check
             }
         }
     }

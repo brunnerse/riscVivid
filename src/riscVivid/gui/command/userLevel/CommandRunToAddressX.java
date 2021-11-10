@@ -22,8 +22,6 @@ package riscVivid.gui.command.userLevel;
 
 import java.util.Queue;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.RiscVividSimulator;
 import riscVivid.datatypes.FetchDecodeData;
 import riscVivid.datatypes.uint32;
@@ -34,6 +32,7 @@ import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandSimulatorFinishedInfo;
 import riscVivid.gui.command.systemLevel.CommandUpdateFrames;
 import riscVivid.gui.internalframes.util.ValueInput;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandRunToAddressX implements Command
 {
@@ -51,8 +50,10 @@ public class CommandRunToAddressX implements Command
     @Override
     public void execute()
     {
-        if (mf.isExecuting() && mf.isUpdateAllowed())
+        if (mf.isExecuting())
         {
+            if (mf.getOpenDLXSim().isFinished())
+                new CommandResetCurrentProgram(mf).execute();
             try
             {
                 RiscVividSimulator openDLXSim = mf.getOpenDLXSim();
@@ -76,21 +77,19 @@ public class CommandRunToAddressX implements Command
                         catch (PipelineException e)
                         {
                             mf.getPipelineExceptionHandler().handlePipelineExceptions(e);
+                            break;
                         }
                     }
 
                     new CommandUpdateFrames(mf).execute();
 
                     if (openDLXSim.isFinished())
-                    { // if the current riscVivid has finished, dont allow any gui updates any more
-                        mf.setUpdateAllowed(false);
                         new CommandSimulatorFinishedInfo().execute();
-                    }
                 }
             }
             catch (NumberFormatException e)
             {
-                JOptionPane.showMessageDialog(mf, "for input only Integer - decimal or hex (0x...) allowed");
+                DialogWrapper.showErrorDialog(mf, "for input only Integer - decimal or hex (0x...) allowed");
                 //if an error during input occured, restart input dialog to get new input
                 execute();
             }
@@ -99,7 +98,7 @@ public class CommandRunToAddressX implements Command
                 //something else went wrong
                 System.err.println(e.toString());
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(mf, "Executing commands failed");
+                DialogWrapper.showErrorDialog(mf, "Executing commands failed");
             }
         }
 

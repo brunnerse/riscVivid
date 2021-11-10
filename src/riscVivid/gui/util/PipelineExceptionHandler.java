@@ -20,14 +20,22 @@
  ******************************************************************************/
 package riscVivid.gui.util;
 
-import javax.swing.JOptionPane;
-
 import riscVivid.RiscVividSimulator;
+import riscVivid.datatypes.uint32;
 import riscVivid.exception.DecodeStageException;
 import riscVivid.exception.PipelineException;
 import riscVivid.exception.UnknownInstructionException;
 import riscVivid.gui.GUI_CONST.OpenDLXSimState;
 import riscVivid.gui.MainFrame;
+import riscVivid.gui.command.systemLevel.CommandUpdateFrames;
+import riscVivid.gui.internalframes.concreteframes.ClockCycleFrame;
+import riscVivid.gui.internalframes.concreteframes.CodeFrame;
+import riscVivid.gui.internalframes.concreteframes.editor.EditorFrame;
+import riscVivid.util.BreakpointManager;
+
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 
 public class PipelineExceptionHandler {
 	
@@ -44,23 +52,56 @@ public class PipelineExceptionHandler {
 	 
 	public void handlePipelineExceptions(PipelineException e) 
 	{
+
 		Class<? extends PipelineException> type = e.getClass();
 		if (type == UnknownInstructionException.class) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(mf, e.getMessage(), "Unsupported Instruction Error",
-					JOptionPane.ERROR_MESSAGE);
+			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Unsupported Instruction Error");
 		} else if (type == DecodeStageException.class) {
 			e.printStackTrace();
-			JOptionPane.showMessageDialog(mf, e.getMessage(), "Decode Stage Error",
-					JOptionPane.ERROR_MESSAGE);
+			DialogWrapper.showErrorDialog(mf, e.getMessage(), "Decode Stage Error");
 		} else {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(mf, e.getMessage(), "General Pipeline Error",
-					JOptionPane.ERROR_MESSAGE);
+			int line = -1;
+			if (e.getInstructionAddress() != null)
+				line = BreakpointManager.getInstance().getCorrespondingLine(e.getInstructionAddress());
+			if (line >= 0)
+				EditorFrame.getInstance(mf).colorLine(line-1);
+			if (e.isFatal()) {
+			    e.printStackTrace();
+		         DialogWrapper.showErrorDialog(mf, e.getMessage(), "General Pipeline Error");
+			} else {
+			    DialogWrapper.showWarningDialog(e.getMessage(), "Simulator paused");
+			}
+			EditorFrame.getInstance(mf).removeColorHighlights();
+			EditorFrame.getInstance(mf).selectLine(line-1);
 		}
-		sim.stopSimulation(true);
-		// TODO: better set to an error state?
-		mf.setOpenDLXSimState(OpenDLXSimState.IDLE);
+		if (e.isFatal()) {
+		    sim.stopSimulation(true);
+			// set mf state to executing (if a file has been assembled before, so the state was anything but IDLE)
+			// TODO: better set to an error state?
+			if (mf.getOpenDLXSimState() != OpenDLXSimState.IDLE)
+				mf.setOpenDLXSimState(OpenDLXSimState.EXECUTING);
+		}
+		if (e.getInstructionAddress() != null) {
+			final uint32 addr = e.getInstructionAddress();
+			for (JInternalFrame frame : mf.getinternalFrames()) {
+				if (frame instanceof ClockCycleFrame) {
+				    final ClockCycleFrame ccf = (ClockCycleFrame) frame;
+					try {
+						EventQueue.invokeLater(new Runnable() {
+							public void run() {
+								ccf.update();
+								ccf.selectLine(addr);
+							}
+						});
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				} else if (frame instanceof CodeFrame) {
+					((CodeFrame)frame).selectLine(addr);
+				}
+			}
+		}
 	}
 
 

@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.internalframes.factories.InternalFrameFactory;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandCreateFrames implements Command
 {
@@ -54,7 +55,7 @@ public class CommandCreateFrames implements Command
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "Creating frames Failed");
+            DialogWrapper.showErrorDialog(mf, "Creating frames failed");
         }
     }
 

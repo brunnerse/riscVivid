@@ -99,8 +99,7 @@ public class Execute
 		uint32[] fw_wbd_alu_result = fw_wbd.getAluOut();
 		uint32 fw_wbd_ld_result = fw_wbd.getLdResult();
 
-		// MIPS ISA flavour always uses forwarding, DLX only if enabled
-		if((ArchCfg.isa_type == ISAType.MIPS) || (ArchCfg.use_forwarding == true))
+		if(ArchCfg.useForwarding())
 		{
 			// DATA FORWARDING
 			
@@ -256,6 +255,10 @@ public class Execute
 		}
 		else
 		{
+			/*
+			This isn't needed anymore, as WB writing in the first half and ID reading in the second half of the cycle
+			is emulated by executing WB first in RiscVividSimulator.doCycle()
+
 			// PSEUDO DATA FORWARDING
 			// the DLX pipeline needs two bubbles for data dependencies, because the 
 			// register set is pipelined:
@@ -365,11 +368,18 @@ public class Execute
 			}
 
 			// DATA FORWARDING END
+			*/
 		}
 
 		// ALU OPERATION BEGIN
-		uint32[] alu_out = alu.doOperation(inst.getALUFunction(),
-				alu_in_a, alu_in_b);
+		uint32[] alu_out;
+		try {
+			alu_out = alu.doOperation(inst.getALUFunction(),
+					alu_in_a, alu_in_b);
+		} catch (PipelineException e) {
+			e.setInstructionAddress(pc);
+			throw e;
+		}
 		uint32 alu_outLO = alu_out[0];
 		// uint32 alu_outHI = alu_out[1];
 
@@ -435,8 +445,7 @@ public class Execute
 		// to BRANCH PREDICTION MODULE
 		ExecuteBranchPredictionData ebd = new ExecuteBranchPredictionData(inst, pc, alu_outLO, jump);
 	
-		// MIPS ISA flavour always is allowed to stall, DLX only if enabled
-		if((ArchCfg.isa_type == ISAType.MIPS) || (ArchCfg.use_load_stall_bubble == true))
+		if (ArchCfg.useLoadStallBubble())
 		{
 			// check if the instruction before was a load that writes into a src register,
 			// if so the fetch, decode, and execute stages have to be stalled for 1 cycle to let this instruction enter the memory stage 

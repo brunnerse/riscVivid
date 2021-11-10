@@ -29,7 +29,7 @@ public class BranchControl
 
 	private static Logger logger = Logger.getLogger("EXECUTE/BCTRL");
 	
-	public boolean checkBranch(Instruction inst, long A, long B)
+	public boolean checkBranch(Instruction inst, int A, int B)
 	{
 		boolean jump = false;
 		switch(inst.getBranchCondition())
@@ -47,10 +47,14 @@ public class BranchControl
 			jump = (A>=B);
 			break;
 		case BLTU:
-			jump = ((A-B)<0);
+			long longA = 0xffffffffL & (long)A;
+			long longB = 0xffffffffL & (long)B;
+			jump = (longA < longB);
 			break;
 		case BGEU:
-			jump = ((A-B)>=0);
+			longA = 0xffffffffL & (long)A;
+			longB = 0xffffffffL & (long)B;
+			jump = (longA >= longB);
 			break;
 
 /*

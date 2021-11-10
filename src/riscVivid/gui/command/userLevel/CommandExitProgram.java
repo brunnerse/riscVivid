@@ -30,12 +30,11 @@ import riscVivid.gui.MainFrame;
 import riscVivid.gui.Preference;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
-import riscVivid.gui.util.AskForSave;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.util.TmpFileCleaner;
 
 public class CommandExitProgram implements Command
 {
-
     private MainFrame mf;
 
     public CommandExitProgram(MainFrame mf)
@@ -56,7 +55,7 @@ public class CommandExitProgram implements Command
     {
         if (!mf.isEditorTextSaved())
         {
-         	if (!AskForSave.askAndSave(false)) {
+         	if (!DialogWrapper.askForSave(false)) {
          		return false;
          	}
         }
@@ -66,7 +65,7 @@ public class CommandExitProgram implements Command
             final String exit_message = "Are you sure you want to exit?";
             final JCheckBox exit_checkbox = new JCheckBox("Do not show this message again.");
             final Object content[] = {exit_message, exit_checkbox};
-            final int result = JOptionPane.showConfirmDialog(
+            final int result = DialogWrapper.showConfirmDialog(
                     mf,
                     content,
                     "Exit riscVivid "+ GlobalConfig.VERSION,
@@ -91,7 +90,9 @@ public class CommandExitProgram implements Command
         }
 
         // delete temporary files
-        TmpFileCleaner.cleanUp();
+        try {
+            TmpFileCleaner.cleanUp();
+        } catch(Exception e) {}
 
         //save current window position
         new CommandSaveFrameConfigurationSysLevel(mf).execute();

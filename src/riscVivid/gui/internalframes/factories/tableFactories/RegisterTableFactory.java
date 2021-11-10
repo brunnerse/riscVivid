@@ -39,10 +39,12 @@ public class RegisterTableFactory extends TableFactory
 {
 
     private RegisterSet rs;
-
-    public RegisterTableFactory(RegisterSet rs)
+    private int[] registerOrder;
+    
+    public RegisterTableFactory(RegisterSet rs, int[] registerOrder)
     {
         this.rs = rs;
+        this.registerOrder = registerOrder;
     }
 
     @Override
@@ -63,7 +65,7 @@ public class RegisterTableFactory extends TableFactory
                 secondItem = rs.read(new uint8(i)).getValue();
 
             model.addRow(new Object[] {
-                    (i < 10 ? " " : "") + ArchCfg.getRegisterDescription(i), secondItem
+                    (registerOrder[i] < 10 ? " x" : "x") + ArchCfg.getRegisterDescription(registerOrder[i]), secondItem
             });
         }
 
@@ -75,14 +77,29 @@ public class RegisterTableFactory extends TableFactory
 
         table.addMouseListener(new MouseAdapter()
         {
+            int selectedRow = -1;
+
             @Override
             public void mouseClicked(MouseEvent e)
             {
                 Point p = e.getPoint();
                 int row = table.rowAtPoint(p);
 
-                if (e.getClickCount() == 2)
-                    new CommandChangeRegister(row).execute();
+                if (e.getClickCount() == 2) {
+                    new CommandChangeRegister(new uint8(registerOrder[row])).execute();
+                } else if (e.getClickCount() == 1) {
+                    // if one row is selected, delete the selection if the user clicks on the row
+                    if (table.getSelectedRows().length == 1) {
+                        if (selectedRow == row){
+                            table.clearSelection();
+                            selectedRow = -1;
+                        } else {
+                            selectedRow = row;
+                        }
+                    } else {
+                        selectedRow = -1;
+                    }
+                }
             }
         });
 

@@ -22,59 +22,61 @@ package riscVivid.gui.internalframes;
 
 import static riscVivid.gui.Preference.pref;
 
+import java.awt.Component;
+
 import javax.swing.JInternalFrame;
 
 public class FrameConfiguration
 {
 
-    private JInternalFrame jif = null; //in, out
+    private Component c = null;
     private String posXPreferenceKey = "posx";
     private String posYPreferenceKey = "posy";
     private String sizeXPreferenceKey = "sizex";
     private String sizeYPreferenceKey = "sizey";
-    private String isVisiblePreferenceKey = "isvisible";
     private String zOrderPreferenceKey = "zorder";
     private String iconizedPreferenceKey = "iconized";
 
-    public FrameConfiguration(JInternalFrame jif)
-    {
-        this.jif = jif;
+    public FrameConfiguration(JInternalFrame jif) {
+        this.c = jif;
+    }
+    public FrameConfiguration(Component c) {
+        this.c = c;
     }
 
     public void saveFrameConfiguration()
     {
-    	String frameTitle = jif.getClass().getSimpleName();
-        pref.putInt(frameTitle + posXPreferenceKey, jif.getX());
-        pref.putInt(frameTitle + posYPreferenceKey, jif.getY());
-        pref.putInt(frameTitle + sizeXPreferenceKey, jif.getSize().width);
-        pref.putInt(frameTitle + sizeYPreferenceKey, jif.getSize().height);
-        pref.putBoolean(frameTitle + isVisiblePreferenceKey, jif.isVisible());
-        pref.putBoolean(frameTitle + iconizedPreferenceKey, jif.isIcon());
-        if (jif.getParent() != null)
-        	pref.putInt(frameTitle + zOrderPreferenceKey,
-        			jif.getParent().getComponentZOrder(jif));
+    	String frameTitle = c.getClass().getSimpleName();
+        pref.putInt(frameTitle + posXPreferenceKey, c.getX());
+        pref.putInt(frameTitle + posYPreferenceKey, c.getY());
+        pref.putInt(frameTitle + sizeXPreferenceKey, c.getSize().width);
+        pref.putInt(frameTitle + sizeYPreferenceKey, c.getSize().height);
+        if (c instanceof JInternalFrame) {
+            JInternalFrame jif = (JInternalFrame) c;
+            pref.putBoolean(frameTitle + iconizedPreferenceKey, jif.isIcon());
+            if (jif.getParent() != null)
+                pref.putInt(frameTitle + zOrderPreferenceKey,
+                    c.getParent().getComponentZOrder(jif));
+        }
     }
 
     public void loadFrameConfiguration()
     {
-    	String frameTitle = jif.getClass().getSimpleName();
-        jif.setBounds(pref.getInt(frameTitle + posXPreferenceKey, jif.getX()),
-                pref.getInt(frameTitle + posYPreferenceKey, jif.getY()),
-                pref.getInt(frameTitle + sizeXPreferenceKey, jif.getWidth()),
-                pref.getInt(frameTitle + sizeYPreferenceKey, jif.getHeight()));
-        if (jif.getParent() != null)
-        	jif.getParent().setComponentZOrder(jif,
-        			pref.getInt(frameTitle + zOrderPreferenceKey, 0));
-
-        try
-        {
-        	jif.setIcon(pref.getBoolean(frameTitle + iconizedPreferenceKey,  false));
-            jif.setVisible(pref.getBoolean(jif.getTitle() + isVisiblePreferenceKey, true));
-        }
-        catch (Exception e)
-        {
-            System.err.println("failed setting JInternalFrame to visible/invisible");
-            e.printStackTrace();
+    	String frameTitle = c.getClass().getSimpleName();
+        c.setBounds(pref.getInt(frameTitle + posXPreferenceKey, c.getX()),
+                pref.getInt(frameTitle + posYPreferenceKey, c.getY()),
+                pref.getInt(frameTitle + sizeXPreferenceKey, c.getWidth()),
+                pref.getInt(frameTitle + sizeYPreferenceKey, c.getHeight()));
+        if (c instanceof JInternalFrame) {
+            JInternalFrame jif = (JInternalFrame) c;
+            if (jif.getParent() != null)
+                jif.getParent().setComponentZOrder(jif,
+                        pref.getInt(frameTitle + zOrderPreferenceKey, 0));
+            try
+            {
+                jif.setIcon(pref.getBoolean(frameTitle + iconizedPreferenceKey, false));
+            }
+            catch (Exception e) { }
         }
     }
     

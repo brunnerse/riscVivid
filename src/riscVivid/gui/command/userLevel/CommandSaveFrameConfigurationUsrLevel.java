@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.command.systemLevel.CommandSaveFrameConfigurationSysLevel;
+import riscVivid.gui.util.DialogWrapper;
 
 public class CommandSaveFrameConfigurationUsrLevel implements Command
 {
@@ -39,9 +40,9 @@ public class CommandSaveFrameConfigurationUsrLevel implements Command
     @Override
     public void execute()
     {
-        if (!mf.isRunning() && (JOptionPane.showConfirmDialog(mf,
-                "Saving current window configuration will overwrite old configuration. Proceed ?")) ==
-                JOptionPane.YES_OPTION)
+        if (!mf.isRunning() && DialogWrapper.showConfirmDialog(mf,
+                "Saving current window configuration will overwrite old configuration. Proceed ?",
+                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
         {
             try
             {
@@ -51,7 +52,7 @@ public class CommandSaveFrameConfigurationUsrLevel implements Command
             {
                 System.err.println(e.toString());
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(mf, "saving frame preferences failed");
+                DialogWrapper.showErrorDialog(mf, "saving frame preferences failed");
             }
         }
     }

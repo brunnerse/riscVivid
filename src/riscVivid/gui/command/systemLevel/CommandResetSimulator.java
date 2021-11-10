@@ -21,11 +21,12 @@
 package riscVivid.gui.command.systemLevel;
 
 import javax.swing.JInternalFrame;
-import javax.swing.JOptionPane;
 
+import riscVivid.gui.GUI_CONST;
 import riscVivid.gui.MainFrame;
 import riscVivid.gui.command.Command;
 import riscVivid.gui.internalframes.OpenDLXSimInternalFrame;
+import riscVivid.gui.util.DialogWrapper;
 import riscVivid.util.Statistics;
 
 public class CommandResetSimulator implements Command
@@ -44,10 +45,7 @@ public class CommandResetSimulator implements Command
         try
         {
             mf.setOpenDLXSim(null);
-            mf.setUpdateAllowed(true);
             mf.setConfigFile(null);
-            mf.setPause(false);
-            mf.setRunSpeed(MainFrame.RUN_SPEED_DEFAULT);
             mf.output.clear();
 
             for (JInternalFrame jif : mf.getinternalFrames())
@@ -55,12 +53,13 @@ public class CommandResetSimulator implements Command
                     ((OpenDLXSimInternalFrame) jif).clean();
 
             Statistics.getInstance().reset();
+            mf.setOpenDLXSimState(GUI_CONST.OpenDLXSimState.IDLE);
         }
         catch (Exception e)
         {
             System.err.println(e.toString());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(mf, "resetting simulator - removing/cleaning frames failed");
+            DialogWrapper.showErrorDialog(mf, "resetting simulator - removing/cleaning frames failed");
         }
     }
 

@@ -52,6 +52,9 @@ public class LogFrameTableCellRenderer implements TableCellRenderer
         label.setForeground(table.getForeground());
         label.setBackground(table.getBackground());
 
+        if (isSelected)
+            label.setBackground(new Color(0xBAD2E4));
+
         String help = table.getModel().getValueAt(row, column).toString();
 
             //DEBUG

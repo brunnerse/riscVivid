@@ -46,15 +46,22 @@ public enum BranchPredictorType
 		case S_BACKWARD_TAKEN:
 			return "Static, Backward Always Taken";
 		case D_1BIT:
-			return "Dynammic 1-Bit Predictor";
+			return "Dynamic 1-Bit Predictor";
 		case D_2BIT_SATURATION:
-			return "Dynammic 2-Bit Saturation Predictor";
+			return "Dynamic 2-Bit Saturation Predictor";
 		case D_2BIT_HYSTERESIS:
-			return "Dynammic 2-Bit Hysteresis Predictor";
+			return "Dynamic 2-Bit Hysteresis Predictor";
 		case UNKNOWN:
 			return "None";
 		default:
 			return "Unknown Predictor";
 		}
+	}
+
+	public static String[] getValuesGuiStrings() {
+		String[] array = new String[values().length];
+		for (int i = 0; i < values().length; ++i)
+			array[i] = values()[i].toGuiString();
+		return array;
 	}
 }

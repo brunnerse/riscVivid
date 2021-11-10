@@ -22,14 +22,30 @@ package riscVivid.datatypes;
 
 public enum MemoryWidth
 {
-	BYTE,
-	UBYTE,
-	HWORD,
-	UHWORD,
-	WORD,
-	UWORD,
-	DWORD,
-	UDWORD,
-	WORD_RIGHT_PART,
-	WORD_LEFT_PART
+	BYTE(1, false),
+	UBYTE(1, true),
+	HWORD(2, false),
+	UHWORD(2, true),
+	WORD(4, false),
+	UWORD(4, true),
+	DWORD(8, false),
+	UDWORD(8, true),
+	WORD_RIGHT_PART(2, false),
+	WORD_LEFT_PART(2, false);
+	
+	private int bytewidth;
+	private boolean isUnsigned;
+	
+	MemoryWidth(int numBytes, boolean isUnsigned) {
+	    this.bytewidth = numBytes;
+	    this.isUnsigned = isUnsigned;
+	}
+	
+	public int getByteWidth() {
+	    return bytewidth;
+	}
+	
+	public boolean isUnsigned() {
+	    return isUnsigned;
+	}
 }

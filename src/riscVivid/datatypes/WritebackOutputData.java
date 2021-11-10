@@ -20,18 +20,27 @@
  ******************************************************************************/
 package riscVivid.datatypes;
 
+import riscVivid.exception.PipelineException;
+
 public class WritebackOutputData
 {
 
 	private WriteBackData wbd;
 	private boolean caught_break;
 	private boolean interrupt_occured;
-	
+	private PipelineException pe = null;
+
 	public WritebackOutputData(WriteBackData wbd, boolean caught_break, boolean interrupt_occured)
 	{
 		this.wbd = wbd; 
 		this.caught_break = caught_break;
 		this.interrupt_occured = interrupt_occured;
+	}
+
+	public WritebackOutputData(WriteBackData wbd, boolean caught_break, boolean interrupt_occured, PipelineException wbEx)
+	{
+		this(wbd, caught_break, interrupt_occured);
+		this.pe = wbEx;
 	}
 
 	public WriteBackData getWbd()
@@ -49,4 +58,12 @@ public class WritebackOutputData
 		return interrupt_occured;
 	}
 
+	public boolean hasExceptionOccured()
+	{
+		return pe != null;
+	}
+
+	public PipelineException getException() {
+		return pe;
+	}
 }

@@ -20,15 +20,14 @@
  ******************************************************************************/
 package riscVivid;
 
+import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Queue;
 
 import org.apache.log4j.Logger;
 
 import riscVivid.datatypes.*;
-import riscVivid.exception.CacheException;
-import riscVivid.exception.DecodeStageException;
-import riscVivid.exception.PipelineDataTypeException;
-import riscVivid.exception.UnknownInstructionException;
+import riscVivid.exception.*;
 
 public class Decode
 {
@@ -52,6 +51,9 @@ public class Decode
 	private Instruction current_inst;
 	private RegisterSet reg_set;
 	private Queue<FetchDecodeData> fetch_decode_latch;
+
+	private LinkedList<uint8> forwardedRegs = new LinkedList<uint8>();
+	private int cyclesSinceLastBranch = ArchCfg.getNumBranchDelaySlots();
 	
 	public Decode(RegisterSet reg_set)
 	{
@@ -453,7 +455,13 @@ public class Decode
 		FetchDecodeData fdd = fetch_decode_latch.element();
 		uint32 decode_instr = fdd.getInstr();
 		uint32 pc = fdd.getPc();
-		Instruction inst = decodeInstr(decode_instr);
+		Instruction inst;
+		try {
+			inst = decodeInstr(decode_instr);
+		} catch (UnknownInstructionException e) {
+			e.setInstructionAddress(pc);
+			throw e;
+		}
 		logger.debug("PC: " + pc.getValueAsHexString()
 				+ " instruction decoded as " + inst.getString());
 
@@ -482,7 +490,7 @@ public class Decode
 			break;
 		default:
 			alu_in_a = new uint32(0);
-			throw new DecodeStageException("Wrong ALU Port A");
+			throw new DecodeStageException("Wrong ALU Port A", pc);
 		}
 
 		// determination of input for ALU port B
@@ -512,7 +520,7 @@ public class Decode
 			else
 			{
 				alu_in_b = new uint32(0);
-				throw new DecodeStageException("Wrong IMM at ALU Port B");
+				throw new DecodeStageException("Wrong IMM at ALU Port B", pc);
 			}
 */
 			break;
@@ -524,7 +532,7 @@ public class Decode
 			break;
 		default:
 			alu_in_b = new uint32(0);
-			throw new DecodeStageException("Wrong ALU Port B");
+			throw new DecodeStageException("Wrong ALU Port B", pc);
 		}
 
 		uint32 branch_ctrl_in_a;
@@ -540,7 +548,7 @@ public class Decode
 			break;
 		default:
 			branch_ctrl_in_a = new uint32(0);
-			throw new DecodeStageException("Wrong Branch Port A");
+			throw new DecodeStageException("Wrong Branch Port A", pc);
 		}
 
 		// determination of input for BRANCH CONTROL port B
@@ -554,9 +562,8 @@ public class Decode
 			break;
 		default:
 			branch_ctrl_in_b = new uint32(0);
-			throw new DecodeStageException("Wrong Branch Port B");
+			throw new DecodeStageException("Wrong Branch Port B", pc);
 		}
-
 
 		// determination of the store value
 		uint32 store_value = new uint32(0);
@@ -565,9 +572,42 @@ public class Decode
 			store_value = reg_set.read(inst.getRt());
 		}
 
+
+
+		// Detection system for uninitialized registers
+		PipelineException decodeException = null;
+		if (ArchCfg.ignoreBranchDelaySlots()) {
+			if (inst.getBranch())
+				cyclesSinceLastBranch = 0;
+			else
+				cyclesSinceLastBranch++;
+		}
+		// if branch instructions were executed before, don't check for initialization,
+		// as the instruction might be ignored as a branch delay slot
+		if (!ArchCfg.ignoreBranchDelaySlots() || cyclesSinceLastBranch > ArchCfg.getNumBranchDelaySlots() - 1) {
+			if (inst.getReadRs() && !reg_set.isRegisterInitialized(inst.getRs())) {
+				if (!forwardedRegs.contains(inst.getRs())) {
+					decodeException = new UninitializedRegisterException(inst.getRs(), pc);
+				}
+			} else if (inst.getReadRt() && !reg_set.isRegisterInitialized(inst.getRt())) {
+				if (!forwardedRegs.contains(inst.getRt())) {
+					decodeException = new UninitializedRegisterException(inst.getRt(), pc);
+				}
+			}
+		}
+		// add register that was written into the forwardedRegs AFTER checking the instruction for initialization
+		if (ArchCfg.useForwarding()) {
+			if (inst.getWriteRd())
+				forwardedRegs.add(inst.getRd());
+			if (inst.getWriteRt())
+				forwardedRegs.add(inst.getRt());
+			while (forwardedRegs.size() > 3) // use forwardedRegs as ring buffer of size 3
+				forwardedRegs.pop();
+		}
+
 		DecodeExecuteData ded = new DecodeExecuteData(inst, pc, alu_in_a, alu_in_b, branch_ctrl_in_a, branch_ctrl_in_b, store_value);
-		
-		return new DecodeOutputData(ded);
+
+		return new DecodeOutputData(ded, decodeException);
 	}
 
 }

@@ -30,6 +30,7 @@ import riscVivid.asm.instruction.Instruction;
 import riscVivid.asm.instruction.Instructions;
 import riscVivid.asm.parser.Parser;
 import riscVivid.asm.parser.UnresolvedInstruction;
+import riscVivid.util.BreakpointManager;
 
 public class DLXAssembler implements AssemblerInterface {
 	private static int defaultDataStart = 0x100;
@@ -64,7 +65,10 @@ public class DLXAssembler implements AssemblerInterface {
 		if (entryPoint != null)
 			memory.setEntryPoint(entryPoint);
 		else
-			throw new AssemblerException("no entry point 'main' found!\nPlease specify '.global main' and 'main:'.");
+			throw new AssemblerException("no entry point 'main' found!\nPlease specify 'main:'.");
+
+		BreakpointManager.getInstance().setAddressToLineTable(parser.getAddressToLineTable());
+
 		return memory;
 	}
 
