@@ -43,7 +43,7 @@ public class Instruction {
 	public static final int OPCODE_FENCE	= 0x0f;
 	public static final int OPCODE_atomic	= 0x2f;
 	public static final int OPCODE_JAL		= 0x6f;
-	
+
 
 	/*
 	 * ============================* Constructors *============================
@@ -121,6 +121,7 @@ public class Instruction {
 				return (iw & 0x0000707f); // opcode and funct3
 			case OPCODE_reg:
 			case OPCODE_regW:
+			case OPCODE_atomic:
 				return (iw & 0xfe00707f); // opcode, funct3 and funct7
 		}
 		return (iw & 0xfff0707f); // opcode, funct3 and funct12
@@ -326,6 +327,16 @@ public class Instruction {
 				strBuf.append(rsStr());
 				strBuf.append(',');
 				strBuf.append(rtStr());
+				break;
+			case OPCODE_atomic:
+				strBuf.append(mnemonic);
+				strBuf.append(' ');
+				strBuf.append(rdStr());
+				strBuf.append(',');
+				strBuf.append(rsStr());
+				strBuf.append(", (");
+				strBuf.append(rtStr());
+				strBuf.append(",)");
 				break;
 			case OPCODE_imm:
 			case OPCODE_immW:

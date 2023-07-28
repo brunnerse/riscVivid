@@ -303,6 +303,9 @@ public class Parser {
 			case MVLI:
 				iw = mvli(tokens);
 				break;
+			case ATOMIC:
+				iw = atomic(tokens);
+				break;
 			case NOARGS:
 				iw = noArgs(tokens);
 				break;
@@ -327,9 +330,88 @@ public class Parser {
 		if (reg==null) throw new ParserException(NOT_A_REGISTER, t);
 		return reg;
 	}
-	
-	
-	
+
+
+	/**
+	 * e.g. sub r1,r2,r3
+	 *
+	 * @param tokens
+	 * @return
+	 * @throws ParserException
+	 */
+	private int atomic(Token[] tokens) throws ParserException
+	{
+		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
+		int i=1;
+		try {
+			instr.setRd(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			instr.setRs(expect_reg(tokens[i++]));
+			expect(tokens[i++], ",");
+			expect(tokens[i++], "(");
+			instr.setRt(expect_reg(tokens[i++]));
+			expect(tokens[i++], ")");
+			if (i < tokens.length)
+				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
+
+			// Replace the atomic instruction with equivalent instructions
+			List<Instruction> instructions = new ArrayList<Instruction>();
+			// first: lw instruction to store current val in rd
+            Instruction instr_new = Instructions.instance().getInstruction("lw").clone();
+            System.out.println("Found amo instruction: " + instr.toString());
+            System.out.printf("rd: %d, rt: %d, rs: %d\n", instr.rd(), instr.rt(), instr.rs());
+			instr_new.setRd(instr.rd());
+			instr_new.setImmI(0);
+			instr_new.setRs(instr.rt());
+			instructions.add(instr_new);
+			// second: perform computation (not necesssary for amoswap)
+            if (instr.toMnemonic().matches("amoxor|amoadd")) {
+            	if (instr.toMnemonic().equals("amoxor"))
+					instr_new = Instructions.instance().getInstruction("xor").clone();
+				else
+					instr_new = Instructions.instance().getInstruction("add").clone();
+				instr_new.setRd(instr.rs());
+				instr_new.setRs(instr.rs());
+				instr_new.setRt(instr.rd());
+				instr_new.setRegNotImm(true);
+				instructions.add(instr_new);
+			}
+			// third: sw instruction to store the computed value
+			instr_new = Instructions.instance().getInstruction("sw").clone();
+			instr_new.setRt(instr.rs());
+			instr_new.setImmS(0);
+			instr_new.setRs(instr.rt());
+			instructions.add(instr_new);
+			// fourth: restore old value in register by performing inverse instruction
+			if (instr.toMnemonic().matches("amoxor|amoadd")) {
+				if (instr.toMnemonic().equals("amoxor"))
+					instr_new = Instructions.instance().getInstruction("xor").clone();
+				else
+					instr_new = Instructions.instance().getInstruction("sub").clone();
+				instr_new.setRd(instr.rs());
+				instr_new.setRs(instr.rs());
+				instr_new.setRt(instr.rd());
+				instr_new.setRegNotImm(true);
+				instructions.add(instr_new);
+			}
+			// Write the partial instructions into memory (apart from the last one, which is written in parse())
+			// Remove last partial instruction from list and set instr to it
+			instr = instructions.remove(instructions.size()-1);
+			for (Instruction part_instr : instructions){
+				memory_.writeWord(segmentPointer_.get(), part_instr.instrWord());
+				segmentPointer_.add(4);
+				updateMemorySegmentEnd();
+			}
+			return instr.instrWord();
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
+		} catch (NullPointerException ex) {
+			throw new ParserException(NOT_A_REGISTER, tokens[i]);
+		} catch (InstructionException ex) {
+			throw new ParserException(INSTRUCTION_EXCEPTION + ex.getMessage(), tokens[i]);
+		}
+	}
+
 	/**
 	 * e.g. sub r1,r2,r3
 	 * 
