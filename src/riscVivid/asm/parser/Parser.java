@@ -498,29 +498,81 @@ public class Parser {
 	private int iType(Token[] tokens) throws ParserException {
 		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
 		int i=1;
+
+		boolean isJalr = tokens[0].getString().toLowerCase().equals("jalr");
 		try {
-			Integer reg = Registers.instance().getInteger(tokens[i].getString());
-			// default to register ra if first argument isn't a register or there's just one argument
-			// (cases: jalr 0x10(gp), jalr gp)
-			if (reg == null || tokens.length < 3) {
-				instr.setRd(1); // default to register ra (x1)
-			} else { // (cases: jalr ra, 0x10(gp)   and  jalr ra, gp)
-				instr.setRd(reg);
-				i++;
+			Integer firstReg = null;
+			int imm = 0;
+			// First try the regular syntax, i.e.  mnemonic rd, rs, imm
+			try {
+				firstReg = expect_reg(tokens[i++]);
 				expect(tokens[i++], ",");
-			}
-			Integer regTarget = Registers.instance().getInteger(tokens[i].getString());
-			// check if an offset was given  (cases: jalr 0x10(gp)   and   jalr ra, 0x10(gp) )
-			if (regTarget == null) {
-				// offset was given
-				int imm = Integer.decode(tokens[i++].getString());
+				int srcReg = expect_reg(tokens[i++]);
+				expect(tokens[i++], ",");
+				imm = Integer.decode(tokens[i].getString());
+				i++;  // Increment separately in case in exception is thrown by decode
+				instr.setRd(firstReg.intValue());
+				instr.setRs(srcReg);
 				instr.setImmI(imm);
-				expect(tokens[i++], "(");
-				instr.setRs(expect_reg(tokens[i++]));
-				expect(tokens[i++], ")");
-			} else {
-				// no offset was given  (case:  jalr ra, gp)
-				instr.setRs(expect_reg(tokens[i++]));
+			} catch (Exception e) {
+				if (!isJalr)
+					throw e;
+				// Try other syntaxes for jalr
+				boolean expectImmFormat = true;
+				if (firstReg == null) {
+					// jalr imm(reg)
+					instr.setRd(1);
+					i = 1;
+					expectImmFormat = true;
+				} else {
+					// jalr reg
+					if (tokens.length < 3) {
+						i = 2;
+						instr.setRd(1);
+						instr.setRs(firstReg.intValue());
+						instr.setImmI(0);
+						expectImmFormat = false;
+					} else {
+						i = 2;
+						expect(tokens[i++], ",");
+
+						// Check if token is an imm or a reg
+						Integer reg = Registers.instance().getInteger(tokens[i].getString());
+						if (reg != null) {
+							// jalr rd, rs
+							instr.setRd(firstReg.intValue());
+							instr.setRs(reg.intValue());
+							i++; // Increment for reading the register
+							expectImmFormat = false;
+						} else {
+							//  jalr rd, imm(rs)
+							if (tokens[i].getString().equals("(") ||
+							   (tokens.length > i+1 && tokens[i+1].getString().equals("("))) {
+								//  jalr rd, imm(rs)
+								instr.setRd(firstReg.intValue());
+								expectImmFormat = true;
+							} else {
+								// jalr rs, imm
+								imm = Integer.decode(tokens[i++].getString());
+								instr.setRd(1);
+								instr.setRs(firstReg.intValue());
+								instr.setImmI(imm);
+								expectImmFormat = false;
+							}
+						}
+					}
+				}
+				if (expectImmFormat) {
+					// offset was given
+					if (tokens[i].getString().equals("("))
+						imm = 0;
+					else
+						imm = Integer.decode(tokens[i++].getString());
+					instr.setImmI(imm);
+					expect(tokens[i++], "(");
+					instr.setRs(expect_reg(tokens[i++]));
+					expect(tokens[i++], ")");
+				}
 			}
 
 			if (i < tokens.length)
@@ -578,7 +630,12 @@ public class Parser {
 		try {
 			int reg = expect_reg(tokens[i++]);
 			expect(tokens[i++], ",");
-			int imm = Integer.decode(tokens[i++].getString());
+			int imm;
+			if (tokens[i].getString().equals("(")) {
+				imm = 0;
+			} else {
+				imm = Integer.decode(tokens[i++].getString());
+			}
 			expect(tokens[i++], "(");
 			instr.setRs(expect_reg(tokens[i++]));
 			expect(tokens[i], ")");
@@ -814,6 +871,8 @@ public class Parser {
 	 * @throws ParserException
 	 */
 	private void parseDirectives(Token[] tokens) throws ParserException {
+
+		String name = tokens[0].getString();
 		//unresolved labels
 		Token t = resolveLabels(tokens);
 		if (t != null) {
@@ -821,9 +880,9 @@ public class Parser {
 				throw new ParserException(LABEL_DOES_NOT_EXISTS, t);
 			unresolvedInstructions_.add(new UnresolvedInstruction(tokens, segmentPointer_.get(),
 					segmentPointer_ == textPointer_ ? true : false));
-			if (tokens[0].getString().equalsIgnoreCase(".word")) {
+			if (name.equalsIgnoreCase(".word")) {
 				segmentPointer_.add(4);
-			} else if (tokens[0].getString().equalsIgnoreCase(".global")) {
+			} else if (name.equalsIgnoreCase(".global") || name.equalsIgnoreCase(".globl")) {
 				//do nothing
 			} else {
 				throw new ParserException(LABEL_NOT_ALLOWED_HERE, t);
@@ -831,7 +890,6 @@ public class Parser {
 			return;
 		}
 
-		String name = tokens[0].getString();
 		if (name.equalsIgnoreCase(".align")) {
 			align(tokens);
 		} else if (name.equalsIgnoreCase(".ascii")) {
@@ -845,7 +903,7 @@ public class Parser {
 			byteDir(tokens);
 		} else if (name.equalsIgnoreCase(".data")) {
 			data(tokens);
-		} else if (name.equalsIgnoreCase(".global")) {
+		} else if (name.equalsIgnoreCase(".global") || name.equalsIgnoreCase(".globl")) {
 			global(tokens);
 		} else if (name.equalsIgnoreCase(".half")) {
 			half(tokens);
