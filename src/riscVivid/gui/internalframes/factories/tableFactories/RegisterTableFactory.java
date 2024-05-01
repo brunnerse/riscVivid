@@ -44,7 +44,13 @@ public class RegisterTableFactory extends TableFactory
     public RegisterTableFactory(RegisterSet rs, int[] registerOrder)
     {
         this.rs = rs;
-        this.registerOrder = registerOrder;
+        if (Preference.useCustomRegisterOrder()) {
+            this.registerOrder = registerOrder;
+        } else {
+            this.registerOrder = new int[rs.getRegisterCount()];
+            for(int i = 0; i < this.registerOrder.length; i++)
+                this.registerOrder[i] = i;
+        }
     }
 
     @Override

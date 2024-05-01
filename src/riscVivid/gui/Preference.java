@@ -50,6 +50,7 @@ public class Preference
     public static final String displayRegistersAsHex = "displayRegistersAsHex";
     public static final String enableMemoryWarningsPreferenceKey = "enableMemoryWarnings";
     public static final String enableInitializationWarningsPreferenceKey = "enableInitializationWarnings";
+    public static final String useCustomRegisterOrderPreferenceKey = "useCustomRegisterOrder";
 
 
     public static String getSaveFileChooserPath() {
@@ -75,6 +76,9 @@ public class Preference
     }
     public static boolean isInitializationWarningsEnabled() {
         return Preference.pref.getBoolean(enableInitializationWarningsPreferenceKey, true);
+    }
+    public static boolean useCustomRegisterOrder() {
+        return Preference.pref.getBoolean(useCustomRegisterOrderPreferenceKey, true);
     }
     // TODO: Also move all configuration stuff into this file.
 }

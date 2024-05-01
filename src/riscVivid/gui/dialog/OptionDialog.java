@@ -49,6 +49,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
     private JCheckBox noBranchDelaySlotCheckBox;
     private JCheckBox memoryWarningCheckBox;
     private JCheckBox initializationWarningCheckBox;
+    private JCheckBox customRegisterOrderCheckBox;
     /*
      * JComboBox may be represented by Vectors or Arrays of Objects (Object [])
      * we have chosen "String[]" to be the representation (in fact - String) for
@@ -93,7 +94,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         forwardingCheckBox = new JCheckBox("Use Forwarding");
         forwardingCheckBox.setSelected(Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true)); // load current value
 
-        noBranchDelaySlotCheckBox = new JCheckBox("Ignore Branch Delay Slots");
+        noBranchDelaySlotCheckBox = new JCheckBox("Clear Branch Delay Slots");
         noBranchDelaySlotCheckBox.setSelected(Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true)); // load current value
         
         mipsCompatibilityCheckBox = new JCheckBox("MIPS Compatibility Mode (requires Forwarding)");
@@ -113,6 +114,9 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         initializationWarningCheckBox = new JCheckBox("Enable Warnings for Reading Uninitialized Registers");
         initializationWarningCheckBox.setSelected(Preference.isInitializationWarningsEnabled());
+
+        customRegisterOrderCheckBox = new JCheckBox("Use custom order for the register set");
+        customRegisterOrderCheckBox.setSelected(Preference.useCustomRegisterOrder());
         /*create a JComboBoxes
          *
          * JComboBox need a Object[] or Vector as data representation
@@ -153,7 +157,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         // the number in constructor means the number of lines in textfield
         maxCyclesTextField = new JTextField(10);
         //load current text from ArchCfg
-        maxCyclesTextField.setText((new Integer(ArchCfg.getMaxCycles())).toString());
+        maxCyclesTextField.setText((Integer.valueOf(ArchCfg.getMaxCycles())).toString());
         //surrounding panel, containing both JLabel and JTextField
         JPanel maxCyclesTextFieldPanel = new JPanel();
         //add the label
@@ -166,7 +170,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         // the number in constructor means the number of lines in textfield
         btbSizeTextField = new JTextField(5);
         //load current text from ArchCfg
-        btbSizeTextField.setText((new Integer(ArchCfg.getBranchPredictorTableSize())).toString());
+        btbSizeTextField.setText((Integer.valueOf(ArchCfg.getBranchPredictorTableSize())).toString());
         //surrounding panel, containing both JLabel and JTextField
         JPanel btbSizeTextFieldPanel = new JPanel();
         //add the label
@@ -224,7 +228,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         //dont forget adding the components to the panel !!!
         for (JComponent c : new JComponent[]{forwardingCheckBox, noBranchDelaySlotCheckBox, mipsCompatibilityCheckBox,
-                memoryWarningCheckBox, initializationWarningCheckBox,
+                memoryWarningCheckBox, initializationWarningCheckBox, customRegisterOrderCheckBox,
                 // bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again when branch prediction works correctly
                 maxCyclesTextFieldPanel, initRegisterPanel, initMemoryPanel, branchDelaySlotsPanel})
         {
@@ -283,6 +287,10 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
                     memoryWarningCheckBox.isSelected());
             Preference.pref.putBoolean(Preference.enableInitializationWarningsPreferenceKey,
                     initializationWarningCheckBox.isSelected());
+            Preference.pref.putBoolean(Preference.enableInitializationWarningsPreferenceKey,
+                    initializationWarningCheckBox.isSelected());
+            Preference.pref.putBoolean(Preference.useCustomRegisterOrderPreferenceKey,
+                    customRegisterOrderCheckBox.isSelected());
 
             boolean no_branch_delay_slot, use_load_stall_bubble, use_forwarding;
 
@@ -338,7 +346,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
                 branch_predictor_table_size = 1;
                 Preference.pref.put(Preference.btbSizePreferenceKey,
-                        new Integer(branch_predictor_table_size).toString());
+                        Integer.valueOf(branch_predictor_table_size).toString());
                 break;
             case D_1BIT:
                 switch(branch_predictor_initial_state)
@@ -398,7 +406,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
             if (branch_predictor_table_size == 0)
             {
                 branch_predictor_table_size = 1;
-                Preference.pref.put(Preference.btbSizePreferenceKey, (new Integer(branch_predictor_table_size)).toString());
+                Preference.pref.put(Preference.btbSizePreferenceKey, (Integer.valueOf(branch_predictor_table_size)).toString());
                 // TODO Throw exception
             }
 
