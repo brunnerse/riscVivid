@@ -151,27 +151,61 @@ public class Instructions {
 			add("li", new Instruction(OPCODE_imm, 0x0), ParseType.MVLI,
 					"li[Load Immediate] rd, imm:  load immediate value into rd");
 			add("add", new Instruction(OPCODE_reg, 0x0), ParseType.ARITH, // add "add" twice so asm.instr2str works correctly
-					"add[ADD] rd,rs,rt/imm: add rs and rt/imm and save result in rd");
+						  "add[ADD] rd,rs,rt/imm: add rs and rt/imm and save result in rd");
 			add("add", new Instruction(OPCODE_imm, 0x0), ParseType.ARITH,
 					"add[ADD] rd,rs,rt/imm: add rs and rt/imm and save result in rd");
+			add("addi", new Instruction(OPCODE_imm, 0x0), ParseType.ITYPE,
+					"addi[ADD] rd,rs,imm: add rs and imm and save result in rd");
 			add("sub", new Instruction(OPCODE_reg, 0x0, 0x400), ParseType.RTYPE,
 					"sub[SUBtract word] rd,rs,rt: subtract rt from rs and save result in rd");
+			add("sll", new Instruction(OPCODE_reg, 0x1), ParseType.SHIFT,
+					"sll[Shift Left Logical] rd,rt,rs/imm5: do a logical left shift on rt by rs/imm5 bits and save result in rd");
 			add("sll", new Instruction(OPCODE_imm, 0x1), ParseType.SHIFT,
-					"sll[Shift Left Logical] rd,rt,rs: do a logical left shift on rt by rs bits and save result in rd");
+					"sll[Shift Left Logical] rd,rt,rs/imm5: do a logical left shift on rt by rs/imm5 bits and save result in rd");
+			add("slli", new Instruction(OPCODE_imm, 0x1), ParseType.ISHIFT,
+					"slli[Shift Left Logical] rd,rt,imm5: do a logical left shift on rt by imm5 bits and save result in rd");
+			add("slt", new Instruction(OPCODE_reg, 0x2), ParseType.ARITH,
+					"slt[Set on Less Than] rd,rs,rt/imm: set rd to 1 if rs is less than rt/imm");
 			add("slt", new Instruction(OPCODE_imm, 0x2), ParseType.ARITH,
-					"slt[Set on Less Than] rd,rs,rt/imm: set rd to 1 if rs is less than rd");
+					"slt[Set on Less Than] rd,rs,rt/imm: set rd to 1 if rs is less than rt/imm");
+			add("slti", new Instruction(OPCODE_imm, 0x2), ParseType.ITYPE,
+					"slti[Set on Less Than] rd,rs,imm: set rd to 1 if rs is less than imm");
+			add("sltu", new Instruction(OPCODE_reg, 0x3), ParseType.ARITH,
+					"sltu[Set on Less Than Unsigned] rd,rs,rt/imm: set rd to 1 if the unsigned number in rs is less than rt/imm");
 			add("sltu", new Instruction(OPCODE_imm, 0x3), ParseType.ARITH,
-					"sltu[Set on Less Than Unsigned] rd,rs,rt/imm: set rd to 1 if the unsigned number in rs is less than rd");
+					"sltu[Set on Less Than Unsigned] rd,rs,rt/imm: set rd to 1 if the unsigned number in rs is less than rt/imm");
+			add("sltiu", new Instruction(OPCODE_imm, 0x3), ParseType.ARITH,
+					"sltiu[Set on Less Than Unsigned] rd,rs,imm: set rd to 1 if the unsigned number in rs is less than imm");
+			add("xor", new Instruction(OPCODE_reg, 0x4), ParseType.ARITH,
+					"xor[eXclusive OR] rd,rs,rt/imm: do a bitwise XOR of rs and rt/imm and save result in rd");
 			add("xor", new Instruction(OPCODE_imm, 0x4), ParseType.ARITH,
-					"xor[eXclusive OR] rd,rs,rt: do a bitwise XOR of rt and rs and save result in rd");
+					"xor[eXclusive OR] rd,rs,rt/imm: do a bitwise XOR of rs and rt/imm and save result in rd");
+			add("xori", new Instruction(OPCODE_imm, 0x4), ParseType.ITYPE,
+					"xori[eXclusive OR] rd,rs,imm: do a bitwise XOR of rs and imm and save result in rd");
+			add("srl", new Instruction(OPCODE_reg, 0x5, 0x000), ParseType.SHIFT,
+					"srl[Shift Right Logical] rd,rt,rs/imm5: do a logical right shift on rt by rs/imm5 bits and save result in rd");
 			add("srl", new Instruction(OPCODE_imm, 0x5, 0x000), ParseType.SHIFT,
-					"sll[Shift Right Logical] rd,rt,rs: do a logical right shift on rt by rs bits and save result in rd");
+					"srl[Shift Right Logical] rd,rt,rs/imm5: do a logical right shift on rt by rs/imm5 bits and save result in rd");
+			add("srli", new Instruction(OPCODE_imm, 0x5, 0x000), ParseType.ISHIFT,
+					"srl[Shift Right Logical] rd,rt,rs: do a logical right shift on rt by rs bits and save result in rd");
+			add("sra", new Instruction(OPCODE_reg, 0x5, 0x400), ParseType.SHIFT,
+					"sra[Shift Right Arithmetical] rd,rt,rs/imm5: do an arithmetical right shift on rt by rs/imm5 bits and save result in rd");
 			add("sra", new Instruction(OPCODE_imm, 0x5, 0x400), ParseType.SHIFT,
-					"sll[Shift Right Arithmetical] rd,rt,rs: do an arithmetical right shift on rt by rs bits and save result in rd");
+					"sra[Shift Right Arithmetical] rd,rt,rs/imm5: do an arithmetical right shift on rt by rs/imm5 bits and save result in rd");
+			add("srai", new Instruction(OPCODE_imm, 0x5, 0x400), ParseType.ISHIFT,
+					"srai[Shift Right Arithmetical] rd,rt,imm5: do an arithmetical right shift on rt by imm5 bits and save result in rd");
+			add("or", new Instruction(OPCODE_reg, 0x6), ParseType.ARITH,
+						"or[OR] rd,rs,rt/imm: do a bitwise OR of rs and rt/imm and save result in rd");
 			add("or", new Instruction(OPCODE_imm, 0x6), ParseType.ARITH,
-					"or[OR] rd,rs,rt: do a bitwise OR of rt and rs and save result in rd");
+					"or[OR] rd,rs,rt/imm: do a bitwise OR of rs and rt/imm and save result in rd");
+			add("ori", new Instruction(OPCODE_imm, 0x6), ParseType.ITYPE,
+					"ori[OR] rd,rs,imm: do a bitwise OR of rs and imm and save result in rd");
+			add("and", new Instruction(OPCODE_reg, 0x7), ParseType.ARITH,
+					"and[AND] rd,rs,rt/imm: do a bitwise AND of rs and rt/imm and save result in rd");
 			add("and", new Instruction(OPCODE_imm, 0x7), ParseType.ARITH,
-					"and[AND] rd,rs,rt: do a bitwise AND of rt and rs and save result in rd");
+					"and[AND] rd,rs,rt/imm: do a bitwise AND of rs and rt/imm and save result in rd");
+			add("andi", new Instruction(OPCODE_imm, 0x7), ParseType.ITYPE,
+					"andi[AND] rd,rs,imm: do a bitwise AND of rs and imm and save result in rd");
 			add("amoswap", new Instruction(OPCODE_atomic, 0x2,  0x080), ParseType.ATOMIC,
 					"amoswap[Atomic Swap] rd, rs2, (rs1)");
 			add("amoadd", new Instruction(OPCODE_atomic, 0x2,  0x000), ParseType.ATOMIC,

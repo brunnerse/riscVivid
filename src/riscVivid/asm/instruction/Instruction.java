@@ -216,7 +216,7 @@ public class Instruction {
 	public void setShamt(int imm) throws InstructionException {
 		if (imm<0 || imm > 0x1f)
 			throw new InstructionException("immI out of range");
-		instrWord_ = (instrWord_ & 0x000fffff) | (imm<<20);
+		instrWord_ = (instrWord_ & 0xfe0fffff) | (imm<<20);
 	}
 	
 	public int immS() {

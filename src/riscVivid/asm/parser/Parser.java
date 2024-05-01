@@ -268,7 +268,10 @@ public class Parser {
 				iw = rType(tokens);
 				break;
 			case ITYPE:
-				iw = iType(tokens);
+				iw = iType(tokens, false);
+				break;
+			case ISHIFT:
+				iw = iType(tokens, true);
 				break;
 			case STYPE:
 				iw = memory(tokens, true);
@@ -495,7 +498,7 @@ public class Parser {
 	 * @return
 	 * @throws ParserException
 	 */
-	private int iType(Token[] tokens) throws ParserException {
+	private int iType(Token[] tokens, boolean shift ) throws ParserException {
 		Instruction instr = Instructions.instance().getInstruction(tokens[0].getString()).clone();
 		int i=1;
 
@@ -513,7 +516,10 @@ public class Parser {
 				i++;  // Increment separately in case in exception is thrown by decode
 				instr.setRd(firstReg.intValue());
 				instr.setRs(srcReg);
-				instr.setImmI(imm);
+				if (shift)
+					instr.setShamt(imm);
+				else
+					instr.setImmI(imm);
 			} catch (Exception e) {
 				if (!isJalr)
 					throw e;
