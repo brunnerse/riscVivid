@@ -513,13 +513,13 @@ public class Parser {
 				int srcReg = expect_reg(tokens[i++]);
 				expect(tokens[i++], ",");
 				imm = Integer.decode(tokens[i].getString());
-				i++;  // Increment separately in case in exception is thrown by decode
 				instr.setRd(firstReg.intValue());
 				instr.setRs(srcReg);
 				if (shift)
 					instr.setShamt(imm);
 				else
 					instr.setImmI(imm);
+				i++;  // Increment separately in case an exception is thrown by decode or setImm/setShamt
 			} catch (Exception e) {
 				if (!isJalr)
 					throw e;
