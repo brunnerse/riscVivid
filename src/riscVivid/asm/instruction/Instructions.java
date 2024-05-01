@@ -206,16 +206,20 @@ public class Instructions {
 					"and[AND] rd,rs,rt/imm: do a bitwise AND of rs and rt/imm and save result in rd");
 			add("andi", new Instruction(OPCODE_imm, 0x7), ParseType.ITYPE,
 					"andi[AND] rd,rs,imm: do a bitwise AND of rs and imm and save result in rd");
+			/*
 			add("amoswap", new Instruction(OPCODE_atomic, 0x2,  0x080), ParseType.ATOMIC,
 					"amoswap[Atomic Swap] rd, rs2, (rs1)");
 			add("amoadd", new Instruction(OPCODE_atomic, 0x2,  0x000), ParseType.ATOMIC,
 					"amoadd[Atomic Add] rd, rs2, (rs1)");
 			add("amoxor", new Instruction(OPCODE_atomic, 0x2,  0x200), ParseType.ATOMIC,
 					"amoxor[Atomic Exclusive Or] rd, rs2, (rs1)");
+			*/
+			/*
 			add("amoand", new Instruction(OPCODE_atomic, 0x2,  0x600), ParseType.ATOMIC,
 					"amoand[Atomic And] rd, rs2, (rs1)");
 			add("amoor", new Instruction(OPCODE_atomic, 0x2,  0x400), ParseType.ATOMIC,
 					"amoor[Atomic Or] rd, rs2, (rs1)");
+			 */
 			add("fence", new Instruction(OPCODE_FENCE, 0x0), ParseType.NOARGS,
 					"");
 			add("fence.i", new Instruction(OPCODE_FENCE, 0x1), ParseType.NOARGS,
