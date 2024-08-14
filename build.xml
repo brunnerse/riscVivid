@@ -49,6 +49,9 @@
 			<copy file="img/riscVivid_small.png" tofile="./bin/img/riscVivid_small.png"/>
 			<copy file="img/riscVivid-quadrat128x128.png" tofile="./bin/img/riscVivid-quadrat128x128.png"/>
 			<copy file="img/riscVivid-quadrat16x16.png" tofile="./bin/img/riscVivid-quadrat16x16.png"/>
+			<copy todir="./bin/img/icons">
+			      <fileset dir="img/icons"/>
+			</copy>
         <jar destfile="riscVivid.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="riscVivid.main.RiscVividSimulatorMain"/>
