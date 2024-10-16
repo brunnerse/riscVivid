@@ -25,6 +25,8 @@ import java.awt.event.*;
 import java.util.Properties;
 
 import javax.swing.*;
+import javax.swing.text.*;
+import java.text.NumberFormat;
 
 import riscVivid.BranchPredictionModule;
 import riscVivid.datatypes.ArchCfg;
@@ -65,7 +67,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
     private JComboBox<String> numBranchDelaySlotsComboBox;
 
     //input text fields
-    private JTextField maxCyclesTextField;
+    private JFormattedTextField maxCyclesTextField;
 
     public OptionDialog(Frame owner)
     {
@@ -93,12 +95,15 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
          *-> its a single element, hence it doesn't need a JPanel  */
         forwardingCheckBox = new JCheckBox("Use Forwarding");
         forwardingCheckBox.setSelected(Preference.pref.getBoolean(Preference.forwardingPreferenceKey, true)); // load current value
+        forwardingCheckBox.setToolTipText("Forwards results from the pipeline to the inputs of the Execute Stage");
 
         noBranchDelaySlotCheckBox = new JCheckBox("Clear Branch Delay Slots");
         noBranchDelaySlotCheckBox.setSelected(Preference.pref.getBoolean(Preference.noBranchDelaySlotPreferenceKey, true)); // load current value
-        
+        noBranchDelaySlotCheckBox.setToolTipText("Aborts the execution of the instructions after a jump if the jump is taken");
+
         mipsCompatibilityCheckBox = new JCheckBox("MIPS Compatibility Mode (requires Forwarding)");
         mipsCompatibilityCheckBox.setSelected(Preference.pref.getBoolean(Preference.mipsCompatibilityPreferenceKey, true)); // load current value
+        mipsCompatibilityCheckBox.setToolTipText("Inserts a pipeline bubble after a load command if the subsequent instruction reads the target register, as forwarding is not possible in this case");
 
         // disable MIPS compatibility if no forwarding is active
         if (!forwardingCheckBox.isSelected())
@@ -111,12 +116,15 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
 
         memoryWarningCheckBox = new JCheckBox("Enable Unreserved Memory Warnings");
         memoryWarningCheckBox.setSelected(Preference.isMemoryWarningsEnabled());
+        memoryWarningCheckBox.setToolTipText("Pauses the execution when accessing an unreserved memory address");
 
         initializationWarningCheckBox = new JCheckBox("Enable Warnings for Reading Uninitialized Registers");
         initializationWarningCheckBox.setSelected(Preference.isInitializationWarningsEnabled());
+        initializationWarningCheckBox.setToolTipText("Pauses the execution when reading a register that has not been previously written to");
 
         customRegisterOrderCheckBox = new JCheckBox("Use custom order for the register set");
         customRegisterOrderCheckBox.setSelected(Preference.useCustomRegisterOrder());
+        customRegisterOrderCheckBox.setToolTipText("Sorts the registers in the register set frame in a more intuitive order");
         /*create a JComboBoxes
          *
          * JComboBox need a Object[] or Vector as data representation
@@ -155,15 +163,24 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         // Max Cycles
         JLabel maxCyclesTextFieldDescription = new JLabel("Maximum Cycles: ");
         // the number in constructor means the number of lines in textfield
-        maxCyclesTextField = new JTextField(10);
+        NumberFormat numberFormat = NumberFormat.getIntegerInstance();
+        numberFormat.setGroupingUsed(false);
+        NumberFormatter numberFormatter = new NumberFormatter(numberFormat);
+        numberFormatter.setAllowsInvalid(false);
+        numberFormatter.setMinimum(0);
+        numberFormatter.setMaximum(99999999);
+
+        maxCyclesTextField = new JFormattedTextField(numberFormatter);
+        maxCyclesTextField.setColumns(8);
         //load current text from ArchCfg
         maxCyclesTextField.setText((Integer.valueOf(ArchCfg.getMaxCycles())).toString());
         //surrounding panel, containing both JLabel and JTextField
-        JPanel maxCyclesTextFieldPanel = new JPanel();
+        JPanel maxCyclesTextFieldPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         //add the label
         maxCyclesTextFieldPanel.add(maxCyclesTextFieldDescription);
         //add the field itself
         maxCyclesTextFieldPanel.add(maxCyclesTextField);
+        maxCyclesTextFieldPanel.setToolTipText("Stops the simulation after this amount of cycles to prevent infinite execution");
 
         // BTB Size
         JLabel btbSizeTextFieldDescription = new JLabel("BTB Size: ");
@@ -227,7 +244,7 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
         optionPanel.setLayout(new GridLayout(0, 1));
 
         //dont forget adding the components to the panel !!!
-        for (JComponent c : new JComponent[]{forwardingCheckBox, noBranchDelaySlotCheckBox, mipsCompatibilityCheckBox,
+        for (JComponent c : new JComponent[]{noBranchDelaySlotCheckBox, forwardingCheckBox, mipsCompatibilityCheckBox,
                 memoryWarningCheckBox, initializationWarningCheckBox, customRegisterOrderCheckBox,
                 // bpTypeListPanel, bpInitialStateListPanel, btbSizeTextFieldPanel, // TODO: add again when branch prediction works correctly
                 maxCyclesTextFieldPanel, initRegisterPanel, initMemoryPanel, branchDelaySlotsPanel})
@@ -263,7 +280,6 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
         //just close the dialog
         if (e.getSource().equals(cancel))
         {
@@ -410,8 +426,14 @@ public class OptionDialog extends JDialog implements ActionListener, ItemListene
                 // TODO Throw exception
             }
 
-            int max_cycles = Integer.parseInt(maxCyclesTextField.getText());
-            Preference.pref.put(Preference.maxCyclesPreferenceKey, maxCyclesTextField.getText());
+            int max_cycles;
+            try {
+                max_cycles = Integer.parseInt(maxCyclesTextField.getText());
+                Preference.pref.put(Preference.maxCyclesPreferenceKey, maxCyclesTextField.getText());
+            } catch (NumberFormatException ex) {
+                max_cycles = ArchCfg.getMaxCycles();
+                System.err.println("Error in max_cycles field. Ignoring max_cycles input.");
+            }
 
             Preference.pref.putInt(Preference.initializeRegistersPreferenceKey,
                     CommandSetInitialize.getChoiceInt(initRegisterComboBox.getSelectedItem().toString()));
