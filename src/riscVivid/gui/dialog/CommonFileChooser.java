@@ -32,7 +32,7 @@ import riscVivid.gui.Preference;
 public abstract class CommonFileChooser {
 
     protected String preferenceKey;
-    private String path = "/home";
+    private String path = System.getProperty("user.dir") + "/..";
 
     public CommonFileChooser() {
         super();

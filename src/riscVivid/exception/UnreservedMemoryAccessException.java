@@ -51,7 +51,8 @@ public class UnreservedMemoryAccessException extends MemoryException {
             case NONE:
             default:
                 return prefix + "Accessing " + String.valueOf(nBytes) +
-                        " bytes of unreserved memory at " + address.getValueAsHexString();
+                        " bytes of unreserved memory at " + address.getValueAsHexString()
+                    + "\n This warning can be disabled via Simulator->Options (not recommended)";
         }
     }
 }

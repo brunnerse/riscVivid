@@ -38,6 +38,8 @@ import riscVivid.gui.Preference;
 import riscVivid.gui.internalframes.Updateable;
 import riscVivid.util.BreakpointManager;
 
+import riscVivid.gui.GUI_CONST;
+
 //TODO: add popup menu
 @SuppressWarnings("serial")
 public class TextNumberingPanel extends JPanel
@@ -185,7 +187,7 @@ public class TextNumberingPanel extends JPanel
 
     public Color getBreakpointColor()
     {
-        return Color.red.darker();
+        return Color.red;
     }
     
     public Color getCurrentLineForeground()
@@ -271,7 +273,7 @@ public class TextNumberingPanel extends JPanel
             {
                 int lineNumber = getLineNumber(rowStartOffset);
                 if (bm.isBreakpoint(lineNumber)) {
-                    int diameter = (int)(fontMetrics.getMaxAscent()*1.25);
+                    int diameter = (int)(fontMetrics.getMaxAscent()*1.3);
                     g.setColor(getBreakpointColor());
                     g.fillOval(getSize().width - insets.right - diameter, 
                             getOffsetY(rowStartOffset, fontMetrics) - diameter*3/4, diameter, diameter);
@@ -290,18 +292,33 @@ public class TextNumberingPanel extends JPanel
                 int stringWidth = fontMetrics.stringWidth(lineNumberText);
                 int x = getOffsetX(availableWidth, stringWidth) + insets.left;
                 int y = getOffsetY(rowStartOffset, fontMetrics);
-                g.drawString(lineNumberText, x, y);
-                
+
                 if (lineNumber == lineStoppedOn && drawStoppedOnLine) {
-                    g.setColor(Color.darkGray);
+                    int diameter = (int)(fontMetrics.getMaxAscent()*1.3);
+                    g.setColor(GUI_CONST.WB_COLOR);
+                    g.fillOval(getSize().width - insets.right - (int)(diameter*1.7),
+                            getOffsetY(rowStartOffset, fontMetrics) - diameter*3/4, diameter*3, diameter);
+                    // Redraw breakpoint symbol if it is one so it overlays and is orange
+                    if (bm.isBreakpoint(lineNumber)) {
+                        g.setColor(Color.orange);
+                        g.fillOval(getSize().width - insets.right - diameter,
+                                getOffsetY(rowStartOffset, fontMetrics) - diameter*3/4, diameter, diameter);
+                    }
+
                     float prevFontSize = g.getFont().getSize();
-                    g.setFont(g.getFont().deriveFont(Font.BOLD).deriveFont(prevFontSize * 1.25f));
-                    g.drawString("WB", insets.left, y);
+                    int fontSize = (int)(prevFontSize * 1.2f);
+                    g.setFont(g.getFont().deriveFont(Font.BOLD).deriveFont(fontSize));
+                    g.setColor(Color.black);
+                    g.drawString("WB", getOffsetX(availableWidth, fontMetrics.stringWidth("WB")) + insets.left, y);
+                    // Draw triangle arrow
                     int height = (int)(fontMetrics.getAscent() * 0.8);
                     int rightCoord = getSize().width - 2;
                     int leftCoord = Math.max(rightCoord - 2*height, 2*insets.left + fontMetrics.stringWidth("WB") + 4);
+                    g.setColor(getCurrentLineForeground());
                     g.fillPolygon(new int[] {rightCoord, leftCoord, rightCoord}, new int[]{y,y - height/2, y - height}, 3);
                     g.setFont(g.getFont().deriveFont(Font.PLAIN).deriveFont(prevFontSize));
+                } else {
+                    g.drawString(lineNumberText, x, y);
                 }
                 
                 rowStartOffset = Utilities.getRowEnd(component, rowStartOffset) + 1;
@@ -310,6 +327,11 @@ public class TextNumberingPanel extends JPanel
             {
             }
         }
+    }
+
+    public int getCurrentLine()
+    {
+        return getLineNumber(component.getCaretPosition());
     }
 
     private boolean isCurrentLine(int rowStartOffset)
@@ -362,7 +384,7 @@ public class TextNumberingPanel extends JPanel
     /**
      * @param line the line number (starting with 1, not 0!)
      */
-    private String getLineText(int line) throws BadLocationException {
+    public String getLineText(int line) throws BadLocationException {
         // use line-1, as the component starts line counting at 0
         int lineStartOffset = component.getLineStartOffset(line-1);
         int lineLength = component.getLineEndOffset(line-1) - lineStartOffset;

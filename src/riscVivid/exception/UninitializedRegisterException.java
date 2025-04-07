@@ -12,7 +12,8 @@ public class UninitializedRegisterException extends PipelineException {
      * @param register
      */
     public UninitializedRegisterException(uint8 register, uint32 instrAddress) {
-        super("Reading from uninitialized register " + Registers.instance().getString(((Byte)register.getValue()).intValue()),
+        super("Reading from uninitialized register " + Registers.instance().getString(((Byte)register.getValue()).intValue())
+                + "\n This warning can be disabled via Simulator->Options (not recommended)",
                 instrAddress, false);
         // exception is nonfatal
     }

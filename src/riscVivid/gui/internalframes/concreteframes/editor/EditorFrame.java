@@ -71,6 +71,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     private JButton saveAs;
     private JButton save;
     private JButton clear;
+    private JButton togglebreakpoint;
     private JButton find;
     private JButton enlarge;
     private JButton reduce;
@@ -190,6 +191,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         add(scrollPane, BorderLayout.CENTER);
 
         clear = createButton("New", "Clear All [ALT+C]", KeyEvent.VK_C, "/img/icons/tango/clear.png");
+        togglebreakpoint = createButton("Toggle Breakpoint", "Add/Remove Breakpoint at current line [ALT+B]", KeyEvent.VK_B, "/img/icons/tango/breakpoint.png");
         load = createButton("Open...", "Open Program [CTRL+O]", KeyEvent.VK_O, "/img/icons/tango/load.png");
         addcode = createButton("Add Code...", "Add Code to Programms... [CTRL+I]", KeyEvent.VK_I, "/img/icons/tango/addcode.png");
         save = createButton("Save", "Save current file[CTRL+S]", KeyEvent.VK_S, "/img/icons/tango/save.png");
@@ -212,6 +214,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
         EventCommandLookUp.put(save, new CommandSave());
         EventCommandLookUp.put(saveAs, new CommandSaveAs());
         EventCommandLookUp.put(clear, new CommandNewFile(mf));
+        EventCommandLookUp.put(togglebreakpoint, new CommandToggleBreakpoint(tln));
 //        EventCommandLookUp.put(undo, undoCommand);   // this is done in setUndoManager()
 //        EventCommandLookUp.put(redo, redoCommand);
         EventCommandLookUp.put(enlarge, new CommandChangeFontSize(+1));
@@ -221,7 +224,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
         JToolBar toolBar = new JToolBar("Editor toolbar");
 
-        for (JButton j : new JButton[]{clear, load, addcode, save, saveAs, assem, loadandassem, undo, redo,
+        for (JButton j : new JButton[]{clear, load, addcode, save, saveAs, assem, loadandassem, togglebreakpoint, undo, redo,
                 reduce, enlarge, find, reformat})
         {
             j.addActionListener(this);
@@ -248,7 +251,7 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
     	/* Don't change button size as it can yield weird looking results
     	Font buttonFont = f.deriveFont((float)f.getSize());
     	for (Component c : new Component[] {assem, load, loadandassem, addcode, 
-    			save, clear, undo, redo, enlarge, reduce}) {
+    			save, clear, togglebreakpoint, undo, redo, enlarge, reduce}) {
         	c.setFont(buttonFont);
     	}
     	*/
@@ -377,18 +380,9 @@ public final class EditorFrame extends OpenDLXSimInternalFrame implements Action
 
     public void validateButtons(OpenDLXSimState currentState)
     {
-        if (currentState == OpenDLXSimState.RUNNING)
-        {
-            for (JButton j : new JButton[] {clear, load, addcode, save, saveAs, assem, loadandassem, undo, redo,
-                    reduce, enlarge, find, reformat})
-                j.setEnabled(false);
-        }
-        else
-        {
-            for (JButton j : new JButton[] {clear, load, addcode, save, saveAs, assem, loadandassem, undo, redo,
-                    reduce, enlarge, find, reformat})
-                j.setEnabled(true);
-        }
+        for (JButton j : new JButton[] {clear, load, addcode, save, saveAs, assem, loadandassem, undo, redo,
+                reduce, enlarge, find, reformat})
+            j.setEnabled(currentState != OpenDLXSimState.RUNNING);
         // update the TextNumberingPanel if the Simulator State changes
         tln.update();
     }
