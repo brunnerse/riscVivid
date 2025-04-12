@@ -206,20 +206,6 @@ public class Instructions {
 					"and[AND] rd,rs,rt/imm: do a bitwise AND of rs and rt/imm and save result in rd");
 			add("andi", new Instruction(OPCODE_imm, 0x7), ParseType.ITYPE,
 					"andi[AND] rd,rs,imm: do a bitwise AND of rs and imm and save result in rd");
-			
-			add("amoswap", new Instruction(OPCODE_atomic, 0x2,  0x080), ParseType.ATOMIC,
-					"amoswap[Atomic Swap] rd, rs2, (rs1)");
-			add("amoadd", new Instruction(OPCODE_atomic, 0x2,  0x000), ParseType.ATOMIC,
-					"amoadd[Atomic Add] rd, rs2, (rs1)");
-			add("amoxor", new Instruction(OPCODE_atomic, 0x2,  0x200), ParseType.ATOMIC,
-					"amoxor[Atomic Exclusive Or] rd, rs2, (rs1)");
-			
-			
-			add("amoand", new Instruction(OPCODE_atomic, 0x2,  0x600), ParseType.ATOMIC,
-					"amoand[Atomic And] rd, rs2, (rs1)");
-			add("amoor", new Instruction(OPCODE_atomic, 0x2,  0x400), ParseType.ATOMIC,
-					"amoor[Atomic Or] rd, rs2, (rs1)");
-			
 			add("fence", new Instruction(OPCODE_FENCE, 0x0), ParseType.NOARGS,
 					"");
 			add("fence.i", new Instruction(OPCODE_FENCE, 0x1), ParseType.NOARGS,
@@ -277,7 +263,7 @@ public class Instructions {
 					"");
 			add("remu", new Instruction(OPCODE_reg, 0x7, 0x020), ParseType.RTYPE,
 					"");
-// RV32M
+// RV64M
 /*
 			add("mulw", new Instruction(OPCODE_regW, 0x0, 0x020), ParseType.RTYPE,
 					"");
@@ -289,6 +275,55 @@ public class Instructions {
 					"");
 			add("remuw", new Instruction(OPCODE_regW, 0x7, 0x020), ParseType.RTYPE,
 					"");
+*/
+// RV32A
+			add("lr", new Instruction(OPCODE_atomic, 0x2, 0x100), ParseType.ATOMIC,
+					"lr[Load Reserved] lr rd, (rs1)");
+			add("sc", new Instruction(OPCODE_atomic, 0x2, 0x180), ParseType.ATOMIC,
+					"sc[Store Conditional] sc rd, rs2, (rs1)");
+			add("amoswap", new Instruction(OPCODE_atomic, 0x2,  0x080), ParseType.ATOMIC,
+					"amoswap[Atomic Swap] rd, rs2, (rs1)");
+			add("amoadd", new Instruction(OPCODE_atomic, 0x2,  0x000), ParseType.ATOMIC,
+					"amoadd[Atomic Add] rd, rs2, (rs1)");
+			add("amoxor", new Instruction(OPCODE_atomic, 0x2,  0x200), ParseType.ATOMIC,
+					"amoxor[Atomic Exclusive Or] rd, rs2, (rs1)");
+			add("amoand", new Instruction(OPCODE_atomic, 0x2,  0x600), ParseType.ATOMIC,
+					"amoand[Atomic And] rd, rs2, (rs1)");
+			add("amoor", new Instruction(OPCODE_atomic, 0x2,  0x400), ParseType.ATOMIC,
+					"amoor[Atomic Or] rd, rs2, (rs1)");
+			add("amomin", new Instruction(OPCODE_atomic, 0x2,  0x800), ParseType.ATOMIC,
+					"amomin[Atomic Min] rd, rs2, (rs1)");
+			add("amomax", new Instruction(OPCODE_atomic, 0x2,  0xa00), ParseType.ATOMIC,
+					"amomax[Atomic Max] rd, rs2, (rs1)");
+			add("amominu", new Instruction(OPCODE_atomic, 0x2,  0xc00), ParseType.ATOMIC,
+					"amominu[Atomic Min Unsigned] rd, rs2, (rs1)");
+			add("amomaxu", new Instruction(OPCODE_atomic, 0x2,  0xe00), ParseType.ATOMIC,
+					"amomaxu[Atomic Max Unsigned] rd, rs2, (rs1)");
+// RV64A
+/*
+			add("lr.d", new Instruction(OPCODE_atomic, 0x3, 0x100), ParseType. ??, // ParseType: Like lw with implicit offset 0
+					"lr.d[Load Reserved Double] lr rd, (rs1)");
+			add("sc.d", new Instruction(OPCODE_atomic, 0x3, 0x180), ParseType.ATOMIC,
+					"sc.d[Store Conditional Double] sc rd, rs2, (rs1)");
+
+			add("amoswap.d", new Instruction(OPCODE_atomic, 0x3,  0x080), ParseType.ATOMIC,
+					"amoswap.d[Atomic Swap Double] rd, rs2, (rs1)");
+			add("amoadd.d", new Instruction(OPCODE_atomic, 0x3,  0x000), ParseType.ATOMIC,
+					"amoadd.d[Atomic Add Double] rd, rs2, (rs1)");
+			add("amoxor.d", new Instruction(OPCODE_atomic, 0x3,  0x200), ParseType.ATOMIC,
+					"amoxor.d[Atomic Exclusive Or Double] rd, rs2, (rs1)");
+			add("amoand.d", new Instruction(OPCODE_atomic, 0x3,  0x600), ParseType.ATOMIC,
+					"amoand.d[Atomic And Double] rd, rs2, (rs1)");
+			add("amoor.d", new Instruction(OPCODE_atomic, 0x3,  0x400), ParseType.ATOMIC,
+					"amoor.d[Atomic Or Double] rd, rs2, (rs1)");
+			add("amomin.d", new Instruction(OPCODE_atomic, 0x3,  0x800), ParseType.ATOMIC,
+					"amomin.d[Atomic Min Double] rd, rs2, (rs1)");
+			add("amomax.d", new Instruction(OPCODE_atomic, 0x3,  0xa00), ParseType.ATOMIC,
+					"amomax.d[Atomic Max Double] rd, rs2, (rs1)");
+			add("amominu.d", new Instruction(OPCODE_atomic, 0x3,  0xc00), ParseType.ATOMIC,
+					"amominu.d[Atomic Min Unsigned Double] rd, rs2, (rs1)");
+			add("amomaxu.d", new Instruction(OPCODE_atomic, 0x3,  0xe00), ParseType.ATOMIC,
+					"amomaxu.d[Atomic Max Unsigned Double] rd, rs2, (rs1)");
 */
 
 		} catch (InstructionException e) {

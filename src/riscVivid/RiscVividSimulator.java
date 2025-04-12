@@ -447,7 +447,7 @@ public class RiscVividSimulator
         {
             // in case the execute determines that an instruction requires to
         	// forward a value from a load that is the direct predecessor
-            // the a bubble needs to be inserted, since no forwarding is 
+            // then a bubble needs to be inserted, since no forwarding is
         	// possible in the load delay slot
             if (eod.getStall()[PipelineConstants.FETCH_STAGE]
             	&& eod.getStall()[PipelineConstants.DECODE_STAGE]

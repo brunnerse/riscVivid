@@ -26,10 +26,7 @@ import java.util.Queue;
 import org.apache.log4j.Logger;
 
 import riscVivid.datatypes.*;
-import riscVivid.exception.MemoryException;
-import riscVivid.exception.MemoryStageException;
-import riscVivid.exception.PipelineException;
-import riscVivid.exception.UnreservedMemoryAccessException;
+import riscVivid.exception.*;
 import riscVivid.gui.Preference;
 import riscVivid.memory.DataMemory;
 import riscVivid.util.Statistics;
@@ -52,7 +49,7 @@ public class Memory
 		execute_memory_latch = executeMemoryLatch;
 	}
 
-	public MemoryOutputData doCycle() throws MemoryStageException, MemoryException
+	public MemoryOutputData doCycle() throws MemoryStageException, MemoryException, UnknownInstructionException
 	{
 		ExecuteMemoryData emd = execute_memory_latch.element();
 		uint32[] alu_out = emd.getAluOut();
@@ -101,7 +98,49 @@ public class Memory
 					stat.countMemRead();
 				}
 				// else stall
-			} else if (inst.getStore()) {
+			} 
+
+			// If atomic instruction, execute atomic operation here
+			if (inst.getOpNormal() == OpcodeNORMAL.SPECIAL) {
+				switch(inst.getOpSpecial()) {
+					case AMOSWAP:
+						// sv is already correct
+						break;
+					case AMOADD:
+						sv = new uint64(sv.getValue() + lv);
+						break;
+					case AMOXOR:
+						sv = new uint64(sv.getValue() ^ lv);
+						break;
+					case AMOAND:
+						sv = new uint64(sv.getValue() & lv);
+						break;
+					case AMOOR:
+						sv = new uint64(sv.getValue() | lv);
+						break;
+					case AMOMIN:
+						sv =  new uint64((sv.getValue() < lv)  ? sv.getValue() : lv);
+						break;
+					case AMOMAX:
+						sv = new uint64(sv.getValue() > lv ? sv.getValue() : lv);
+						break;
+					case AMOMINU:
+						sv = new uint64((0xffffffffL & sv.getValue()) < (0xffffffffL & lv) ? sv.getValue() : lv);
+						break;
+					case AMOMAXU:
+						sv = new uint64((0xffffffffL & sv.getValue()) > (0xffffffffL & lv) ? sv.getValue() : lv);
+						break;
+					case AMOLR:
+					case AMOSC:
+						throw new UnknownInstructionException("Atomic operation Load-Reserved / Store conditional not supported:"
+									+ String.format("Instruction 0x%08x", inst.getInstr()));
+					default:
+						break;
+				}
+
+			}
+			
+			if (inst.getStore()) {
 				if (dmem.getRequestDelay(RequestType.DATA_WR, alu_outLO) == 0) {
 					logger.debug("PC: " + pc.getValueAsHexString()
 							+ " store value: " + sv.getValueAsHexString()

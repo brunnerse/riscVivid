@@ -412,6 +412,71 @@ public class Decode
 			current_inst.setALUPortA(ALUPort.ZERO);
 			current_inst.setALUPortB(ALUPort.ZERO);
 			break;
+		case OPCODE_atomic:
+			opN = (OpcodeNORMAL.SPECIAL);
+			current_inst.setType(InstructionType.RTYPE);
+			current_inst.setReadRs(true);
+			current_inst.setReadRt(true);
+			current_inst.setWriteRd(true);
+			current_inst.setUseImmediate(true);
+			current_inst.setImmType(ImmType.ITYPE);
+			current_inst.setLoad(true);
+			current_inst.setStore(true);
+			current_inst.setALUFunction(ALUFunction.ADD);
+			current_inst.setALUPortA(ALUPort.RS);
+			current_inst.setALUPortB(ALUPort.ZERO);
+
+			switch (current_inst.getFunct3()) {
+				case 0x2:
+					current_inst.setMemoryWidth(MemoryWidth.WORD);
+					break;
+				case 0x3:
+					current_inst.setMemoryWidth(MemoryWidth.DWORD);
+					break;
+				default:
+					throw new UnknownInstructionException("Unknown funct3 in atomic instruction: "
+							+ current_inst.getFunct12());
+			}
+
+			switch (current_inst.getFunct12() >> 7) { // Only the 5 upper bits matter
+				case 0x2:
+					opS = OpcodeSPECIAL.AMOLR;
+					break;
+				case 0x3:
+					opS = OpcodeSPECIAL.AMOSC;
+					break;
+				case 0x1:
+					opS = OpcodeSPECIAL.AMOSWAP;
+					break;
+				case 0x0:
+					opS = OpcodeSPECIAL.AMOADD;
+					break;
+				case 0x4:
+					opS = OpcodeSPECIAL.AMOXOR;
+					break;
+				case 0xc:
+					opS = OpcodeSPECIAL.AMOAND;
+					break;
+				case 0x8:
+					opS = OpcodeSPECIAL.AMOOR;
+					break;
+				case 0x10:
+					opS = OpcodeSPECIAL.AMOMIN;
+					break;
+				case 0x14:
+					opS = OpcodeSPECIAL.AMOMAX;
+					break;
+				case 0x18:
+					opS = OpcodeSPECIAL.AMOMINU;
+					break;
+				case 0x1c:
+					opS = OpcodeSPECIAL.AMOMAXU;
+					break;
+				default:
+					throw new UnknownInstructionException("Unknown funct12 in atomic instruction: "
+						+ current_inst.getFunct3());
+			}
+			break;
 
 		case OPCODE_system:
 			if (current_inst.getFunct3()==0 && current_inst.getFunct12()==0) {

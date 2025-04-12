@@ -336,7 +336,8 @@ public class Parser {
 
 
 	/**
-	 * e.g. sub r1,r2,r3
+	 * amoadd rd, rs2, (rs1)
+	 * lr rd, (rs1)
 	 *
 	 * @param tokens
 	 * @return
@@ -349,78 +350,25 @@ public class Parser {
 		try {
 			instr.setRd(expect_reg(tokens[i++]));
 			expect(tokens[i++], ",");
-			instr.setRs(expect_reg(tokens[i++]));
-			expect(tokens[i++], ",");
+			if (!instr.toMnemonic().equals("li")) {
+				instr.setRt(expect_reg(tokens[i++]));
+				expect(tokens[i++], ",");
+			}
 			if (!tokens[i].getString().equals("(")) {
-			        Integer imm = Integer.decode(tokens[i].getString());
-			        if (imm == null)
+				Integer imm = Integer.decode(tokens[i].getString());
+				if (imm == null)
 					throw new ParserException(NOT_A_NUMBER, tokens[i]);
-			        if (imm != 0)
-			                throw new InstructionException("Address offset for atomic instructions must be 0");
-			        i++;
+				if (imm != 0)
+					throw new InstructionException("Address offset for atomic instructions must be 0");
+				i++;
 			}
 			expect(tokens[i++], "(");
-			instr.setRt(expect_reg(tokens[i++]));
+			instr.setRs(expect_reg(tokens[i++]));
 			expect(tokens[i++], ")");
+
 			if (i < tokens.length)
 				throw new ParserException(UNEXPECTED_TRASH, tokens[i]);
 
-            if (instr.toMnemonic().matches("amoor|amoand"))
-				throw new ParserException("RiscVivid does not support this atomic instruction", tokens[0]); 
-            if (instr.rd() == instr.rs() || instr.rd() == instr.rt() || instr.rs() == instr.rt())
-				throw new ParserException("RiscVivid cannot handle atomic instructions where the same register occurs twice", tokens[0]); 
-            if (instr.rd() == 0 || instr.rs() == 0)
-				throw new ParserException("RiscVivid cannot handle atomic instructions with the register x0", tokens[0]); 
-
-			// Replace the atomic instruction with equivalent instructions
-			List<Instruction> instructions = new ArrayList<Instruction>();
-			// first: lw instruction to store current val in rd
-            Instruction instr_new = Instructions.instance().getInstruction("lw").clone();
-            //System.out.println("Found amo instruction: " + instr.toString());
-            //System.out.printf("rd: %d, rt: %d, rs: %d\n", instr.rd(), instr.rt(), instr.rs());
-			instr_new.setRd(instr.rd());
-			instr_new.setImmI(0);
-			instr_new.setRs(instr.rt());
-			instructions.add(instr_new);
-
-			// second: perform computation (not necessary for amoswap)
-            if (instr.toMnemonic().matches("amoxor|amoadd")) {
-            	if (instr.toMnemonic().equals("amoxor"))
-					instr_new = Instructions.instance().getInstruction("xor").clone();
-				else
-					instr_new = Instructions.instance().getInstruction("add").clone();
-				instr_new.setRd(instr.rs());
-				instr_new.setRs(instr.rs());
-				instr_new.setRt(instr.rd());
-				instr_new.setRegNotImm(true);
-				instructions.add(instr_new);
-			}
-			// third: sw instruction to store the computed value
-			instr_new = Instructions.instance().getInstruction("sw").clone();
-			instr_new.setRt(instr.rs());
-			instr_new.setImmS(0);
-			instr_new.setRs(instr.rt());
-			instructions.add(instr_new);
-			// fourth: restore old value in register by performing inverse instruction
-			if (instr.toMnemonic().matches("amoxor|amoadd")) {
-				if (instr.toMnemonic().equals("amoxor"))
-					instr_new = Instructions.instance().getInstruction("xor").clone();
-				else
-					instr_new = Instructions.instance().getInstruction("sub").clone();
-				instr_new.setRd(instr.rs());
-				instr_new.setRs(instr.rs());
-				instr_new.setRt(instr.rd());
-				instr_new.setRegNotImm(true);
-				instructions.add(instr_new);
-			}
-			// Write the partial instructions into memory (apart from the last one, which is written in parse())
-			// Remove last partial instruction from list and set instr to it
-			instr = instructions.remove(instructions.size()-1);
-			for (Instruction part_instr : instructions){
-				memory_.writeWord(segmentPointer_.get(), part_instr.instrWord());
-				segmentPointer_.add(4);
-				updateMemorySegmentEnd();
-			}
 			return instr.instrWord();
 		} catch (ArrayIndexOutOfBoundsException ex) {
 			throw new ParserException(INCOMPLETE_INSTRUCTION, tokens[0]);
@@ -475,7 +423,7 @@ public class Parser {
 		try {
 		    instr.setRd(expect_reg(tokens[i++]));
 		    expect(tokens[i++], ",");
-			switch (tokens[0].getString()) {
+			switch (tokens[0].getString().toLowerCase()) {
 				case "mv":
 					Integer value = Registers.instance().getInteger(tokens[i].getString());
 					if (value == null)

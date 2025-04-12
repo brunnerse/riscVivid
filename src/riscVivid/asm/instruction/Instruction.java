@@ -123,8 +123,9 @@ public class Instruction {
 			case OPCODE_regW:
 			case OPCODE_atomic:
 				return (iw & 0xfe00707f); // opcode, funct3 and funct7
+			default:
+				return (iw & 0xfff0707f); // opcode, funct3 and funct12
 		}
-		return (iw & 0xfff0707f); // opcode, funct3 and funct12
 	}
 
 	// ================* instrWord *================
@@ -333,10 +334,10 @@ public class Instruction {
 				strBuf.append(' ');
 				strBuf.append(rdStr());
 				strBuf.append(',');
-				strBuf.append(rsStr());
-				strBuf.append(", (");
 				strBuf.append(rtStr());
-				strBuf.append(",)");
+				strBuf.append(",0(");
+				strBuf.append(rsStr());
+				strBuf.append(")");
 				break;
 			case OPCODE_imm:
 			case OPCODE_immW:
