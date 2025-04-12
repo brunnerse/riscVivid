@@ -57,6 +57,8 @@ public class BreakpointManager implements ItemSelectable {
         try {
             t.setReader(new BufferedReader(new StringReader(line)));
             Token[] tokens = t.readLine();
+            if (tokens == null)
+                return false;
             int idx = 0;
             while (idx < tokens.length) {
                 if (tokens[idx].getTokenType() == TokenType.Mnemonic)

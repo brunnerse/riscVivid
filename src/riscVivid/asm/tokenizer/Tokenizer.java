@@ -121,7 +121,7 @@ public class Tokenizer {
 			}
 		}));
 		//directive
-		startState.addTransition(new FunctionTransition(directiveState, new Character('.'),
+		startState.addTransition(new FunctionTransition(directiveState, Character.valueOf('.'),
 				new Procedure() {
 					public void procedure(Object o) {
 						startToken();
@@ -170,7 +170,7 @@ public class Tokenizer {
 			}
 		}));
 		//octal constant
-		startState.addTransition(new FunctionTransition(hexOctalConstantState, new Character('0'),
+		startState.addTransition(new FunctionTransition(hexOctalConstantState, Character.valueOf('0'),
 				new Procedure() {
 					public void procedure(Object o) {
 						startToken();
@@ -179,7 +179,7 @@ public class Tokenizer {
 					}
 				}));
 		//string literal
-		startState.addTransition(new FunctionTransition(stringLiteralState, new Character('"'),
+		startState.addTransition(new FunctionTransition(stringLiteralState, Character.valueOf('"'),
 				new Procedure() {
 					public void procedure(Object o) {
 						startToken();
@@ -187,7 +187,7 @@ public class Tokenizer {
 					}
 				}));
 		//character literal
-		startState.addTransition(new FunctionTransition(characterLiteralState, new Character('\''),
+		startState.addTransition(new FunctionTransition(characterLiteralState, Character.valueOf('\''),
 				new Procedure() {
 					public void procedure(Object o) {
 						startToken();
@@ -202,7 +202,7 @@ public class Tokenizer {
 			}
 		}));
 		//label
-		identifierState.addTransition(new FunctionTransition(labelState, new Character(':'),
+		identifierState.addTransition(new FunctionTransition(labelState, Character.valueOf(':'),
 				new Procedure() {
 					public void procedure(Object o) {
 						setTokenType(TokenType.Label);
@@ -226,7 +226,7 @@ public class Tokenizer {
 		}));
 		//octal constant
 		signedConstantState.addTransition(new FunctionTransition(hexOctalConstantState, 
-			new Character('0'), new Procedure() {
+			Character.valueOf('0'), new Procedure() {
 			public void procedure(Object o) {
 				appendChar();
 			}
@@ -267,8 +267,8 @@ public class Tokenizer {
 			}
 		}));
 		// ================* stringLiteralState *================
-		stringLiteralState.addTransition(new Transition(stringEndState, new Character('"')));
-		stringLiteralState.addTransition(new Transition(stringBackslashState, new Character('\\')));
+		stringLiteralState.addTransition(new Transition(stringEndState, Character.valueOf('"')));
+		stringLiteralState.addTransition(new Transition(stringBackslashState, Character.valueOf('\\')));
 		char[] negChars = { '"', '\\' };
 		stringLiteralState.addTransition(new FunctionTransition(stringLiteralState,
 				new InverseCharacterList(negChars), new Procedure() {
@@ -277,7 +277,7 @@ public class Tokenizer {
 					}
 				}));
 		stringBackslashState.addTransition(new FunctionTransition(stringLiteralState,
-				new Character('"'), new Procedure() {
+				Character.valueOf('"'), new Procedure() {
 					public void procedure(Object o) {
 						appendChar('"');
 					}
@@ -298,12 +298,12 @@ public class Tokenizer {
 			}
 		 }));
 		 characterLiteralState.addTransition(new FunctionTransition(characterBackslashState,
-				 new Character('\\'), new Procedure() {
+				 Character.valueOf('\\'), new Procedure() {
 		 	public void procedure(Object o) {
 		 		appendChar();
 			}
 		 }));
-		 characterExpectingEndState.addTransition(new Transition(characterEndState, new Character('\'')));
+		 characterExpectingEndState.addTransition(new Transition(characterEndState, Character.valueOf('\'')));
 		 characterBackslashState.addTransition(new FunctionTransition(characterExpectingEndState,
 				 new CharacterList(escapedChars), new Procedure() {
 			 public void procedure(Object o) {
@@ -311,13 +311,13 @@ public class Tokenizer {
 			 }
 		 }));
 		 characterBackslashState.addTransition(new FunctionTransition(characterExpectingEndState,
-				 new Character('0'), new Procedure() {
+				 Character.valueOf('0'), new Procedure() {
 			 public void procedure(Object o) {
 				 appendChar();
 			 }
 		 }));
 		 characterBackslashState.addTransition(new Transition(characterBackslashAfter1State,
-				 new Character('x')));
+				 Character.valueOf('x')));
 		 characterBackslashAfter1State.addTransition(new FunctionTransition(characterBackslashAfter2State,
 				new CharacterList(Properties.T_HEX_DIGIT), new Procedure() {
 			 public void procedure(Object o) {
@@ -331,7 +331,7 @@ public class Tokenizer {
 				 appendChar();
 			 }
 		 }));
-		 characterBackslashAfter2State.addTransition(new Transition(characterEndState, new Character('\'')));
+		 characterBackslashAfter2State.addTransition(new Transition(characterEndState, Character.valueOf('\'')));
 	 }
 
 	public void setReader(BufferedReader reader) throws IOException {
@@ -374,13 +374,13 @@ public class Tokenizer {
 		token_ = null;
 
 		lastState = currentState;
-		currentState = currentState.doTransition(new Character((char) char_));
+		currentState = currentState.doTransition(Character.valueOf((char) char_));
 		if(currentState != null)
 			char_ = reader_.next();
 
 		while (currentState != null && char_ != -1) {
 			lastState = currentState;
-			currentState = currentState.doTransition(new Character((char) char_));
+			currentState = currentState.doTransition(Character.valueOf((char) char_));
 			if (currentState == null)
 				break;
 			char_ = reader_.next();

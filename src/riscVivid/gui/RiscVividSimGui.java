@@ -36,6 +36,7 @@ public class RiscVividSimGui
     {
         //set the Metal LookAndFeel as default if it exists, otherwise use the system default
         String lafClassName = UIManager.getLookAndFeel().getClass().getCanonicalName();
+
         for (UIManager.LookAndFeelInfo lafInfo : UIManager.getInstalledLookAndFeels()) {
             if (lafInfo.getClassName().contains("Metal")) {
                 lafClassName = lafInfo.getClassName();

@@ -28,7 +28,7 @@ public class CharacterList implements Iterable<Character> {
 
 	public CharacterList(char c) {
 		list_ = new Vector<Character>();
-		list_.add(new Character(c));
+		list_.add(Character.valueOf(c));
 	}
 
 	public CharacterList(Character c) {
@@ -39,14 +39,14 @@ public class CharacterList implements Iterable<Character> {
 	public CharacterList(char chars[]) {
 		list_ = new Vector<Character>();
 		for (char c : chars) {
-			list_.add(new Character(c));
+			list_.add(Character.valueOf(c));
 		}
 	}
 
 	public CharacterList(Character chars[]) {
 		list_ = new Vector<Character>();
 		for (char c : chars) {
-			list_.add(new Character(c));
+			list_.add(Character.valueOf(c));
 		}
 	}
 
